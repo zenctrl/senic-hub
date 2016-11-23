@@ -9,3 +9,10 @@ The provisioning of the build environment is semi-automatic (vagrant using `debi
 Then follow the installation process until the machine reboots. The resulting `.vdi` is then used as base for further configuration.
 
 The system has been configured with users `root` and `lede` both with the password `senic<3lede`.
+
+Vagrant
+-------
+
+after deleting the bundled `curl` (`rm /opt/vagrant/embedded/bin/curl`) vagrant works just fine :)
+
+just do `vagrant up`...

@@ -1,0 +1,19 @@
+---
+- name: install build dependencies
+  apt:
+    name: "{{item}}"
+    state: installed
+  become: true
+  with_items:
+    - git-core
+    - build-essential
+    - libssl-dev
+    - libncurses5-dev
+    - unzip
+    - gawk
+
+- name: create lede user
+  become: true
+  user:
+    name: lede
+    createhome: yes

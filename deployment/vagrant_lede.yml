@@ -1,0 +1,6 @@
+---
+- hosts: all
+  # pre_tasks:
+  roles:
+    - { role: lede-build, tags: lede}
+  #tasks:
