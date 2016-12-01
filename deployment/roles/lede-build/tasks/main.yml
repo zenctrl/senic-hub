@@ -11,13 +11,95 @@
     - libncurses5-dev
     - unzip
     - gawk
+    - vim
 
 - name: create lede user
   become: true
   user:
     name: lede
     createhome: yes
+    shell: /bin/bash
 
+- name: configure shell
+  become: true
+  become_user: lede
+  copy:
+    dest: /home/lede/.gitconfig
+    owner: lede
+    mode: "0700"
+    content: |
+      [user]
+      name = Tom Lazar
+      email = tom@senic.com
+
+      [branch]
+      autosetupmerge = true
+      autosetuprebase = remote
+
+      [push]
+      default = current
+
+      [core]
+      quotepath = false
+      pager = "less -RciqMSj5"
+
+      [color]
+      diff = auto
+      branch = auto
+      status = auto
+
+      [alias]
+      m = merge --no-ff
+      st = status
+      ai = add -i
+      ap = add -p
+      d = diff
+      r = remote
+      dc = diff --cached
+      ci = commit -v
+      cia = commit -v -a
+      co = checkout
+      cp = cherry-pick
+      l = log
+      ll = log -p
+      lt = log trunk..
+      llt = log -p trunk..
+      lm = log master..
+      llm = log -p master..
+      b = branch
+      sm = submodule
+      reha = reset --hard
+      feta = fetch --all
+      lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+      lga = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative --branches --remotes
+      lol = log --graph --decorate --pretty=oneline --abbrev-commit
+      lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
+      pure = pull --rebase
+
+- name: configure shell
+  become: true
+  become_user: lede
+  copy:
+    dest: /home/lede/.bash_aliases
+    owner: lede
+    mode: "0700"
+    content: |
+      alias ll="ls -la"
+      set +o allexport
+      unset MANPATH
+      alias g="git"
+
+      # prompt
+      function parse_git_branch {
+        ref=$(git-symbolic-ref HEAD 2> /dev/null) || return
+        echo "("${ref#refs/heads/}")" 
+      }
+
+      export GIT_PS1_SHOWDIRTYSTATE=1
+      export GIT_PS1_SHOWBRANCHREMOTE=1
+      export GIT_PS1_SHOWUPSTREAM='auto'
+      PS1='# \[\e[0;33;33m\]\u@\H\[\033[0;32m\]`__git_ps1` \[\e[0;33;33m\]\w \n\[\e[0m\]# '
+  
 - name: check out sources
   become: true
   become_user: lede
