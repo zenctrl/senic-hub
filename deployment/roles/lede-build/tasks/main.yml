@@ -17,3 +17,10 @@
   user:
     name: lede
     createhome: yes
+
+- name: check out sources
+  become: true
+  become_user: lede
+  git:
+    repo: https://github.com/lede-project/source.git
+    dest: /home/lede/source
