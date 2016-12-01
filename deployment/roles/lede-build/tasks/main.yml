@@ -22,5 +22,5 @@
   become: true
   become_user: lede
   git:
-    repo: https://github.com/lede-project/source.git
-    dest: /home/lede/source
+    repo: https://github.com/openwrt/openwrt.git
+    dest: /home/lede/openwrt
