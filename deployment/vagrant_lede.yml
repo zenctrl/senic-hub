@@ -1,4 +1,7 @@
 ---
+# this is mainly a wrapper playbook to allow provisioning via
+# vagrant, the actual work is done in the roles (which can be
+# applied to other hosts, i.e. cloud instances)
 - hosts: all
   # pre_tasks:
   roles:
