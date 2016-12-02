@@ -11,6 +11,10 @@
     - libncurses5-dev
     - unzip
     - gawk
+    - gettext
+    - zlib1g-dev
+    - python
+    - subversion
     - vim
 
 - name: create lede user
