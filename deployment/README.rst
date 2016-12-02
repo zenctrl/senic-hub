@@ -11,7 +11,7 @@ For example, you can use OSX's 'Internet Sharing' feature to i.e. share the wifi
 This has the added advantage that the board has no direct access to the rest of your network (and vice versa). In this case the board will receive an IP address of `192.168.2.1`` by default, which is also te default value configured in `etc/ploy.conf`.
 
 The first step is to bootstrap the booted board into a state where we can configure it via ansible.
-This is done using a helper tool called `ploy` which is a modular configuration system that (in this case) combines `ansible <>`_ and `fabric <>`_.
+This is done using a helper tool called `ploy` which is a modular configuration system that (in this case) combines `ansible <http://docs.ansible.com/ansible/>`_ and `fabric <http://www.fabfile.org/>`_.
 The `Makefile` installs a local instance of `ploy` and its dependencies by default, so you should run `make` first.
 
 Then you can run `make bootstrap` and watch the show... After a minute or two, the board should reboot and is now ready for action.
