@@ -106,3 +106,20 @@
   git:
     repo: https://github.com/openwrt/openwrt.git
     dest: /home/lede/openwrt
+
+- name: initialise feeds
+  become: true
+  become_user: lede
+  command: "./scripts/feeds update -a"
+  args:
+    chdir: "/home/lede/openwrt"
+    creates: "/home/lede/openwrt/feeds/targets.index"
+    
+- name: install feeds
+  become: true
+  become_user: lede
+  command: "./scripts/feeds install -a"
+  args:
+    chdir: "/home/lede/openwrt"
+    creates: "/home/lede/openwrt/feeds/targets.index"
+    
