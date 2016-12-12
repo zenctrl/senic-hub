@@ -21,6 +21,7 @@ setup(name=name,
     package_dir={name: 'senic/nuimo_hub'},
     package_data={
         name: [
+            '.coveragerc',
             'tests/*.py',
             'tests/data/*.*',
             'views/*.*',
