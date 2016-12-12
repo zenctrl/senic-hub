@@ -1,0 +1,5 @@
+recursive-include senic/nuimo_hub/migrations *.py
+recursive-include senic/nuimo_hub/tests *
+recursive-include senic/nuimo_hub/views *
+global-exclude __pycache__
+global-exclude *.py[co]
