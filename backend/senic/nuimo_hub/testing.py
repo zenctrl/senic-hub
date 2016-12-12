@@ -43,49 +43,6 @@ def config(request):
     return config
 
 
-@fixture(scope='session')
-def connection(models, request):
-    """ Sets up an SQLAlchemy engine and returns a connection
-        to the database.  The connection string used can be overriden
-        via the `PGDATABASE` environment variable. """
-    from .models import db_session, metadata
-    from .utils import create_db_engine
-    engine = create_db_engine(
-        suffix='_test',
-        project_name=project_name(),
-        **settings)
-    try:
-        connection = engine.connect()
-    except OperationalError:
-        # try to create the database...
-        db_url = str(engine.url).replace(engine.url.database, 'template1')
-        e = create_engine(db_url)
-        c = e.connect()
-        c.connection.connection.set_isolation_level(0)
-        c.execute('create database %s' % engine.url.database)
-        c.connection.connection.set_isolation_level(1)
-        c.close()
-        # ...and connect again
-        connection = engine.connect()
-    db_session.registry.clear()
-    db_session.configure(bind=connection)
-    metadata.bind = engine
-    metadata.drop_all(connection.engine)
-    metadata.create_all(connection.engine)
-    return connection
-
-
-@fixture()
-def db_session(config, connection, request):
-    """ Returns a database session object and sets up a transaction
-        savepoint, which will be rolled back after running a test. """
-    trans = connection.begin()          # begin a non-orm transaction
-    request.addfinalizer(trans.rollback)
-    request.addfinalizer(abort)
-    from .models import db_session
-    return db_session()
-
-
 class TestApp(TestAppBase):
 
     def get_json(self, url, params=None, headers=None, *args, **kw):
@@ -100,13 +57,6 @@ def testing():
     """ Returns the `testing` module. """
     from sys import modules
     return modules[__name__]    # `testing.py` has already been imported
-
-
-@fixture(scope='session')
-def models():
-    """ Returns the `models` module. """
-    from . import models
-    return models
 
 
 @fixture(scope='session')

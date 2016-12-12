@@ -59,6 +59,4 @@ def db_setup(**settings):
 
 def main(global_config, **settings):        # pragma: no cover, tests have own app setup
     config = configure(global_config, **settings)
-    db_setup(**settings)
-    commit()
     return config.make_wsgi_app()

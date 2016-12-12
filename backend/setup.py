@@ -21,8 +21,6 @@ setup(name=name,
     package_dir={name: 'senic/nuimo_hub'},
     package_data={
         name: [
-            'migrations/*.py',
-            'migrations/versions/*.py',
             'tests/*.py',
             'tests/data/*.*',
             'views/*.*',
@@ -34,17 +32,12 @@ setup(name=name,
         'setuptools-git-version'
     ],
     install_requires=[
-        'alembic',
         'click',
         'colander',
         'cornice<2.0',
-        'psycopg2',
         'pyramid',
-        'pyramid_tm',
         'pytz',
         'requests',
-        'waitress',
-        'zope.sqlalchemy',
     ],
     extras_require={
         'development': [
@@ -69,6 +62,7 @@ setup(name=name,
             'tox',
             'pyquery',
             'setuptools-git',
+            'waitress',
         ],
     },
     entry_points="""
