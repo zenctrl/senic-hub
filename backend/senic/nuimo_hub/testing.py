@@ -11,7 +11,7 @@ from webtest import TestApp as TestAppBase
 
 
 def project_name():
-    from . import project_name
+    from .config import project_name
     return project_name
 
 
@@ -69,7 +69,7 @@ def views():
 @fixture
 def app(config):
     """ Returns WSGI application wrapped in WebTest's testing interface. """
-    from . import configure
+    from .config import configure
     return configure({}, **config.registry.settings).make_wsgi_app()
 
 

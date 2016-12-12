@@ -1,8 +1,7 @@
 from cornice.service import Service
 from pkg_resources import get_distribution
 
-from .. import path
-from ..utils import get_logger
+from ..config import path, get_logger
 
 
 log = get_logger(__name__)

@@ -1,0 +1,4 @@
+[run]
+omit = 
+  senic/nuimo_hub/tests/*
+  senic/nuimo_hub/testing.py
