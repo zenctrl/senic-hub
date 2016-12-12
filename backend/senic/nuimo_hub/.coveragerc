@@ -2,3 +2,6 @@
 omit = 
   senic/nuimo_hub/tests/*
   senic/nuimo_hub/testing.py
+
+[report]
+fail_under = 100
