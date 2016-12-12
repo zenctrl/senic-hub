@@ -15,7 +15,7 @@ venv/bin/pserve venv/bin/py.test venv/bin/devpi: venv/bin/python venv/bin/pip se
 	@touch $@
 
 upload: setup.py venv/bin/py.test venv/bin/devpi
-	PATH=${PWD}/venv/bin:${PATH} venv/bin/devpi upload --no-vcs
+	PATH=${PWD}/venv/bin:${PATH} venv/bin/devpi upload --no-vcs --with-docs
 
 initdb: name = $(shell venv/bin/python setup.py --name)
 initdb: venv/bin/python venv/bin/alembic
@@ -23,7 +23,7 @@ initdb: venv/bin/python venv/bin/alembic
 	venv/bin/alembic upgrade head
 
 docs:
-	$(MAKE) -C docs/
+	$(MAKE) -C ../docs/
 
 clean:
 	git clean -fXd
