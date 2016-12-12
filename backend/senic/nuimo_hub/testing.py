@@ -4,9 +4,6 @@ from pyramid.testing import DummyRequest
 from pyramid.testing import setUp, tearDown
 from pytest import fixture
 from os import path
-from sqlalchemy import create_engine
-from sqlalchemy.exc import OperationalError
-from transaction import abort
 from webtest import TestApp as TestAppBase
 
 
@@ -29,7 +26,6 @@ def asset_path(*parts):
 
 # settings for test configuration
 settings = {
-    'signing_key': 's3crit',
     'testing': True,
     'debug': False,
 }
