@@ -8,6 +8,8 @@
     - python3.5
     - wpasupplicant
     - wireless-tools
+    - supervisor
+    - python3-venv
 
 - name: configure wpasupplicant
   template:
@@ -36,10 +38,3 @@
     - git-core
     - vim
     - screen
-
-- name: create application user
-  become: true
-  user:
-    name: nuimo
-    createhome: yes
-    shell: /bin/sh
