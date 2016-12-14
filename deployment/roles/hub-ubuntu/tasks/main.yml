@@ -1,0 +1,45 @@
+---
+- name: install runtime dependencies
+  apt:
+    name: "{{item}}"
+    state: installed
+  become: true
+  with_items:
+    - python3.5
+    - wpasupplicant
+    - wireless-tools
+
+- name: configure wpasupplicant
+  template:
+    src: wpa_supplicant.conf
+    dest: /etc/wpa_supplicant/wpa_supplicant.conf
+    owner: root
+    mode: "0644"
+  notify: restart wlan
+  tags: wlan
+
+- name: configure network interfaces
+  template:
+    src: interfaces
+    dest: /etc/network/interfaces
+    owner: root
+    mode: "0644"
+  notify: restart wlan
+  tags: wlan
+
+- name: install build and debug dependencies
+  apt:
+    name: "{{item}}"
+    state: installed
+  become: true
+  with_items:
+    - git-core
+    - vim
+    - screen
+
+- name: create application user
+  become: true
+  user:
+    name: nuimo
+    createhome: yes
+    shell: /bin/sh

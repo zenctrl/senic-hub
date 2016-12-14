@@ -1,0 +1,5 @@
+---
+- name: restart wlan
+  raw: ifdown wlan0 && ifup wlan0
+  args:
+    executable: /bin/bash
