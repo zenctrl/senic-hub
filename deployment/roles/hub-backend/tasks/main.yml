@@ -66,7 +66,8 @@
       simplejson==3.10.0
       translationstring==1.3
       venusian==1.0
-      WebOb==1.7.0rc2
+      waitress==1.0.1
+      WebOb==1.7.0rcd2
       zope.deprecation==4.2.0
       zope.interface==4.3.3
       senic.nuimo-hub
@@ -76,6 +77,29 @@
     virtualenv: "{{deploy_location}}/venv/"
     requirements: "{{deploy_location}}/requirements.txt"
     extra_args: "--pre --upgrade -i {{devpi_index_url}}"
-  # notify: restart backend
+  notify: restart nuimo_hub
   tags: update_backend
+
+- name: configure supervisor
+  become: yes
+  template:
+    src: supervisor.conf
+    dest: /etc/supervisor/conf.d/nuimo_hub.conf
+    mode: "0644"
+
+- name: configure wsgi
+  become: yes
+  template:
+    src: production.ini
+    dest: "{{deploy_location}}/production.ini"
+    owner: "{{deploy_user}}"
+    group: "{{run_user}}"
+    mode: "0644"
+  notify: restart nuimo_hub
+
+- name: ensure supervisord is running
+  service:
+    name: supervisor
+    state: running
+    enabled: true
 
