@@ -17,15 +17,10 @@ venv/bin/pserve venv/bin/py.test venv/bin/devpi: venv/bin/python venv/bin/pip se
 upload: setup.py venv/bin/py.test venv/bin/devpi
 	PATH=${PWD}/venv/bin:${PATH} venv/bin/devpi upload --no-vcs --with-docs
 
-initdb: name = $(shell venv/bin/python setup.py --name)
-initdb: venv/bin/python venv/bin/alembic
-	@psql -c "" $(name) 2> /dev/null || createdb $(name) -E utf8 -T template0
-	venv/bin/alembic upgrade head
-
 docs:
 	$(MAKE) -C ../docs/
 
 clean:
 	git clean -fXd
 
-.PHONY: initdb clean tests upload
+.PHONY: clean tests upload
