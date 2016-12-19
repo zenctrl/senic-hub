@@ -17,3 +17,25 @@ If you don't already have a GitHub account, create a new one and add your public
 
 Now you are ready to set up your local development environment and join the workflow, just read on!
 
+
+Requirements
+============
+
+You will need a local installation of Python 3.5, i.e. on macOS it is recommended to install a recent version of Python 3.5 using homebrew, i.e. `brew install python3.5`.
+
+With that in place, go into the `application` directory and run `make`::
+
+    # cd application
+    # make
+
+To make sure that the installation succeeded it's a good idea to run the test suite::
+
+    # make tests
+
+The Makefile installed everything into a local virtualenv, so it is most convenient to activate it and then::
+
+    # source venv/bin/activate
+
+If all is well, you can start up a development instance of the application::
+
+    # pserve development.ini
