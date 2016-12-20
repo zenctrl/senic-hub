@@ -7,11 +7,6 @@ from os import path
 from webtest import TestApp as TestAppBase
 
 
-def project_name():
-    from .config import project_name
-    return project_name
-
-
 def as_dict(content, **kw):
     return dict(loads(render('json', content, DummyRequest())), **kw)
 
