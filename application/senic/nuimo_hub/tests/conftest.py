@@ -28,6 +28,8 @@ def asset_path(*parts):
 settings = {
     'testing': True,
     'debug': False,
+    'crypto_settings_datafile': asset_path('testing.yml.aes'),
+    'crypto_settings_keyfile': asset_path('testing.key'),
 }
 
 
@@ -65,8 +67,8 @@ def views():
 @fixture
 def app(config):
     """ Returns WSGI application wrapped in WebTest's testing interface. """
-    from .config import configure
-    return configure({}, **config.registry.settings).make_wsgi_app()
+    from senic.nuimo_hub.config import configure
+    return configure({'__file__': 'testing.ini'}, **config.registry.settings).make_wsgi_app()
 
 
 @fixture

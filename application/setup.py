@@ -41,6 +41,7 @@ setup(
         'pyramid_tm',
         'pytz',
         'requests',
+        'senic.cryptoyaml',
     ],
     extras_require={
         'development': [
