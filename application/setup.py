@@ -71,7 +71,5 @@ setup(name=name,
     entry_points="""
         [paste.app_factory]
         main = senic.nuimo_hub:main
-        [pytest11]
-        backrest = senic.nuimo_hub.testing
     """,
 )

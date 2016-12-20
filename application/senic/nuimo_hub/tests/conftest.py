@@ -16,12 +16,17 @@ def as_dict(content, **kw):
     return dict(loads(render('json', content, DummyRequest())), **kw)
 
 
-def route_url(name, **kwargs):
-    return DummyRequest().route_url(name, **kwargs)
+@fixture
+def route_url():
+
+    def _route_url(name, **kwargs):
+        return DummyRequest().route_url(name, **kwargs)
+
+    return _route_url
 
 
 def asset_path(*parts):
-    return path.abspath(path.join(path.dirname(__file__), 'tests', 'data', *parts))
+    return path.abspath(path.join(path.dirname(__file__), 'data', *parts))
 
 
 # settings for test configuration
@@ -58,7 +63,7 @@ def testing():
 @fixture(scope='session')
 def views():
     """ Returns the `views` module. """
-    from . import views
+    from senic.nuimo_hub import views
     return views
 
 
