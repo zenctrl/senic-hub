@@ -4,7 +4,8 @@ from setuptools import setup
 name = 'senic.nuimo_hub'
 
 
-setup(name=name,
+setup(
+    name=name,
     version_format='{tag}.{commitcount}+{gitsha}',
     url='https://github.com/getsenic/nuimo-hub-app',
     author='Senic GmbH',
