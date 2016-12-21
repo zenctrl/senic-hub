@@ -67,7 +67,7 @@
       translationstring==1.3
       venusian==1.0
       waitress==1.0.1
-      WebOb==1.7.0rcd2
+      WebOb==1.7.0rc2
       zope.deprecation==4.2.0
       zope.interface==4.3.3
       senic.nuimo-hub
