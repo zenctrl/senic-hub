@@ -1,0 +1,21 @@
+---
+# this is mainly a wrapper playbook to allow provisioning via
+# vagrant, the actual work is done in the roles (which can be
+# applied to other hosts, i.e. cloud instances)
+- hosts: all
+  gather_facts: False
+  vars:
+    ansible_python_interpreter: python2.7
+    builduser: ubuntu
+    builduser_email: tom@senic.com
+    builduser_fullname: Tom Lazar
+  pre_tasks:
+    - name: install python2
+      become: true
+      raw: apt install -y python2.7
+    - name: gather facts
+      setup: # aka gather_facts
+      become: true
+  roles:
+    - { role: ubuntu-build, tags: lede}
+  #tasks:
