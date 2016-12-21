@@ -28,3 +28,4 @@ Start here if you want to develop the hub application.
     :maxdepth: 3
 
     bootstrap-dev
+    vagrant

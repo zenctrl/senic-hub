@@ -3,3 +3,4 @@
 /bin/
 /include/
 /.vagrant
+/.vault_password_file
