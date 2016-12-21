@@ -10,6 +10,9 @@
     - wireless-tools
     - supervisor
     - python3-venv
+    - libffi-dev
+    - libssl-dev
+
 
 - name: configure wpasupplicant
   template:
