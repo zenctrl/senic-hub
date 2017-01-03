@@ -43,6 +43,7 @@ setup(
         'pytz',
         'requests',
         'senic.cryptoyaml',
+        'wifi',
     ],
     extras_require={
         'development': [
@@ -74,5 +75,8 @@ setup(
     entry_points="""
         [paste.app_factory]
         main = senic.nuimo_hub:main
+        [console_scripts]
+        scan_wifi = senic.nuimo_hub.commands:scan_wifi
+
     """,
 )
