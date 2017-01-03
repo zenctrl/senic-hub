@@ -18,6 +18,7 @@ setup(
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
     ],
     packages=[name],
+    namespace_packages=['senic'],
     include_package_data=True,
     package_dir={name: 'senic/nuimo_hub'},
     package_data={
