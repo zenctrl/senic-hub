@@ -7,27 +7,29 @@ from os import path
 from webtest import TestApp as TestAppBase
 
 
-def project_name():
-    from .config import project_name
-    return project_name
-
-
 def as_dict(content, **kw):
     return dict(loads(render('json', content, DummyRequest())), **kw)
 
 
-def route_url(name, **kwargs):
-    return DummyRequest().route_url(name, **kwargs)
+@fixture
+def route_url():
+
+    def _route_url(name, **kwargs):
+        return DummyRequest().route_url(name, **kwargs)
+
+    return _route_url
 
 
 def asset_path(*parts):
-    return path.abspath(path.join(path.dirname(__file__), 'tests', 'data', *parts))
+    return path.abspath(path.join(path.dirname(__file__), 'data', *parts))
 
 
 # settings for test configuration
 settings = {
     'testing': True,
     'debug': False,
+    'crypto_settings_datafile': asset_path('testing.yml.aes'),
+    'crypto_settings_keyfile': asset_path('testing.key'),
 }
 
 
@@ -58,15 +60,15 @@ def testing():
 @fixture(scope='session')
 def views():
     """ Returns the `views` module. """
-    from . import views
+    from senic.nuimo_hub import views
     return views
 
 
 @fixture
 def app(config):
     """ Returns WSGI application wrapped in WebTest's testing interface. """
-    from .config import configure
-    return configure({}, **config.registry.settings).make_wsgi_app()
+    from senic.nuimo_hub.config import configure
+    return configure({'__file__': 'testing.ini'}, **config.registry.settings).make_wsgi_app()
 
 
 @fixture

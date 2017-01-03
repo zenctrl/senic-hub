@@ -4,7 +4,8 @@ from setuptools import setup
 name = 'senic.nuimo_hub'
 
 
-setup(name=name,
+setup(
+    name=name,
     version_format='{tag}.{commitcount}+{gitsha}',
     url='https://github.com/getsenic/nuimo-hub-app',
     author='Senic GmbH',
@@ -40,6 +41,7 @@ setup(name=name,
         'pyramid_tm',
         'pytz',
         'requests',
+        'senic.cryptoyaml',
     ],
     extras_require={
         'development': [
@@ -71,7 +73,5 @@ setup(name=name,
     entry_points="""
         [paste.app_factory]
         main = senic.nuimo_hub:main
-        [pytest11]
-        backrest = senic.nuimo_hub.testing
     """,
 )
