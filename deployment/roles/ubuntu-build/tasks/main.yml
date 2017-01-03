@@ -15,6 +15,7 @@
     - python
     - python3
     - python3-dev
+    - python3-flake8
     - python3-pip
     - python3-venv
     - vim
@@ -103,6 +104,8 @@
       set +o allexport
       unset MANPATH
       alias g="git"
+      export LC_ALL=C.UTF-8
+      export LANG=C.UTF-8
 
       # prompt
       function parse_git_branch {
@@ -114,3 +117,36 @@
       export GIT_PS1_SHOWBRANCHREMOTE=1
       export GIT_PS1_SHOWUPSTREAM='auto'
       PS1='# \[\e[0;33;33m\]\u@\H\[\033[0;32m\]`__git_ps1` \[\e[0;33;33m\]\w \n\[\e[0m\]# '
+
+- name: configure vim
+  become: true
+  become_user: "{{builduser}}"
+  file:
+    dest: "/home/{{builduser}}/.vim/bundle"
+    owner: "{{builduser}}"
+    mode: "0700"
+    state: directory
+
+- name: configure vim
+  become: true
+  become_user: "{{builduser}}"
+  copy:
+    src: vimrc
+    dest: "/home/{{builduser}}/.vimrc"
+    owner: "{{builduser}}"
+    mode: "0700"
+
+- name: install vundle from git
+  become: true
+  become_user: "{{builduser}}"
+  git:
+    repo: https://github.com/VundleVim/Vundle.vim.git
+    dest: "/home/{{builduser}}/.vim/bundle/Vundle.vim"
+
+- name: bootstrap vundle
+  become: true
+  become_user: "{{builduser}}"
+  command: vim +PluginInstall +qall
+  tags: foox
+  args:
+    creates: "/home/{{builduser}}/.vim/bundle/nerdtree/LICENCE"
