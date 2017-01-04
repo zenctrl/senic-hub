@@ -96,14 +96,32 @@ let python_highlight_all=1
 autocmd FileType python setlocal foldmethod=syntax
 autocmd FileType python set smarttab expandtab autoindent tabstop=4 shiftwidth=4 softtabstop=4
 au FileType python : iabbrev pdb import pdb; pdb.set_trace()<LEFT>
-let g:pymode_options_max_line_length = 131
 " turn off pymode's linting, since we let syntastic do that already
 let g:pymode_lint = 0
 " same for hynek/vim-python-pep8-indent
 let g:pymode_indent = 0
 " and rope's autocompletion
 let g:pymode_rope = 0
+
+" Disabled 
+" https://github.com/davidhalter/jedi-vim/issues/163#issuecomment-73343003
+let g:jedi#show_call_signatures = 0
     
+" syntastic settings
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+let g:syntastic_aggregate_errors = 1
+let g:syntastic_python_checkers = ['pyflakes', 'flake8']
+" note, that you can set pep8 options in tox.ini, per project!
+let g:pymode_options_max_line_length = 131
+
+
 
 " au BufRead,BufNewFile *.py,*.pyw,*.c,*.h match BadWhitespace /\s\+$/
 
@@ -164,21 +182,6 @@ let g:ctrlp_max_height = 10
 let g:ctrlp_extensions = ['tag']
 "ctrlp-funky
 nnoremap <Leader>f :CtrlPFunky<Cr>
-
-
-" syntastic settings
-set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
-set statusline+=%*
-
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_auto_loc_list = 1
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
-let g:syntastic_aggregate_errors = 1
-let g:syntastic_python_checkers = ['pyflakes', 'flake8']
-" note, that you can set pep8 options in tox.ini, per project!
-let g:pymode_options_max_line_length = 131
 
 
 " short cut for bbye
