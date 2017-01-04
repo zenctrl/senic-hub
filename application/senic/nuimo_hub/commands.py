@@ -25,3 +25,14 @@ def scan_wifi(config, devices):
     with open(app.registry.settings['fs_wifi_networks'], 'w') as wifi_file:
         json.dump(json_networks, wifi_file)
 
+
+@click.command(help='join a given wifi network (requires root privileges)')
+@click.argument('ssid')
+@click.argument('password')
+@click.argument('device')
+def join_wifi(ssid, password, device):
+    networks = get_networks(devices=[device])
+    scheme = wifi.Scheme.for_cell(device, 'default', networks[ssid]['cell'], password)
+    scheme.save()
+    scheme.activate()
+

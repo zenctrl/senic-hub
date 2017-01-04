@@ -77,6 +77,6 @@ setup(
         main = senic.nuimo_hub:main
         [console_scripts]
         scan_wifi = senic.nuimo_hub.commands:scan_wifi
-
+        join_wifi = senic.nuimo_hub.commands:join_wifi
     """,
 )
