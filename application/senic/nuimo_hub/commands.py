@@ -37,7 +37,7 @@ def join_wifi(ssid, password, device):
     # make sure we delete an existing scheme
     # this allows us to overwrite it, i.e. when a user
     # has provided the wrong password the first time round
-    scheme = wifi.Scheme.find(device, 'default', cell)
+    scheme = wifi.Scheme.find(device, 'default')
     if scheme is not None:
         scheme.delete()
     scheme = wifi.Scheme.for_cell(device, 'default', cell, password)
