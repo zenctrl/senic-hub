@@ -1,32 +1,35 @@
+" prolog
 let s:uname = system("uname")
 set nocompatible                  " Must come first because it changes other options.
 filetype off
+filetype plugin indent on    " required
+set encoding=utf-8
+
+" vundle
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 " let Vundle manage Vundle, required
 Plugin 'VundleVim/Vundle.vim'
 Plugin 'ctrlpvim/ctrlp.vim'
 Plugin 'mileszs/ack.vim'
-Plugin 'tomasr/molokai'
 Plugin 'scrooloose/nerdtree'
 Plugin 'scrooloose/syntastic'
+Plugin 'klen/python-mode'    
+Plugin 'flazz/vim-colorschemes'
 Plugin 'tomtom/tcomment_vim'
 Bundle "tobyS/rst-headings.vim"
 Bundle "altercation/vim-colors-solarized"
 Bundle "tacahiroy/ctrlp-funky"
+Plugin 'davidhalter/jedi-vim'
+Plugin 'hynek/vim-python-pep8-indent'
 Bundle "moll/vim-bbye"
 Bundle "chase/vim-ansible-yaml"
 Bundle "othree/xml.vim"
 Bundle 'gcmt/wildfire.vim'
 Bundle "tpope/vim-surround"
 call vundle#end()            " required
-filetype plugin indent on    " required
-autocmd FileType python set omnifunc=pythoncomplete#Complete
-autocmd FileType javascript set omnifunc=javascriptcomplete#CompleteJS
-autocmd FileType html set omnifunc=htmlcomplete#CompleteTags
-autocmd FileType css set omnifunc=csscomplete#CompleteCSS
-autocmd FileType xml set omnifunc=xmlcomplete#CompleteTags
-autocmd FileType c set omnifunc=ccomplete#Complete
+
+autocmd FileType yaml set smarttab expandtab tabstop=2 shiftwidth=2 softtabstop=2
 syntax enable                     " Turn on syntax highlighting.
 runtime macros/matchit.vim        " Load the matchit plugin.
 
@@ -45,17 +48,16 @@ function! ToggleBG()
     endif
 endfunction
 nnoremap <Leader>bg :call ToggleBG()<Cr>
+set background=light
+colorscheme Tomorrow
 
 ""make copy paste work with clipboard
 set clipboard+=unnamed  " use the clipboards of vim and win
-set paste               " Paste from a windows or from vim
-"
+" set paste               " Paste from a windows or from vim
 
 set showcmd                       " Display incomplete commands.
 set showmode                      " Display the mode you're in.
-
 set backspace=indent,eol,start    " Intuitive backspacing.
-
 set hidden                        " Handle multiple buffers better.
 
 set wildmenu                      " Enhanced command line completion.
@@ -73,17 +75,12 @@ set hlsearch                      " Highlight matches.
 set wrap                          " Turn on line wrapping.
 set linebreak
 set scrolloff=3                   " Show 3 lines of context around the cursor.
-
 set title                         " Set the terminal's title
-
 set visualbell                    " No beeping.
-
 set nobackup                      " Don't make a backup before overwriting a file.
 set nowritebackup                 " And again.
 set directory=$HOME/.vim/tmp//,.  " Keep swap files in one location
-
-" UNCOMMENT TO USE
-set tabstop=8                    " how to display actual \t occurrences
+set tabstop=4                    " how to display actual \t occurrences
 set softtabstop=2                " Global tab width.
 set shiftwidth=2                 " And again, related.
 set expandtab                    " Use spaces instead of tabs
@@ -92,22 +89,21 @@ set laststatus=2                  " Show the status line all the time
 " Useful status information at bottom of screen
 set statusline=[%n]\ %<%.99f\ %h%w%m%r%y\ %{exists('*CapsLockStatusline')?CapsLockStatusline():''}%=%-16(\ %l,%c-%v\ %)%P
 
-" Tab mappings.
-map <leader>tt :tabnew<cr>
-map <leader>te :tabedit
-map <leader>tc :tabclose<cr>
-map <leader>to :tabonly<cr>
-map <leader>tn :tabnext<cr>
-map <leader>tp :tabprevious<cr>
-map <leader>tf :tabfirst<cr>
-map <leader>tl :tablast<cr>
-map <leader>tm :tabmove
 
-
-" Automatic fold settings for specific files. Uncomment to use.
-" autocmd FileType ruby setlocal foldmethod=syntax
+" Python settings
+" highlight all python syntax
+let python_highlight_all=1
 autocmd FileType python setlocal foldmethod=syntax
-" autocmd FileType css  setlocal foldmethod=indent shiftwidth=2 tabstop=2
+autocmd FileType python set smarttab expandtab autoindent tabstop=4 shiftwidth=4 softtabstop=4
+au FileType python : iabbrev pdb import pdb; pdb.set_trace()<LEFT>
+" turn off pymode's linting, since we let syntastic do that already
+let g:pymode_lint = 0
+" same for hynek/vim-python-pep8-indent
+let g:pymode_indent = 0
+    
+
+" au BufRead,BufNewFile *.py,*.pyw,*.c,*.h match BadWhitespace /\s\+$/
+
 
 " nerdtree settings
 " autocmd vimenter * NERDTree
@@ -181,12 +177,6 @@ let g:syntastic_python_checkers = ['pyflakes', 'flake8']
 " note, that you can set pep8 options in tox.ini, per project!
 let g:pymode_options_max_line_length = 131
 
-
-" python abbreviations
-au filetype python : iabbrev pdb import pdb; pdb.set_trace()<LEFT>
-    
-" highlight all python syntax
-let python_highlight_all=1
 
 " short cut for bbye
 :nnoremap <Leader>q :Bdelete<CR>
