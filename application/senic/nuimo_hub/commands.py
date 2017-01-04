@@ -32,7 +32,15 @@ def scan_wifi(config, devices):
 @click.argument('device')
 def join_wifi(ssid, password, device):
     networks = get_networks(devices=[device])
-    scheme = wifi.Scheme.for_cell(device, 'default', networks[ssid]['cell'], password)
+    # TODO: allow for network no longer existing (between discovery and activation)
+    cell = networks[ssid]['cell']
+    # make sure we delete an existing scheme
+    # this allows us to overwrite it, i.e. when a user
+    # has provided the wrong password the first time round
+    scheme = wifi.Scheme.find(device, 'default', cell)
+    if scheme is not None:
+        scheme.delete()
+    scheme = wifi.Scheme.for_cell(device, 'default', cell, password)
     scheme.save()
     scheme.activate()
 
