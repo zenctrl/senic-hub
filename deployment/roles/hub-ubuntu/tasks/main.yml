@@ -31,13 +31,3 @@
     mode: "0644"
   notify: restart wlan
   tags: wlan
-
-- name: install build and debug dependencies
-  apt:
-    name: "{{item}}"
-    state: installed
-  become: true
-  with_items:
-    - git-core
-    - vim
-    - screen
