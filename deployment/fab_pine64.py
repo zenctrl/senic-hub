@@ -33,7 +33,6 @@ def bootstrap(boot_ip):
         fab.sudo(
             'echo """%s""" > /etc/network/interfaces.d/%s' %
             (eth_interface.format(**AV), AV['eth_iface']))
-        fab.sudo('echo """%s""" > /etc/resolv.conf' % eth_resolvconf.format(**AV))
         # enable passwordless root login via ssh
         fab.sudo("""mkdir /root/.ssh""")
         fab.sudo("""chmod 700 /root/.ssh""")
@@ -49,4 +48,6 @@ def bootstrap(boot_ip):
     fab.sudo("""/usr/local/sbin/pine64_update_uboot.sh""")
     fab.sudo("""/usr/local/sbin/pine64_update_kernel.sh""")
     fab.sudo("""apt-get install python -y""")
+    # finally override DNS
+    fab.sudo('echo """%s""" > /etc/resolvconf/resolv.conf.d/tail' % eth_resolvconf.format(**AV))
     fab.reboot()
