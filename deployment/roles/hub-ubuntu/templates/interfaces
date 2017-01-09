@@ -2,15 +2,14 @@
 # Include files from /etc/network/interfaces.d:
 source-directory /etc/network/interfaces.d
 
-## join an existing network on 2.4GHz channel
-#auto wlan1
-#iface wlan1 inet dhcp
-#wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
-#iface pine64 inet dhcp
-
-# create ad-hoc network on 5GHz channel
+# configure first wifi interface to use DHCP
 auto wlan0
-iface wlan0 inet static
+iface wlan0 intet dhcp
+
+# create ad-hoc network on second interface
+# but don't activate it on boot automatically
+auto wlan1
+iface wlan1 inet static
   address 10.0.23.23
   netmask 255.255.255.0
   wireless-channel {{ploy_adhoc_channel}}
