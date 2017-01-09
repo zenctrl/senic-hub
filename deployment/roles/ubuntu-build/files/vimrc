@@ -49,7 +49,7 @@ function! ToggleBG()
 endfunction
 nnoremap <Leader>bg :call ToggleBG()<Cr>
 set background=light
-colorscheme Tomorrow
+silent! colorscheme Tomorrow
 
 ""make copy paste work with clipboard
 set clipboard+=unnamed  " use the clipboards of vim and win
