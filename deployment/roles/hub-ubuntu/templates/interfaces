@@ -4,7 +4,7 @@ source-directory /etc/network/interfaces.d
 
 # configure first wifi interface to use DHCP
 auto wlan0
-iface wlan0 intet dhcp
+iface wlan0 inet dhcp
 
 # create ad-hoc network on second interface
 # but don't activate it on boot automatically
