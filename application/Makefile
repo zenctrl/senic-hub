@@ -12,6 +12,7 @@ venv/bin/python$(python_version) venv/bin/pip:
 	venv/bin/pip install --upgrade pip
 
 venv/bin/pserve venv/bin/py.test venv/bin/devpi: venv/bin/python$(python_version) venv/bin/pip setup.py
+	venv/bin/pip install senic.cryptoyaml
 	venv/bin/python$(python_version) setup.py dev
 	@touch $@
 
