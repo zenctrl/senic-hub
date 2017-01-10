@@ -148,6 +148,5 @@
   become: true
   become_user: "{{builduser}}"
   command: vim +PluginInstall +qall
-  tags: foox
   args:
     creates: "/home/{{builduser}}/.vim/bundle/nerdtree/LICENCE"
