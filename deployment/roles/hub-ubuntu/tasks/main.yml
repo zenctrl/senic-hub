@@ -13,16 +13,6 @@
     - libffi-dev
     - libssl-dev
 
-
-- name: configure wpasupplicant
-  template:
-    src: wpa_supplicant.conf
-    dest: /etc/wpa_supplicant/wpa_supplicant.conf
-    owner: root
-    mode: "0644"
-  notify: restart wlan
-  tags: wlan
-
 - name: configure network interfaces
   template:
     src: interfaces
