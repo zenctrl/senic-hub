@@ -95,10 +95,10 @@
 
 - name: configure shell
   become: true
-  become_user: "{{builduser}}"
+  become_user: "{{item.name}}"
   copy:
-    dest: "/home/{{builduser}}/.bash_aliases"
-    owner: "{{builduser}}"
+    dest: "{{item.path}}/.bash_aliases"
+    owner: "{{item.name}}"
     mode: "0700"
     content: |
       alias ll="ls -la"
@@ -118,6 +118,11 @@
       export GIT_PS1_SHOWBRANCHREMOTE=1
       export GIT_PS1_SHOWUPSTREAM='auto'
       PS1='# \[\e[0;33;33m\]\u@\H\[\033[0;32m\]`__git_ps1` \[\e[0;33;33m\]\w \n\[\e[0m\]# '
+  with_items:
+    - name: "{{builduser}}"
+      path: "/home/{{builduser}}"
+    - name: root
+      path: /root
 
 - name: configure vim
   become: true
