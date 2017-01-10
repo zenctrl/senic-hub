@@ -150,3 +150,21 @@
   command: vim +PluginInstall +qall
   args:
     creates: "/home/{{builduser}}/.vim/bundle/nerdtree/LICENCE"
+
+- name: checkout hub sources
+  git:
+    repo: "git@github.com:tomster/nuimo-hub-backend"
+    remote: tomster
+    dest: "/home/{{builduser}}/nuimo-hub-backend"
+    version: "004-available-wifi-networks"
+    accept_hostkey: true
+  become: true
+  become_user: "{{builduser}}"
+
+- name: bootstrap development checkout
+  become: true
+  become_user: "{{builduser}}"
+  command: make
+  args:
+    creates: "/home/{{builduser}}/nuimo-hub-backend/application/venv/bin/python"
+    chdir: "/home/{{builduser}}/nuimo-hub-backend/application/"
