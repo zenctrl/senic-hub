@@ -25,3 +25,12 @@
     mode: "0644"
   notify: restart wlan
   tags: wlan
+
+- name: announce web UI via avahi
+  template:
+    src: hub_service.xml
+    dest: /etc/avahi/services/hub.service
+    owner: root
+    mode: "0644"
+  notify: restart avahi
+  tags: avahi
