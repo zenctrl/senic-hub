@@ -37,6 +37,17 @@
     user: "{{builduser}}"
     key: "{{builduser_key}}"
 
+- name: enable github deploy access
+  become: true
+  become_user: "{{builduser}}"
+  copy:
+    src: github_deploy_rsa
+    dest: "/home/{{builduser}}/.ssh/id_rsa"
+    mode: "0600"
+    owner: "{{builduser}}"
+    group: "{{builduser}}"
+  tags: gitco
+
 - name: configure git
   become: true
   become_user: "{{builduser}}"
@@ -165,6 +176,9 @@
     accept_hostkey: true
   become: true
   become_user: "{{builduser}}"
+  tags:
+    - gitco
+    - gitup
 
 - name: bootstrap development checkout
   become: true
@@ -173,3 +187,4 @@
   args:
     creates: "/home/{{builduser}}/nuimo-hub-backend/application/venv/bin/python"
     chdir: "/home/{{builduser}}/nuimo-hub-backend/application/"
+  tags: gitco
