@@ -1,4 +1,8 @@
 ---
+- name: set hostname
+  hostname:
+    name: "{{ploy_hostname}}"
+
 - name: install runtime dependencies
   apt:
     name: "{{item}}"
