@@ -7,7 +7,6 @@
   apt:
     name: "{{item}}"
     state: installed
-  become: true
   with_items:
     - python3.5
     - wpasupplicant
