@@ -8,3 +8,8 @@
   service:
     name: avahi-daemon
     state: restarted
+
+- name: restart httpd
+  service:
+    name: lighttpd
+    state: restarted
