@@ -8,6 +8,7 @@
     name: "{{item}}"
     state: installed
   with_items:
+    - avahi-daemon
     - python3.5
     - wpasupplicant
     - wireless-tools
