@@ -9,9 +9,16 @@ Vagrant.configure("2") do |config|
   # accessing "localhost:8080" will access port 80 on the guest machine.
   # config.vm.network "forwarded_port", guest: 80, host: 8080
 
-  # Create a private network, which allows host-only access to the machine
-  # using a specific IP.
-  config.vm.network "private_network", ip: "192.168.33.10"
+  # Create a public network, which allows the VM to 'take part' in the
+  # office network
+  config.vm.network "public_network",
+    bridge: "en6: Broadcom NetXtreme Gigabit Ethernet Controller",
+    auto_config: false
+  # Configure the interface with a known IP:
+  config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
+  config.vm.provision "shell",
+    run: "always",
+    inline: "ifconfig enp0s8 192.168.1.241 netmask 255.255.255.0 up"
 
   config.vm.synced_folder ".", "/vagrant", disabled: true
   config.vm.boot_timeout = 0
