@@ -1,11 +1,17 @@
 ---
 # a role that sets up an environment for working and debugging on an ubuntu host
+- name: set hostname
+  hostname:
+    name: "{{ploy_hostname}}"
+  tags: hostname
+
 - name: install build dependencies
   apt:
     name: "{{item}}"
     state: installed
   become: true
   with_items:
+    - avahi-daemon
     - git-core
     - bash-completion
     - build-essential
