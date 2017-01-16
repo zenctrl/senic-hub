@@ -4,33 +4,35 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/xenial64"
 
-  # Create a forwarded port mapping which allows access to a specific port
-  # within the machine from a port on the host machine. In the example below,
-  # accessing "localhost:8080" will access port 80 on the guest machine.
-  # config.vm.network "forwarded_port", guest: 80, host: 8080
+  config.vm.define "hub" do |hub|
 
-  # Create a public network, which allows the VM to 'take part' in the
-  # office network
-  config.vm.network "public_network",
-    bridge: "en6: Broadcom NetXtreme Gigabit Ethernet Controller",
-    auto_config: false
-  # Configure the interface with a known IP:
-  config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
-  config.vm.provision "shell",
-    run: "always",
-    inline: "ifconfig enp0s8 192.168.1.241 netmask 255.255.255.0 up"
+    # Create a forwarded port mapping which allows access to a specific port
+    # within the machine from a port on the host machine. In the example below,
+    # accessing "localhost:8080" will access port 80 on the guest machine.
+    # hub.vm.network "forwarded_port", guest: 80, host: 8080
 
-  config.vm.synced_folder ".", "/vagrant", disabled: true
-  config.vm.boot_timeout = 0
-  config.vm.provider "virtualbox" do |vb|
-    vb.gui = true
-    vb.memory = "1024"
+    # Create a public network, which allows the VM to 'take part' in the
+    # office network
+    hub.vm.network "public_network",
+      bridge: "en6: Broadcom NetXtreme Gigabit Ethernet Controller",
+      auto_config: false
+    # Configure the interface with a known IP:
+    hub.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
+    hub.vm.provision "shell",
+      run: "always",
+      inline: "ifconfig enp0s8 192.168.1.241 netmask 255.255.255.0 up"
+
+    hub.vm.synced_folder ".", "/vagrant", disabled: true
+    hub.vm.boot_timeout = 0
+    hub.vm.provider "virtualbox" do |vb|
+      vb.gui = true
+      vb.memory = "1024"
+    end
+
+    hub.vm.provision "ansible" do |ansible|
+      ansible.playbook = "vagrant_ubuntu_build.yml"
+      ansible.vault_password_file = ".vault_password_file"
+    end
   end
-
-  config.vm.provision "ansible" do |ansible|
-    ansible.playbook = "vagrant_ubuntu_build.yml"
-    ansible.vault_password_file = ".vault_password_file"
-  end
-
 
 end
