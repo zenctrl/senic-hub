@@ -111,6 +111,7 @@
     owner: "{{item.name}}"
     mode: "0700"
     content: |
+      export EDITOR=vim
       alias ll="ls -la"
       set +o allexport
       unset MANPATH
@@ -128,6 +129,10 @@
       export GIT_PS1_SHOWBRANCHREMOTE=1
       export GIT_PS1_SHOWUPSTREAM='auto'
       PS1='# \[\e[0;33;33m\]\u@\H\[\033[0;32m\]`__git_ps1` \[\e[0;33;33m\]\w \n\[\e[0m\]# '
+      # Make it also work for the 'g' alias of the git command
+      complete -o bashdefault -o default -o nospace -F _git g 2>/dev/null \
+        || complete -o default -o nospace -F _git g
+
   with_items:
     - name: "{{builduser}}"
       path: "/home/{{builduser}}"
