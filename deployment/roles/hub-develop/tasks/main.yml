@@ -1,0 +1,35 @@
+---
+# a role that sets up an environment for developing the hub on a ubuntu machine
+# it assumes the role `ubuntu-build` has been applied
+- name: enable github deploy access
+  become: true
+  become_user: "{{builduser}}"
+  copy:
+    src: github_deploy_rsa
+    dest: "/home/{{builduser}}/.ssh/id_rsa"
+    mode: "0600"
+    owner: "{{builduser}}"
+    group: "{{builduser}}"
+  tags: gitco
+
+- name: checkout hub sources
+  git:
+    repo: "git@github.com:tomster/nuimo-hub-backend"
+    remote: tomster
+    dest: "/home/{{builduser}}/nuimo-hub-backend"
+    version: "004-available-wifi-networks"
+    accept_hostkey: true
+  become: true
+  become_user: "{{builduser}}"
+  tags:
+    - gitco
+    - gitup
+
+- name: bootstrap development checkout
+  become: true
+  become_user: "{{builduser}}"
+  command: make
+  args:
+    creates: "/home/{{builduser}}/nuimo-hub-backend/application/venv/bin/python"
+    chdir: "/home/{{builduser}}/nuimo-hub-backend/application/"
+  tags: gitco
