@@ -5,6 +5,14 @@
     name: "{{ploy_hostname}}"
   tags: hostname
 
+- name: Make sure the hostname is available for local commands (i.e. sudo)
+  lineinfile:
+    dest: /etc/hosts
+    state: present
+    regexp: '{{ploy_hostname}}$'
+    line: '127.0.0.1  {{ploy_hostname}}.local {{ploy_hostname}}'
+  tags: hostname
+
 - name: install build dependencies
   apt:
     name: "{{item}}"
