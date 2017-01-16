@@ -24,6 +24,7 @@
     dest: /etc/network/interfaces
     owner: root
     mode: "0644"
+  when: ploy_wlan0 is defined
   notify: restart wlan
   tags: wlan
 

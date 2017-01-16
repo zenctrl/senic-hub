@@ -3,13 +3,13 @@
 source-directory /etc/network/interfaces.d
 
 # configure first wifi interface to use DHCP
-auto wlan0
+auto {{ploy_wlan0}}
 iface wlan0 inet dhcp
 
 # create ad-hoc network on second interface
 # but don't activate it on boot automatically
-auto wlan1
-iface wlan1 inet static
+auto {{ploy_wlan1}}
+iface {{ploy_wlan1}} inet static
   address 10.0.23.23
   netmask 255.255.255.0
   wireless-channel {{ploy_adhoc_channel}}
