@@ -15,6 +15,7 @@ default_settings = dict(
     fs_wifi_networks='/tmp/wifi_networks.json',
 )
 
+
 def path(service):
     """ Return path — or route pattern — for the given REST service. """
     return '/-/{0}'.format(service.lower())

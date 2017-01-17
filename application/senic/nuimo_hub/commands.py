@@ -45,4 +45,3 @@ def join_wifi(ssid, password, device):
     scheme = wifi.Scheme.for_cell(device, 'default', cell, password)
     scheme.save()
     scheme.activate()
-
