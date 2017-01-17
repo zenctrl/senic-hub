@@ -49,29 +49,29 @@ paths:
         produces:
           - "application/json"
         parameters: 
-					- name: ssid
-						in: body
-						description: The SSID of the network to join
-						required: true
-						type: string
-					- name: password
-						in: body
-						description: |
-							The password of the network to join.
+          - name: ssid
+            in: body
+            description: The SSID of the network to join
+            required: true
+            type: string
+          - name: password
+            in: body
+            description: |
+              The password of the network to join.
               XXX Either we make sure, we can deliver this only via
               https or we should give the clients a public key with
               which they must encrypt the password.
               Otherwise we force hub users to expose their wifi password
               on an unsecured wifi network with a guessable name!
-						required: true
-						type: string
-					- name: device
-						in: body
-						description: |
+            required: true
+            type: string
+          - name: device
+            in: body
+            description: |
               The name of the device that this network was found on.
               This should correspond to the value given above.
-						required: true
-						type: string
+            required: true
+            type: string
         responses:
           200:
             description: |
