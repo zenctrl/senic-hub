@@ -1,7 +1,7 @@
 ---
 - name: set hostname
   hostname:
-    name: "{{ploy_hostname}}"
+    name: "{{ploy_hostname}}-{{ansible_machine_id[:6]}}"
 
 - name: install runtime dependencies
   apt:
@@ -25,7 +25,10 @@
     owner: root
     mode: "0644"
   when: ploy_wlan0 is defined
-  notify: restart wlan
+  notify:
+    - restart wlan0
+    - restart wlan1
+    - restart avahi
   tags: wlan
 
 - name: ensure document root
