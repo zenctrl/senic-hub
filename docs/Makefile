@@ -1,6 +1,6 @@
 # convenience makefile to set up the project documentation
 
-bin = ../backend/venv/bin
+bin = ../application/venv/bin
 
 htdocs: $(bin)/sphinx-build *.rst conf.py
 	$(bin)/sphinx-build . $@
