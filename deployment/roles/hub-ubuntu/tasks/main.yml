@@ -87,3 +87,6 @@
     regexp: '{{ploy_hostname}}$'
     line: '127.0.0.1  {{ploy_hostname}}.local {{ploy_hostname}}'
   tags: avahi
+
+- include: dhcp.yml
+  tags: dhcp

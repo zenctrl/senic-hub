@@ -86,6 +86,7 @@
     src: supervisor.conf
     dest: /etc/supervisor/conf.d/nuimo_hub.conf
     mode: "0644"
+  notify: reload supervisord
 
 - name: configure wsgi
   become: yes

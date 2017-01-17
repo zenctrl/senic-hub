@@ -18,3 +18,13 @@
   service:
     name: lighttpd
     state: restarted
+
+- name: reload supervisord
+  service:
+    name: supervisor
+    state: reloaded
+
+- name: restart nuimo_hub
+  supervisorctl:
+    name: nuimo_hub
+    state: restarted
