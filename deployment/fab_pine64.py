@@ -1,4 +1,5 @@
 # coding: utf-8
+from os import path
 from fabric import api as fab
 from fabric.api import task, env
 
@@ -14,9 +15,14 @@ eth_resolvconf = """nameserver {eth_dns}
 
 
 @task
-def bootstrap(boot_ip):
+def bootstrap(boot_ip=None, authorized_keys='authorized_keys'):
     """bootstrap a freshly booted Pine64 to make it ansible ready"""
     # (temporarily) set the user to `ubuntu`
+    if not path.isabs(authorized_keys):
+        authorized_keys = path.join(
+            env['config_base'],
+            '..',
+            authorized_keys)
     final_ip = env.instance.config['ip']
     if boot_ip:
         env.instance.config['ip'] = boot_ip
@@ -37,7 +43,7 @@ def bootstrap(boot_ip):
         fab.sudo("""mkdir /root/.ssh""")
         fab.sudo("""chmod 700 /root/.ssh""")
         fab.put(
-            local_path='etc/authorized_keys',
+            local_path=authorized_keys,
             remote_path='/root/.ssh/authorized_keys',
             use_sudo=True,
             mode='0700')
