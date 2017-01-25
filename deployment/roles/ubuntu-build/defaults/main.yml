@@ -1,0 +1,3 @@
+---
+ploy_hostname: "{{_ploy_instance.id}}"
+run_user: nuimo
