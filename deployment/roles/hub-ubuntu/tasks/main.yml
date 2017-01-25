@@ -1,7 +1,7 @@
 ---
 - name: set hostname
   hostname:
-    name: "{{ploy_hostname}}-{{ansible_machine_id[:6]}}"
+    name: "{{ploy_hostname}}-{{ansible_machine_id[:4]}}"
 
 - name: install runtime dependencies
   apt:
