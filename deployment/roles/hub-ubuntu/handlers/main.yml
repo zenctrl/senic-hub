@@ -1,11 +1,11 @@
 ---
 - name: restart wlan0
-  raw: "ifdown {{wlan0}} && ifup {{wlan0}}"
+  raw: "ifdown {{ploy_wlan0}} && ifup {{ploy_wlan0}}"
   args:
     executable: /bin/bash
 
 - name: restart wlan1
-  raw: "ifdown {{wlan1}} && ifup {{wlan1}}"
+  raw: "ifdown {{ploy_wlan1}} && ifup {{ploy_wlan1}}"
   args:
     executable: /bin/bash
 
