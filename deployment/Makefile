@@ -18,7 +18,7 @@ bootstrap: bin/ploy
 	bin/ploy do $(target) bootstrap boot_ip=$(boot_ip)
 
 osx-deps:
-	brew install python3 openssl libffi
+	brew install python openssl libffi
 
 clean:
 	git clean -fXd
