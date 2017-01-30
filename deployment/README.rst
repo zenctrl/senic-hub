@@ -1,6 +1,10 @@
 Provisioning and configuring the hub
 ------------------------------------
 
+On OSX first run ``make osx-deps``, this will use homebrew to install the required system dependencies, namely, Python 3 and some development headers.
+
+Next, run ``make`` to install the development tools locally.
+
 For development and testing we provision a PINE64 board using an ubuntu base image that we then customize using ansible.
 
 To download the base image use `make download-base`.
