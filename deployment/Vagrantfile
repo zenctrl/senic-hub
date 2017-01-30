@@ -6,18 +6,21 @@ Vagrant.configure("2") do |config|
 
   config.vm.define "hub" do |hub|
 
-    # Create a public network, which allows the VM to 'take part' in the
-    # office network
-    hub.vm.network "public_network",
-      bridge: "en6: Broadcom NetXtreme Gigabit Ethernet Controller",
-      auto_config: false
-    # Configure the interface with a known IP:
-    hub.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
-    hub.vm.provision "shell",
-      run: "always",
-      inline: "ifconfig enp0s8 192.168.1.241 netmask 255.255.255.0 up"
+    # # Create a public network, which allows the VM to 'take part' in the
+    # # office network
+    # hub.vm.network "public_network",
+    #   bridge: "en6: Broadcom NetXtreme Gigabit Ethernet Controller",
+    #   auto_config: false
+    # # Configure the interface with a known IP:
+    # hub.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
+    # hub.vm.provision "shell",
+    #   run: "always",
+    #   inline: "ifconfig enp0s8 192.168.1.241 netmask 255.255.255.0 up"
 
-    hub.vm.synced_folder ".", "/vagrant", disabled: true
+    # setup a private network for local, isolated development:
+    hub.vm.network "private_network", ip: "192.168.56.5"
+    hub.vm.synced_folder "../application", "/vagrant", disabled: false
+
     hub.vm.boot_timeout = 0
     hub.vm.provider "virtualbox" do |vb|
       vb.gui = true
