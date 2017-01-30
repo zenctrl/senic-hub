@@ -3,6 +3,7 @@ boot_ip =
 install: bin/ploy
 
 bin/ploy bin/ploy-ssh: bin/pip requirements.txt
+	bin/pip install -U pip setuptools
 	bin/pip install -r requirements.txt
 	@touch $@
 
