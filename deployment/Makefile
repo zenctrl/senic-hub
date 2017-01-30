@@ -17,6 +17,9 @@ downloads/pine64-image-ubuntubase-31065bsp-longsleep.img.xz:
 bootstrap: bin/ploy
 	bin/ploy do $(target) bootstrap boot_ip=$(boot_ip)
 
+osx-deps:
+        brew install python3 openssl libffi
+
 clean:
 	git clean -fXd
 
