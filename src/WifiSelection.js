@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Link } from 'react-router';
 
 class WifiSelection extends Component {
   ssidPollInterval = 1000
@@ -17,7 +18,7 @@ class WifiSelection extends Component {
         Please select your Wi-Fi network:
         <table>
         {
-          this.state.ssids.map((name) => <tr key={name}>{name}</tr>)
+          this.state.ssids.map((name) => <tr><Link key={name} to={'/setup/wifi-selection/' + name}>{name}</Link></tr>)
         }
         </table>
       </div>
