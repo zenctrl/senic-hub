@@ -26,9 +26,11 @@ class WifiPassword extends Component {
       'ssid':     this.props.params.ssid,
       'password': this.state.password
     }))
+    //TODO: Handle all error cases
     fetch('/-/setup/wifi', { method: 'POST', body: postData })
       .then((response) => response.json())
       .then((json) => { console.log(this); this.props.router.push('/setup/completed') })
+      .catch((error) => console.error(error))
     event.preventDefault()
   }
 }
