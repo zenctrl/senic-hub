@@ -17,9 +17,11 @@ class WifiSelection extends Component {
       <div>
         Please select your Wi-Fi network:
         <table>
-        {
-          this.state.ssids.map((name) => <tr><Link key={name} to={'/setup/wifi-selection/' + name}>{name}</Link></tr>)
-        }
+          <tbody>
+          {
+            this.state.ssids.map((name) => <tr key={name}><td><Link to={'/setup/wifi-selection/' + name}>{name}</Link></td></tr>)
+          }
+          </tbody>
         </table>
       </div>
     )
