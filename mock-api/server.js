@@ -9,7 +9,7 @@ server.use(jsonServer.rewriter({
 server.use(function (req, res, next) {
   // Respond all POST requests with 200 ignoring the request
   if (req.method === 'POST') {
-    res.sendStatus(200)
+    res.jsonp(req.query)
   }
   else {
     next()
