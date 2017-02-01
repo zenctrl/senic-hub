@@ -12,7 +12,7 @@
     "react-router": "^3.0.2"
   },
   "scripts": {
-    "start": "concurrently --kill-others \"react-scripts start\" \"json-server ./mock-api/api.json --routes ./mock-api/routes.json --port 4000\"",
+    "start": "concurrently --kill-others \"react-scripts start\" \"node ./mock-api/server.js\"",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
