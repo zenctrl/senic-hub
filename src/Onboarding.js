@@ -11,4 +11,4 @@ class Onboarding extends Component {
   }
 }
 
-export default Onboarding;
+export default Onboarding
