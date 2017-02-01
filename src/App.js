@@ -12,8 +12,8 @@ class App extends Component {
       <div className="App">
         <Router history={hashHistory}>
           <Route path='setup' component={Onboarding}>
-            <Route path='wifi-selection' component={WifiSelection} />
-            <Route path='wifi-selection/:ssid' component={WifiPassword} />
+            <Route path='wifi' component={WifiSelection} />
+            <Route path='wifi/:ssid' component={WifiPassword} />
           </Route>
         </Router>
       </div>
