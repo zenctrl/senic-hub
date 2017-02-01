@@ -36,10 +36,15 @@ class WifiSelection extends Component {
   }
 
   pollSsids() {
-    console.log('poll')
-    let ssids = ['WIFI-1', 'WIFI-2', 'WIFI-3', 'WIFI-4', 'WIFI-5'].filter(() => Math.random() > 0.2)
-    this.setState({ssids: ssids})
-    this.ssidPollTimer = setTimeout(this.pollSsids.bind(this), this.ssidPollInterval)
+    fetch('/-/setup/wifi')
+      //TODO: Write tests for all possible API call responses, server not available, etc.
+      .then((response) => response.json())
+      .then((ssids) => {
+        //TODO: Remove random SSID filtering
+        ssids = ssids.filter(() => Math.random() > 0.2)
+        this.setState({ssids: ssids})
+        this.ssidPollTimer = setTimeout(this.pollSsids.bind(this), this.ssidPollInterval)
+      })
   }
 }
 
