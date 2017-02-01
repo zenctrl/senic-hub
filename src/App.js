@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
-import { Router, Route, Link, IndexRoute, hashHistory, browserHistory } from 'react-router'
+import { Router, Route, hashHistory, browserHistory } from 'react-router'
 import './App.css'
+import Onboarding from './Onboarding'
 import WifiPassword from './WifiPassword'
 import WifiSelection from './WifiSelection'
 
@@ -9,9 +10,11 @@ class App extends Component {
     return (
       <div className="App">
         <Router history={hashHistory}>
-	        <Route path='/setup/wifi-selection' component={WifiSelection} />
-	        <Route path='/setup/wifi-selection/:ssid' component={WifiPassword} />
-	      </Router>
+          <Route path='setup' component={Onboarding}>
+            <Route path='wifi-selection' component={WifiSelection} />
+            <Route path='wifi-selection/:ssid' component={WifiPassword} />
+          </Route>
+        </Router>
       </div>
     );
   }
