@@ -5,6 +5,7 @@ import Onboarding from './Onboarding'
 import OnboardingWelcome from './OnboardingWelcome'
 import WifiPassword from './WifiPassword'
 import WifiSelection from './WifiSelection'
+import OnboardingCompletion from './OnboardingCompletion'
 
 class App extends Component {
   render() {
@@ -16,6 +17,7 @@ class App extends Component {
             <Route path='welcome' component={OnboardingWelcome} />
             <Route path='wifi' component={WifiSelection} />
             <Route path='wifi/:ssid' component={WifiPassword} />
+            <Route path='completed' component={OnboardingCompletion} />
           </Route>
         </Router>
       </div>

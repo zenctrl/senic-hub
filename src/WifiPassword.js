@@ -28,7 +28,7 @@ class WifiPassword extends Component {
     }))
     fetch('/-/setup/wifi', { method: 'POST', body: postData })
       .then((response) => response.json())
-      .then((json) => console.log(json))
+      .then((json) => { console.log(this); this.props.router.push('/setup/completed') })
     event.preventDefault()
   }
 }
