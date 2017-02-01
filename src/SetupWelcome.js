@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router';
 
-class OnboardingWelcome extends Component {
+class SetupWelcome extends Component {
   render() {
     return (
       <div>
@@ -12,4 +12,4 @@ class OnboardingWelcome extends Component {
   }
 }
 
-export default OnboardingWelcome
+export default SetupWelcome

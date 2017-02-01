@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 
-class OnboardingCompletion extends Component {
+class SetupCompletion extends Component {
   render() {
     return (
       <div>
@@ -10,4 +10,4 @@ class OnboardingCompletion extends Component {
   }
 }
 
-export default OnboardingCompletion
+export default SetupCompletion

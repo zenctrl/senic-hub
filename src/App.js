@@ -1,11 +1,11 @@
 import React, { Component } from 'react'
 import { Router, Route, hashHistory } from 'react-router'
 import './App.css'
-import Onboarding from './Onboarding'
-import OnboardingWelcome from './OnboardingWelcome'
-import WifiPassword from './WifiPassword'
-import WifiSelection from './WifiSelection'
-import OnboardingCompletion from './OnboardingCompletion'
+import Setup from './Setup'
+import SetupWelcome from './SetupWelcome'
+import SetupWifiPassword from './SetupWifiPassword'
+import SetupWifiSelection from './SetupWifiSelection'
+import SetupCompletion from './SetupCompletion'
 
 class App extends Component {
   render() {
@@ -13,11 +13,11 @@ class App extends Component {
     return (
       <div className="App">
         <Router history={hashHistory}>
-          <Route path='setup' component={Onboarding}>
-            <Route path='welcome' component={OnboardingWelcome} />
-            <Route path='wifi' component={WifiSelection} />
-            <Route path='wifi/:ssid' component={WifiPassword} />
-            <Route path='completed' component={OnboardingCompletion} />
+          <Route path='setup' component={Setup}>
+            <Route path='welcome' component={SetupWelcome} />
+            <Route path='wifi' component={SetupWifiSelection} />
+            <Route path='wifi/:ssid' component={SetupWifiPassword} />
+            <Route path='completed' component={SetupCompletion} />
           </Route>
         </Router>
       </div>

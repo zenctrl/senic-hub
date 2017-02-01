@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
-class WifiSelection extends Component {
+class SetupWifiSelection extends Component {
   ssidPollInterval = 1000
   ssidPollTimer = 0
 
@@ -48,4 +48,4 @@ class WifiSelection extends Component {
   }
 }
 
-export default WifiSelection
+export default SetupWifiSelection

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-class WifiPassword extends Component {
+class SetupWifiPassword extends Component {
   constructor(props) {
     super(props);
     this.state = { password: '' };
@@ -29,10 +29,10 @@ class WifiPassword extends Component {
     //TODO: Handle all error cases
     fetch('/-/setup/wifi', { method: 'POST', body: postData })
       .then((response) => response.json())
-      .then((json) => { console.log(this); this.props.router.push('/setup/completed') })
+      .then((json) => this.props.router.push('/setup/completed') )
       .catch((error) => console.error(error))
     event.preventDefault()
   }
 }
 
-export default WifiPassword
+export default SetupWifiPassword

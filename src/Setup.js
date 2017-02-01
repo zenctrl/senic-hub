@@ -1,14 +1,14 @@
 import React, { Component } from 'react'
 
-class Onboarding extends Component {
+class Setup extends Component {
   render() {
     return (
       <div>
-        <h1>Onboarding</h1>
+        <h1>Setup</h1>
         {this.props.children}
       </div>
     );
   }
 }
 
-export default Onboarding
+export default Setup
