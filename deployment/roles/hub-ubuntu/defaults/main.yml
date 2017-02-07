@@ -1,3 +1,4 @@
 ---
-ploy_adhoc_ssid: setup-nuimo
 ploy_adhoc_channel: 1
+wwwuser: www-data
+frontend_document_root: /var/www/nuimo_hub

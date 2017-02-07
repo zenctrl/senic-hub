@@ -1,0 +1,6 @@
+---
+python_interpreter: python3.5
+deploy_location: /srv/nuimo_hass
+data_location: /srv/nuimo_hass/data/
+deploy_user: senic
+run_user: nuimo

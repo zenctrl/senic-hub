@@ -1,0 +1,28 @@
+---
+# this is mainly a wrapper playbook to allow provisioning via
+# vagrant, the actual work is done in the roles (which can be
+# applied to other hosts, i.e. cloud instances)
+- hosts: all
+  gather_facts: False
+  vars:
+    ansible_python_interpreter: python2.7
+    builduser_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+  handlers:
+    - name: restart ssh
+      become: true
+      service:
+        name: ssh
+        state: restarted
+  pre_tasks:
+    - name: install python2
+      become: true
+      raw: apt install -y python2.7
+    - name: gather facts
+      setup: # aka gather_facts
+      become: true
+    - name: enable root ssh login
+      command: echo 'PermitRootLogin without-password' > /etc/ssh/sshd_config
+      notify: restart ssh
+    - name: configure SSH key for root
+      become: true
+      raw: echo "{{builduser_key}}" > /root/.ssh/authorized_keys

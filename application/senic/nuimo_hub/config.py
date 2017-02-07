@@ -11,13 +11,18 @@ project_name = 'nuimo_hub'
 log = get_logger(__name__)
 
 
+default_settings = dict(
+    fs_wifi_networks='/tmp/wifi_networks.json',
+)
+
+
 def path(service):
     """ Return path — or route pattern — for the given REST service. """
     return '/-/{0}'.format(service.lower())
 
 
 def configure(global_config, **settings):
-    config = Configurator(settings=settings)
+    config = Configurator(settings=dict(default_settings, **settings))
     config.begin()
     scan_ignore = ['.tests', '.testing']
     config.include('cornice')

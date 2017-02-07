@@ -1,5 +1,30 @@
 ---
-- name: restart wlan
-  raw: ifdown wlan0 && ifup wlan0
+- name: restart wlan0
+  raw: "ifdown {{ploy_wlan0}} && ifup {{ploy_wlan0}}"
   args:
     executable: /bin/bash
+
+- name: restart wlan1
+  raw: "ifdown {{ploy_wlan1}} && ifup {{ploy_wlan1}}"
+  args:
+    executable: /bin/bash
+
+- name: restart avahi
+  service:
+    name: avahi-daemon
+    state: restarted
+
+- name: restart httpd
+  service:
+    name: lighttpd
+    state: restarted
+
+- name: reload supervisord
+  service:
+    name: supervisor
+    state: reloaded
+
+- name: restart nuimo_hub
+  supervisorctl:
+    name: nuimo_hub
+    state: restarted

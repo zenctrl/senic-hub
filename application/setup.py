@@ -18,6 +18,7 @@ setup(
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
     ],
     packages=[name],
+    namespace_packages=['senic'],
     include_package_data=True,
     package_dir={name: 'senic/nuimo_hub'},
     package_data={
@@ -42,6 +43,7 @@ setup(
         'pytz',
         'requests',
         'senic.cryptoyaml',
+        'wifi',
     ],
     extras_require={
         'development': [
@@ -54,7 +56,7 @@ setup(
             'pdbpp',
             'pep8 < 1.6',
             'py >= 1.4.17',
-            'pyflakes',
+            'pyflakes < 1.4.0',
             'pyquery',
             'pyramid_debugtoolbar',
             'pytest',
@@ -73,5 +75,8 @@ setup(
     entry_points="""
         [paste.app_factory]
         main = senic.nuimo_hub:main
+        [console_scripts]
+        scan_wifi = senic.nuimo_hub.commands:scan_wifi
+        join_wifi = senic.nuimo_hub.commands:join_wifi
     """,
 )

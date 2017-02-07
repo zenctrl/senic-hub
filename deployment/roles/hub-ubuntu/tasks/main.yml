@@ -1,24 +1,22 @@
 ---
+- name: set hostname
+  hostname:
+    name: "{{ploy_hostname}}-{{ansible_machine_id[:4]}}"
+
 - name: install runtime dependencies
   apt:
     name: "{{item}}"
     state: installed
-  become: true
   with_items:
+    - avahi-daemon
     - python3.5
     - wpasupplicant
     - wireless-tools
     - supervisor
     - python3-venv
-
-- name: configure wpasupplicant
-  template:
-    src: wpa_supplicant.conf
-    dest: /etc/wpa_supplicant/wpa_supplicant.conf
-    owner: root
-    mode: "0644"
-  notify: restart wlan
-  tags: wlan
+    - libffi-dev
+    - libssl-dev
+    - lighttpd
 
 - name: configure network interfaces
   template:
@@ -26,15 +24,70 @@
     dest: /etc/network/interfaces
     owner: root
     mode: "0644"
-  notify: restart wlan
+  when: ploy_wlan0 is defined
+  notify:
+    - restart wlan0
+    - restart wlan1
+    - restart avahi
   tags: wlan
 
-- name: install build and debug dependencies
-  apt:
-    name: "{{item}}"
-    state: installed
-  become: true
-  with_items:
-    - git-core
-    - vim
-    - screen
+- name: ensure document root
+  file:
+    dest: "{{frontend_document_root}}"
+    owner: root
+    group: root
+    mode: "0755"
+    state: directory
+  tags: www
+
+- name: configure lighttpd
+  template:
+    src: lighttpd.conf
+    dest: /etc/lighttpd/lighttpd.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart httpd
+  tags: www
+
+- name: configure frontend website
+  template:
+    src: nuimo_hub.conf
+    dest: /etc/lighttpd/conf-available/nuimo_hub.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart httpd
+  tags: www
+
+- name: enable frontend website
+  file:  
+    src: /etc/lighttpd/conf-available/nuimo_hub.conf
+    dest: /etc/lighttpd/conf-enabled/nuimo_hub.conf
+    owner: root
+    group: root
+    mode: "0755"
+    state: link
+  notify: restart httpd
+  tags: www
+
+- name: announce web UI via avahi
+  template:
+    src: hub_service.xml
+    dest: /etc/avahi/services/hub.service
+    owner: root
+    mode: "0644"
+  notify: restart avahi
+  tags: avahi
+
+- name: Make sure the hostname is available for local commands (i.e. sudo)
+  lineinfile:
+    dest: /etc/hosts
+    state: present
+    regexp: '{{ploy_hostname}}$'
+    line: '127.0.0.1  {{ploy_hostname}}.local {{ploy_hostname}}'
+  tags: avahi
+
+- include: dhcp.yml
+  tags: dhcp
+  when: ploy_wlan0 is defined

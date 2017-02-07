@@ -1,4 +1,5 @@
 ---
+ploy_hostname: "{{_ploy_instance.id}}"
 devpi_proto: https
 devpi_base_url: pypi.senic.com/
 devpi_index: senic/dev

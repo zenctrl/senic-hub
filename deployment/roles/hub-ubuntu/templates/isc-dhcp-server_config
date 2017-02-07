@@ -1,0 +1,11 @@
+ddns-update-style none;
+option domain-name ".local";
+option domain-name-servers 10.0.23.23;
+default-lease-time 600;
+max-lease-time 7200;
+authoritative;
+subnet 10.0.23.0 netmask 255.255.255.0 {
+  range 10.0.23.42 10.0.23.52;
+  option routers 10.0.23.23;
+}
+

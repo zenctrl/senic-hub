@@ -2,17 +2,16 @@
 # Include files from /etc/network/interfaces.d:
 source-directory /etc/network/interfaces.d
 
-## join an existing network on 2.4GHz channel
-#auto wlan1
-#iface wlan1 inet dhcp
-#wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
-#iface pine64 inet dhcp
+# configure first wifi interface to use DHCP
+auto {{ploy_wlan0}}
+iface wlan0 inet dhcp
 
-# create ad-hoc network on 5GHz channel
-auto wlan0
-iface wlan0 inet static
+# create ad-hoc network on second interface
+# but don't activate it on boot automatically
+auto {{ploy_wlan1}}
+iface {{ploy_wlan1}} inet static
   address 10.0.23.23
   netmask 255.255.255.0
   wireless-channel {{ploy_adhoc_channel}}
-  wireless-essid {{ploy_adhoc_ssid}}
+  wireless-essid {{ploy_hostname}}-{{ansible_machine_id[:6]}}
   wireless-mode ad-hoc
