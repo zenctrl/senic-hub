@@ -90,3 +90,4 @@
 
 - include: dhcp.yml
   tags: dhcp
+  when: ploy_wlan0 is defined
