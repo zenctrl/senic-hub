@@ -1,7 +1,7 @@
 ---
 - name: set hostname
   hostname:
-    name: "{{ploy_hostname}}-{{ansible_machine_id[:4]}}"
+    name: "{{hostname}}"
 
 - name: install runtime dependencies
   apt:
@@ -84,8 +84,8 @@
   lineinfile:
     dest: /etc/hosts
     state: present
-    regexp: '{{ploy_hostname}}$'
-    line: '127.0.0.1  {{ploy_hostname}}.local {{ploy_hostname}}'
+    regexp: '{{hostname}}$'
+    line: '127.0.0.1  {{hostname}}.local {{hostname}}'
   tags: avahi
 
 - include: dhcp.yml
