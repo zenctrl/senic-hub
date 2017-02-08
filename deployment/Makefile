@@ -15,9 +15,9 @@ download-pine64: downloads/pine64-image-ubuntubase-31065bsp-longsleep.img.xz
 downloads/pine64-image-ubuntubase-31065bsp-longsleep.img.xz:
 	wget -P downloads/ https://www.pine64.pro/download/ubuntu/image/pine64-image-ubuntubase-31065bsp-longsleep.img.xz 
 
-download-pi3: downloads/raspbian_lite-2017-01-10/2017-01-11-raspbian-jessie-lite.zip
-downloads/raspbian_lite-2017-01-10/2017-01-11-raspbian-jessie-lite.zip:
-	wget -P downloads/ http://director.downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2017-01-10/2017-01-11-raspbian-jessie-lite.zip
+download-pi3: downloads/ubuntu-16.04-preinstalled-server-armhf+raspi3.img.xz
+downloads/ubuntu-16.04-preinstalled-server-armhf+raspi3.img.xz:
+	wget -P downloads/ http://www.finnie.org/software/raspberrypi/ubuntu-rpi3/ubuntu-16.04-preinstalled-server-armhf+raspi3.img.xz
 
 bootstrap: bin/ploy
 	bin/ploy do $(target) bootstrap boot_ip=$(boot_ip) authorized_keys=$(authorized_keys)
