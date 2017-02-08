@@ -1,5 +1,6 @@
 target = pine
 boot_ip = 
+authorized_keys = authorized_keys
 install: bin/ploy
 
 bin/ploy bin/ploy-ssh: bin/pip requirements.txt
@@ -19,7 +20,7 @@ downloads/raspbian_lite-2017-01-10/2017-01-11-raspbian-jessie-lite.zip:
 	wget -P downloads/ http://director.downloads.raspberrypi.org/raspbian_lite/images/raspbian_lite-2017-01-10/2017-01-11-raspbian-jessie-lite.zip
 
 bootstrap: bin/ploy
-	bin/ploy do $(target) bootstrap boot_ip=$(boot_ip)
+	bin/ploy do $(target) bootstrap boot_ip=$(boot_ip) authorized_keys=$(authorized_keys)
 
 osx-deps:
 	brew install python openssl libffi
