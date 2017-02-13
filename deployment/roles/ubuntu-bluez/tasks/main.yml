@@ -98,7 +98,32 @@
     chdir: "/tmp/bluez-{{bluez_version}}/"
     creates: /usr/bin/hciattach
   tags: bluez
-  become: true
   when: bluez_binary.stat.exists == True
 
+- name: create firmware directory
+  file:
+    dest: /etc/firmware
+    state: directory
+    owner: root
+    group: root
+    mode: 755
+  tags: bluez
 
+- name: upload broadcomm driver
+  copy:
+    src: BCM43430A1.hcd  # https://github.com/OpenELEC/misc-firmware/raw/master/firmware/brcm/BCM43430A1.hcd
+    dest: /lib/firmware/brcm//BCM43430A1.hcd
+  tags: bluez
+
+- name: install broadcomm driver
+  file:
+    src: /lib/firmware/brcm//BCM43430A1.hcd
+    dest: /etc/BCM43430A1.hcd
+  tags: bluez
+
+- name: start and enable bluetooth daemon
+  service:
+    name: bluetooth
+    state: restarted
+    enabled: yes
+  tags: bluezx
