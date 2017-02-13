@@ -5,9 +5,30 @@ On OSX first run ``make osx-deps``, this will use homebrew to install the requir
 
 Next, run ``make`` to install the development tools locally.
 
-For development and testing we provision a PINE64 board using an ubuntu base image that we then customize using ansible.
+For development and testing we provision either a RasperberryPI3, PINE64, NanoPI Neo Air or a vagrant based Virtualbox instance using an ubuntu base image that we then customize using ansible.
 
-To download the base image use `make download-base`.
+Bootstrapping vagrant
+=====================
+
+Assuming fairly recent installations of vagrant and Virtualbox, you can simply run `vagrant up hub` and it will download the required base image and bootstrap it automatically.
+
+
+Bootstrapping a development board
+=================================
+
+To bootstrap a physical development board you will need to
+
+- download the appropriate base image
+
+- write it to an SD card
+
+- boot the device from it
+
+- figure out the IP address that the device has been given
+
+- bootstrap the device using that IP address (at the end of which it will have the 'real' IP address that it has been configured to have - this way we can have known IP addresses for configuration)
+
+To download the base image use `make download-XXX` where `XXX` is one of `pi3`, `nanopi` or `pine64`.
 
 Then write the image to an SD card using your tool of choice (https://etcher.io/ seems like a fluffy choice for OSX) and boot the board, making sure you have a working DHCP setup.
 
@@ -15,11 +36,22 @@ The first step is to bootstrap the booted board into a state where we can config
 This is done using a helper tool called `ploy` which is a modular configuration system that (in this case) combines `ansible <http://docs.ansible.com/ansible/>`_ and `fabric <http://www.fabfile.org/>`_.
 The `Makefile` installs a local instance of `ploy` and its dependencies by default, so you should run `make` first.
 
-For example, you can use OSX's 'Internet Sharing' feature to i.e. share the wifi connection over ethernet and connect the board directly via ethernet.
-This has the added advantage that the board has no direct access to the rest of your network (and vice versa). In this case the board will receive an IP address of `192.168.2.1`` by default, which is also the default value configured in `etc/ploy.conf`.
+After booting the device you need to figure out the IP address it has been given.
 
-Otherwise, log into the device directly (i.e. with keyboard and display) using the default `ubuntu/ubuntu` credentials, issue `ifconfig eth0` and note the IP address given via DHCP and pass that into the bootstrap command like so::
+Next, create an entry in `etc/ploy.conf` using one of the existing entries as an example.
 
-    make bootstrap boot_ip=192.168.1.39
+Then run `make bootstrap target=XXX` where `XXX` is the name you have given in the configuration file.
 
-Then you can run `make bootstrap` and watch the show... After a minute or two, the board should reboot and is now ready for action.
+If you don't want to use the IP address given via DHCP you can set the desired IP in the configuration and pass the current IP address via the `boot_ip` parameter like so::
+
+    make bootstrap target=XXX boot_ip=192.168.1.39
+
+After a minute or two, the board should reboot and is now ready for action.
+
+
+Bootstrapping the RasperberryPI3
+********************************
+
+The default login is `ubuntu/ubuntu` but you are forced to change the password immediately. You must follow this procedure either via SSH or via keyboard/monitor before you can perform the Bootstrapping.
+
+Then, during bootstrapping you will be asked (once) for the password you set and from then on you can log in using the SSH key you configured.
