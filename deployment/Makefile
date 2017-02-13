@@ -15,6 +15,10 @@ download-pine64: downloads/pine64-image-ubuntubase-31065bsp-longsleep.img.xz
 downloads/pine64-image-ubuntubase-31065bsp-longsleep.img.xz:
 	wget -P downloads/ https://www.pine64.pro/download/ubuntu/image/pine64-image-ubuntubase-31065bsp-longsleep.img.xz 
 
+download-nanopi: downloads/downloads/Armbian_5.25_Nanopiair_Ubuntu_xenial_default_3.4.113.7z
+downloads/Armbian_5.25_Nanopiair_Ubuntu_xenial_default_3.4.113.7z:
+	wget -P downloads/ https://dl.armbian.com/nanopiair/archive/Armbian_5.25_Nanopiair_Ubuntu_xenial_default_3.4.113.7z
+
 download-pi3: downloads/ubuntu-16.04-preinstalled-server-armhf+raspi3.img.xz
 downloads/ubuntu-16.04-preinstalled-server-armhf+raspi3.img.xz:
 	wget -P downloads/ http://www.finnie.org/software/raspberrypi/ubuntu-rpi3/ubuntu-16.04-preinstalled-server-armhf+raspi3.img.xz
