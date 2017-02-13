@@ -1,36 +1,24 @@
-      homeassistant:
-        name: {{ploy_hostname}}-{{ansible_machine_id[:4]}}
-        latitude: 52.5155
-        longitude: 13.4062
-        elevation: 32
-        # metric for Metric, imperial for Imperial
-        unit_system: metric
-        time_zone: Europe/Berlin
+homeassistant:
+  name: {{hostname}}
+  latitude: 52.5155
+  longitude: 13.4062
+  elevation: 32
+  # metric for Metric, imperial for Imperial
+  unit_system: metric
+  time_zone: Europe/Berlin
 
-      # Enables the frontend
-      frontend:
+http:
 
-      http:
-        # Uncomment this to add a password (recommended!)
-        # api_password: PASSWORD
-        # Uncomment this if you are using SSL or running in Docker etc
-        # base_url: example.duckdns.org:8123
+# Enables support for tracking state changes over time.
+history:
 
-      # Checks for available updates
-      updater:
+# View all events in a logbook
+logbook:
 
-      # Discover some devices automatically
-      discovery:
+media_player:
+  - platform: sonos
+    hosts: 192.168.1.42
 
-      # Enables support for tracking state changes over time.
-      history:
-
-      # View all events in a logbook
-      logbook:
-
-      # Track the sun
-      sun:
-
-      # Weather Prediction
-      sensor:
-        platform: yr
+light:
+  platform: hue
+  host: 192.168.1.83
