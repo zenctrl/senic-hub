@@ -18,7 +18,15 @@
     - libudev-dev
     - libical-dev
     - libreadline-dev
+    - python-dev
+    - libdbus-glib-1-dev
+    - python-gi
+    - python-pip
     - unzip
+
+- name: install dbus-python
+  pip:
+    name: dbus-python
 
 - name: upload custom bluez sources
   copy:
