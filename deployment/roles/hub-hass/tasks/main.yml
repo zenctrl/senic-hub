@@ -54,19 +54,11 @@
     mode: "0644"
     content: |
       pip==9.0.1
-      aiohttp==1.2.0
-      async-timeout==1.1.0
-      chardet==2.3.0
-      homeassistant==0.36.1
-      Jinja2==2.9.4
-      MarkupSafe==0.23
-      multidict==2.1.4
-      pytz==2016.10
-      PyYAML==3.12
-      requests==2.13.0
-      typing==3.5.3.0
-      voluptuous==0.9.3
-      yarl==0.8.1
+      homeassistant==0.38.2
+      aiohttp_cors==0.5.0  # requirement of HTTP component
+      phue==0.9  # requirement of Philips Hue component
+      SoCo==0.12  # requirement of Sonos component
+      sqlalchemy==1.1.5  # requirement of Recorder (through History) component
 
 - name: install application
   pip:
