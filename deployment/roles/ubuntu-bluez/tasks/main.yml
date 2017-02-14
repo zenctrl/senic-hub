@@ -56,6 +56,7 @@
   file:
     src: /lib/firmware/brcm//BCM43430A1.hcd
     dest: /etc/BCM43430A1.hcd
+    state: link
   tags: bluez
 
 - name: start and enable bluetooth daemon
