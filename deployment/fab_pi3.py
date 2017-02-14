@@ -2,6 +2,7 @@
 from os import path
 from fabric import api as fab
 from fabric.api import task, env
+from ploy.config import value_asbool
 
 eth_interface = """auto {eth_iface}
 iface {eth_iface} inet static
@@ -13,7 +14,7 @@ iface {eth_iface} inet static
 
 
 @task
-def bootstrap(boot_ip=None, authorized_keys='authorized_keys'):
+def bootstrap(boot_ip=None, authorized_keys='authorized_keys', static_ip=True):
     """bootstrap a freshly booted Raspberry PI 3 to make it ansible ready"""
     # (temporarily) set the user to `pi`
     if not path.isabs(authorized_keys):
@@ -34,16 +35,17 @@ def bootstrap(boot_ip=None, authorized_keys='authorized_keys'):
     AV.setdefault('eth_gateway', '192.168.1.1')
     AV.setdefault('eth_dns', '8.8.8.8')
     with fab.settings(warn_only=True):
-        fab.sudo('rm /etc/network/interfaces.d/50-cloud-init.cfg')
-        fab.sudo(
-            'echo """%s""" > /etc/network/interfaces.d/%s.cfg' %
-            (eth_interface.format(**AV), AV['eth_iface']))
-        # disable cloud init
-        fab.put(
-            local_path='pi3_cloud.cfg',
-            remote_path='/etc/cloud/cloud.cfg',
-            use_sudo=True,
-            mode='0644')
+        if value_asbool(static_ip):
+            fab.sudo('rm /etc/network/interfaces.d/50-cloud-init.cfg')
+            fab.sudo(
+                'echo """%s""" > /etc/network/interfaces.d/%s.cfg' %
+                (eth_interface.format(**AV), AV['eth_iface']))
+            # disable cloud init
+            fab.put(
+                local_path='pi3_cloud.cfg',
+                remote_path='/etc/cloud/cloud.cfg',
+                use_sudo=True,
+                mode='0644')
         # enable passwordless root login via ssh
         fab.put(
             local_path=authorized_keys,
@@ -51,5 +53,7 @@ def bootstrap(boot_ip=None, authorized_keys='authorized_keys'):
             use_sudo=True,
             mode='0700')
         fab.sudo("""chown root:root /root/.ssh/authorized_keys""")
-    fab.sudo("""apt-get install python -y""")
+    fab.sudo("""apt update""")
+    fab.sudo("""apt upgrade -y""")
+    fab.sudo("""apt install python2.7-minimal -y""")
     fab.reboot()

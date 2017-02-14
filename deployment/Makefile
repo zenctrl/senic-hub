@@ -1,6 +1,8 @@
 target = pi3hub
 boot_ip = 
 authorized_keys = authorized_keys
+static_ip = True
+
 install: bin/ploy
 
 bin/ploy bin/ploy-ssh: bin/pip requirements.txt
@@ -24,7 +26,7 @@ downloads/ubuntu-16.04-preinstalled-server-armhf+raspi3.img.xz:
 	wget -P downloads/ http://www.finnie.org/software/raspberrypi/ubuntu-rpi3/ubuntu-16.04-preinstalled-server-armhf+raspi3.img.xz
 
 bootstrap: bin/ploy
-	bin/ploy do $(target) bootstrap boot_ip=$(boot_ip) authorized_keys=$(authorized_keys)
+	bin/ploy do $(target) bootstrap boot_ip=$(boot_ip) authorized_keys=$(authorized_keys) static_ip=$(static_ip)
 
 osx-deps:
 	brew install python openssl libffi
