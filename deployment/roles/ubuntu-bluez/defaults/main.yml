@@ -1,3 +1,3 @@
 ---
 bluez_version: 5.43
-install_from_source: False
+install_from_source: True
