@@ -24,7 +24,7 @@
 - name: create build user
   become: true
   user:
-    name: "{{builduser}}"
+    name: "{{build_user}}"
     createhome: yes
     shell: /bin/bash
     # set password to '*' to unlock ssh access
@@ -50,7 +50,7 @@
     creates: "/tmp/{{bluez_version}}/README"
   tags: bluez
   become: true
-  become_user: "{{builduser}}"
+  become_user: "{{build_user}}"
 
 - name: unpack patch
   command: "unzip /tmp/3b07a1eb296862da889609a84f8e10b299b7442d.zip"
@@ -59,7 +59,7 @@
     creates: "/tmp/bluez-{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d"
   tags: bluez
   become: true
-  become_user: "{{builduser}}"
+  become_user: "{{build_user}}"
 
 - stat:
     path: "/tmp/{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware"
@@ -73,7 +73,7 @@
   when: bluez_patchfiles.stat.exists == True
   tags: bluez
   become: true
-  become_user: "{{builduser}}"
+  become_user: "{{build_user}}"
 
 - name: clean up patches
   command: "rm -r /tmp/bluez-{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/*"
@@ -81,7 +81,7 @@
     removes: "/tmp/bluez-{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware"
   tags: bluez
   become: true
-  become_user: "{{builduser}}"
+  become_user: "{{build_user}}"
 
 - name: configure sources
   command: ./configure --prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc --localstatedir=/var
@@ -90,7 +90,7 @@
     creates: "/tmp/bluez-{{bluez_version}}/config.log"
   tags: bluez
   become: true
-  become_user: "{{builduser}}"
+  become_user: "{{build_user}}"
 
 - name: compile sources
   command: make
@@ -99,7 +99,7 @@
     creates: "/tmp/bluez-{{bluez_version}}/tools/hciattach"
   tags: bluez
   become: true
-  become_user: "{{builduser}}"
+  become_user: "{{build_user}}"
 
 - stat:
     path: "/tmp/bluez-{{bluez_version}}/tools/hciattach"

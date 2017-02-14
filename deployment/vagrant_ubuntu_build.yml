@@ -6,7 +6,7 @@
   gather_facts: False
   vars:
     ansible_python_interpreter: python2.7
-    builduser_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+    build_user_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
   handlers:
     - name: restart ssh
       become: true
@@ -25,4 +25,4 @@
       notify: restart ssh
     - name: configure SSH key for root
       become: true
-      raw: echo "{{builduser_key}}" > /root/.ssh/authorized_keys
+      raw: echo "{{build_user_key}}" > /root/.ssh/authorized_keys
