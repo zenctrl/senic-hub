@@ -56,13 +56,13 @@
   command: "unzip /tmp/3b07a1eb296862da889609a84f8e10b299b7442d.zip"
   args:
     chdir: "/tmp/bluez-{{bluez_version}}/"
-    creates: "/tmp/bluez-{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d"
+    creates: "/tmp/bluez-{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware.patch"
   tags: bluez
   become: true
   become_user: "{{build_user}}"
 
 - stat:
-    path: "/tmp/{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware"
+    path: "/tmp/{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware.patch"
   register: bluez_patchfiles
   tags: bluez
 
@@ -76,9 +76,9 @@
   become_user: "{{build_user}}"
 
 - name: clean up patches
-  command: "rm -r /tmp/bluez-{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/*"
+  shell: "rm /tmp/bluez-{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/*"
   args:
-    removes: "/tmp/bluez-{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware"
+    removes: "/tmp/bluez-{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware.patch"
   tags: bluez
   become: true
   become_user: "{{build_user}}"
