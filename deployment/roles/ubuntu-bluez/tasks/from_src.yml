@@ -21,6 +21,19 @@
     - libdbus-glib-1-dev
     - unzip
 
+- name: create build user
+  become: true
+  user:
+    name: "{{builduser}}"
+    createhome: yes
+    shell: /bin/bash
+    # set password to '*' to unlock ssh access
+    password: $6$loHAn4IfYLEdMc$e0de/845DozoVAzG1rKx8eRqrBxRLnYJO746dqozpxYhxSgCfA7bI9p0KoDqNU8A0hot1zqJvMQNWM1IuJGnx1
+    update_password: always
+    groups: sudo
+    append: yes
+
+
 - name: upload custom bluez sources
   copy:
     src: "{{item}}" 
@@ -37,7 +50,7 @@
     creates: "/tmp/{{bluez_version}}/README"
   tags: bluez
   become: true
-  become_user: "{{deploy_user}}"
+  become_user: "{{builduser}}"
 
 - name: unpack patch
   command: "unzip /tmp/3b07a1eb296862da889609a84f8e10b299b7442d.zip"
@@ -46,7 +59,7 @@
     creates: "/tmp/bluez-{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d"
   tags: bluez
   become: true
-  become_user: "{{deploy_user}}"
+  become_user: "{{builduser}}"
 
 - stat:
     path: "/tmp/{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware"
@@ -60,7 +73,7 @@
   when: bluez_patchfiles.stat.exists == True
   tags: bluez
   become: true
-  become_user: "{{deploy_user}}"
+  become_user: "{{builduser}}"
 
 - name: clean up patches
   command: "rm -r /tmp/bluez-{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/*"
@@ -68,7 +81,7 @@
     removes: "/tmp/bluez-{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware"
   tags: bluez
   become: true
-  become_user: "{{deploy_user}}"
+  become_user: "{{builduser}}"
 
 - name: configure sources
   command: ./configure --prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc --localstatedir=/var
@@ -77,7 +90,7 @@
     creates: "/tmp/bluez-{{bluez_version}}/config.log"
   tags: bluez
   become: true
-  become_user: "{{deploy_user}}"
+  become_user: "{{builduser}}"
 
 - name: compile sources
   command: make
@@ -86,7 +99,7 @@
     creates: "/tmp/bluez-{{bluez_version}}/tools/hciattach"
   tags: bluez
   become: true
-  become_user: "{{deploy_user}}"
+  become_user: "{{builduser}}"
 
 - stat:
     path: "/tmp/bluez-{{bluez_version}}/tools/hciattach"

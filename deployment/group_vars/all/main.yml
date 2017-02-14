@@ -6,4 +6,5 @@ devpi_index: senic/dev
 devpi_auth_user: deploy
 devpi_index_url: "{{devpi_proto}}://{{devpi_auth_user}}:{{devpi_auth_password}}@{{devpi_base_url}}{{devpi_index}}/+simple/"
 deploy_user: senic
+builduser: senic
 run_user: nuimo
