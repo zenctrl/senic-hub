@@ -7,7 +7,7 @@ eth_interface = """auto {eth_iface}
 interface {eth_iface}
 static ip_address={eth_ip}/{eth_netmask}
 static routers={eth_gateway}
-static domain_name_servers {eth_dns}
+static domain_name_servers={eth_dns}
 """
 
 
