@@ -3,6 +3,7 @@
   apt:
     name: "{{item}}"
     state: absent
+    purge: yes
   with_items:
     - bluez
 
