@@ -60,6 +60,7 @@
   authorized_key:
     user: "{{build_user}}"
     key: "{{build_user_key}}"
+  when: build_user_key is defined
 
 - name: configure git
   become: true
