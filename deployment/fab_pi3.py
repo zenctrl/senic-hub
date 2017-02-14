@@ -27,7 +27,6 @@ def bootstrap(boot_ip=None, authorized_keys='authorized_keys', static_ip=True):
         env.instance.config['ip'] = boot_ip
     hostname = env.instance.uid
     env.host_string = 'ubuntu@%s' % hostname
-    env.password = 'ubuntu'
     AV = env.instance.get_ansible_variables()
     AV.setdefault('eth_ip', final_ip)
     AV.setdefault('eth_iface', 'eth0')
