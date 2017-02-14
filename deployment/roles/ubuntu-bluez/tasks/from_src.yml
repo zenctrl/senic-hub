@@ -1,0 +1,102 @@
+---
+- name: disable stock bluez (it's too old)
+  apt:
+    name: "{{item}}"
+    state: absent
+  with_items:
+    - bluez
+
+- name: install build dependencies
+  apt:
+    name: "{{item}}"
+    state: installed
+  with_items:
+    - git-core
+    - libusb-dev
+    - libdbus-1-dev
+    - libglib2.0-dev
+    - libudev-dev
+    - libical-dev
+    - libreadline-dev
+    - libdbus-glib-1-dev
+    - unzip
+
+- name: upload custom bluez sources
+  copy:
+    src: "{{item}}" 
+    dest: /tmp/
+  with_items:
+    - "bluez-{{bluez_version}}.tar.xz"  # http://www.kernel.org/pub/linux/bluetooth/bluez-5.43.tar.xz
+    - 3b07a1eb296862da889609a84f8e10b299b7442d.zip  # https://gist.github.com/pelwell/c8230c48ea24698527cd/archive/3b07a1eb296862da889609a84f8e10b299b7442d.zip
+  tags: bluez
+
+- name: unpack custom bluez sources
+  command: "tar xf bluez-{{bluez_version}}.tar.xz"
+  args:
+    chdir: /tmp/ 
+    creates: "/tmp/{{bluez_version}}/README"
+  tags: bluez
+  become: true
+  become_user: "{{deploy_user}}"
+
+- name: unpack patch
+  command: "unzip /tmp/3b07a1eb296862da889609a84f8e10b299b7442d.zip"
+  args:
+    chdir: "/tmp/bluez-{{bluez_version}}/"
+    creates: "/tmp/bluez-{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d"
+  tags: bluez
+  become: true
+  become_user: "{{deploy_user}}"
+
+- stat:
+    path: "/tmp/{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware"
+  register: bluez_patchfiles
+  tags: bluez
+
+- name: patch sources
+  command: "git apply -v c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/*"
+  args:
+    chdir: "/tmp/bluez-{{bluez_version}}/"
+  when: bluez_patchfiles.stat.exists == True
+  tags: bluez
+  become: true
+  become_user: "{{deploy_user}}"
+
+- name: clean up patches
+  command: "rm -r /tmp/bluez-{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/*"
+  args:
+    removes: "/tmp/bluez-{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware"
+  tags: bluez
+  become: true
+  become_user: "{{deploy_user}}"
+
+- name: configure sources
+  command: ./configure --prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc --localstatedir=/var
+  args:
+    chdir: "/tmp/bluez-{{bluez_version}}/"
+    creates: "/tmp/bluez-{{bluez_version}}/config.log"
+  tags: bluez
+  become: true
+  become_user: "{{deploy_user}}"
+
+- name: compile sources
+  command: make
+  args:
+    chdir: "/tmp/bluez-{{bluez_version}}/"
+    creates: "/tmp/bluez-{{bluez_version}}/tools/hciattach"
+  tags: bluez
+  become: true
+  become_user: "{{deploy_user}}"
+
+- stat:
+    path: "/tmp/bluez-{{bluez_version}}/tools/hciattach"
+  register: bluez_binary
+  tags: bluez
+
+- name: install sources
+  command: make install
+  args:
+    chdir: "/tmp/bluez-{{bluez_version}}/"
+    creates: /usr/bin/hciattach
+  tags: bluez
+  when: bluez_binary.stat.exists == True
