@@ -1,0 +1,28 @@
+.Setup {
+	display: flex;
+	flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.Setup span {
+    color: #00000000;
+	border: none;
+    border-image-width: 0;
+	position: absolute;
+    top: 0px;
+    right: 0px;
+    background-color: #242626;
+    background-image: url('./nuimo.png');
+    background-blend-mode: multiply;
+    z-index: -1;
+    width: 300px;
+    height: 203px;
+}
+
+.Setup h1 {
+	font-size: 30px;
+	font-weight: normal;
+	letter-spacing: 0.1em;
+	margin-bottom: 10px;
+}

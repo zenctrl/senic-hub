@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
+import './SetupWifiSelection.css'
+
+import nav from './nav-dots-1.png';
+
 class SetupWifiSelection extends Component {
   ssidPollInterval = 1000
   ssidPollTimer = 0
@@ -14,8 +18,8 @@ class SetupWifiSelection extends Component {
 
   render() {
     return (
-      <div>
-        Please select your Wi-Fi network:
+      <div className="SetupWifiSelection">
+        <p>Please select your Wi-Fi network:</p>
         <table>
           <tbody>
           {
@@ -23,6 +27,7 @@ class SetupWifiSelection extends Component {
           }
           </tbody>
         </table>
+        <img src={nav} />
       </div>
     )
   }

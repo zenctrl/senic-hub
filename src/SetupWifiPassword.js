@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import './SetupWifiPassword.css'
 
 class SetupWifiPassword extends Component {
   constructor(props) {
@@ -8,7 +9,7 @@ class SetupWifiPassword extends Component {
 
   render() {
     return (
-      <div>
+      <div className='SetupWifiPassword'>
         <div>Please enter the password for { this.props.params.ssid }</div>
         <input type="password" value={this.state.password} onChange={this.onPasswordChange.bind(this)} />
         <input type="button" value="Continue" onClick={this.submitPassword.bind(this)}/>

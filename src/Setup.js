@@ -1,10 +1,12 @@
 import React, { Component } from 'react'
+import './Setup.css'
 
 class Setup extends Component {
   render() {
     return (
-      <div>
-        <h1>Setup</h1>
+      <div className='Setup'>
+        <span />
+        <h1>SETUP</h1>
         {this.props.children}
       </div>
     );
