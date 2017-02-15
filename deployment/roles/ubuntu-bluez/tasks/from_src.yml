@@ -101,7 +101,7 @@
   become_user: "{{build_user}}"
 
 - name: compile sources
-  command: make
+  command: make -j 4
   args:
     chdir: "{{build_dir}}"
     creates: "{{build_dir}}/client/bluetoothctl"
