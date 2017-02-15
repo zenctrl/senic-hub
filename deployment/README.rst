@@ -52,9 +52,7 @@ After a minute or two, the board should reboot and is now ready for action.
 Bootstrapping the RasperberryPI3
 ********************************
 
-The default login is `ubuntu/ubuntu` but you are forced to change the password immediately. You must follow this procedure either via SSH or via keyboard/monitor before you can perform the Bootstrapping.
-
-Then, during bootstrapping you will be asked (once) for the password you set and from then on you can log in using the SSH key you configured.
+The default login is `pi3/raspberry`. During bootstrapping you will be asked (once) for the password and from then on you can log in using the SSH key you configured.
 
 
 Bootstrapping the NanoPI Air
