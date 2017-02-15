@@ -54,6 +54,7 @@
     src: BCM43430A1.hcd  # https://github.com/OpenELEC/misc-firmware/raw/master/firmware/brcm/BCM43430A1.hcd
     dest: /lib/firmware/brcm//BCM43430A1.hcd
   tags: bluez
+  when: apply_pi3_patches
 
 - name: install broadcomm driver
   file:
@@ -61,6 +62,7 @@
     dest: /etc/BCM43430A1.hcd
     state: link
   tags: bluez
+  when: apply_pi3_patches
 
 - name: start and enable bluetooth daemon
   service:

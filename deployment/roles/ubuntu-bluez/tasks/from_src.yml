@@ -33,52 +33,67 @@
     groups: sudo
     append: yes
 
+- name: ensure src directory exists
+  file:
+    dest: "{{src_dest}}"
+    owner: "{{build_user}}"
+    mode: "0755"
+    state: directory
 
 - name: upload custom bluez sources
   copy:
     src: "{{item}}" 
-    dest: /tmp/
+    dest: "{{src_dest}}/"
   with_items:
     - "bluez-{{bluez_version}}.tar.xz"  # http://www.kernel.org/pub/linux/bluetooth/bluez-5.43.tar.xz
-    - 3b07a1eb296862da889609a84f8e10b299b7442d.zip  # https://gist.github.com/pelwell/c8230c48ea24698527cd/archive/3b07a1eb296862da889609a84f8e10b299b7442d.zip
   tags: bluez
 
 - name: unpack custom bluez sources
   command: "tar xf bluez-{{bluez_version}}.tar.xz"
   args:
-    chdir: /tmp/ 
-    creates: "/tmp/{{bluez_version}}/README"
+    chdir: "{{src_dest}}" 
+    creates: "{{build_dir}}/README"
   tags: bluez
   become: true
   become_user: "{{build_user}}"
+
+- name: upload pi3 patches
+  copy:
+    src: "{{item}}" 
+    dest: "{{src_dest}}/"
+  with_items:
+    - 3b07a1eb296862da889609a84f8e10b299b7442d.zip  # https://gist.github.com/pelwell/c8230c48ea24698527cd/archive/3b07a1eb296862da889609a84f8e10b299b7442d.zip
+  tags: bluez
+  when: apply_pi3_patches
 
 - name: unpack patch
-  command: "unzip /tmp/3b07a1eb296862da889609a84f8e10b299b7442d.zip"
+  command: "unzip {{src_dest}}3b07a1eb296862da889609a84f8e10b299b7442d.zip"
   args:
-    chdir: "/tmp/bluez-{{bluez_version}}/"
-    creates: "/tmp/bluez-{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware.patch"
+    chdir: "{{build_dir}}"
+    creates: "{{build_dir}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware.patch"
   tags: bluez
   become: true
   become_user: "{{build_user}}"
+  when: apply_pi3_patches
 
 - stat:
-    path: "/tmp/{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware.patch"
+    path: "{{build_dir}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware.patch"
   register: bluez_patchfiles
   tags: bluez
 
 - name: patch sources
   command: "git apply -v c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/*"
   args:
-    chdir: "/tmp/bluez-{{bluez_version}}/"
+    chdir: "{{build_dir}}"
   when: bluez_patchfiles.stat.exists == True
   tags: bluez
   become: true
   become_user: "{{build_user}}"
 
 - name: clean up patches
-  shell: "rm /tmp/bluez-{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/*"
+  shell: "rm {{build_dir}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/*"
   args:
-    removes: "/tmp/bluez-{{bluez_version}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware.patch"
+    removes: "{{build_dir}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware.patch"
   tags: bluez
   become: true
   become_user: "{{build_user}}"
@@ -86,8 +101,8 @@
 - name: configure sources
   command: ./configure --prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc --localstatedir=/var
   args:
-    chdir: "/tmp/bluez-{{bluez_version}}/"
-    creates: "/tmp/bluez-{{bluez_version}}/config.log"
+    chdir: "{{build_dir}}"
+    creates: "{{build_dir}}/config.log"
   tags: bluez
   become: true
   become_user: "{{build_user}}"
@@ -95,21 +110,21 @@
 - name: compile sources
   command: make
   args:
-    chdir: "/tmp/bluez-{{bluez_version}}/"
-    creates: "/tmp/bluez-{{bluez_version}}/tools/hciattach"
+    chdir: "{{build_dir}}"
+    creates: "{{build_dir}}/client/bluetoothctl"
   tags: bluez
   become: true
   become_user: "{{build_user}}"
 
 - stat:
-    path: "/tmp/bluez-{{bluez_version}}/tools/hciattach"
+    path: "{{build_dir}}/client/bluetoothctl"
   register: bluez_binary
   tags: bluez
 
 - name: install sources
   command: make install
   args:
-    chdir: "/tmp/bluez-{{bluez_version}}/"
-    creates: /usr/bin/hciattach
+    chdir: "{{build_dir}}"
+    creates: /usr/bin/bluetoothctl
   tags: bluez
   when: bluez_binary.stat.exists == True
