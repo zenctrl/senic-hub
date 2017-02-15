@@ -12,7 +12,7 @@ static domain_name_servers={eth_dns}
 
 
 @task
-def bootstrap(boot_ip=None, authorized_keys='authorized_keys', static_ip=False):
+def bootstrap(boot_ip=None, authorized_keys='authorized_keys', static_ip=True):
     """bootstrap a freshly booted Raspberry PI 3 to make it ansible ready"""
     # (temporarily) set the user to `pi`
     if not path.isabs(authorized_keys):
