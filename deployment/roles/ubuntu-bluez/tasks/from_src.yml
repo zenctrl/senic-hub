@@ -1,11 +1,4 @@
 ---
-- name: disable stock bluez (it's too old)
-  apt:
-    name: "{{item}}"
-    state: absent
-  with_items:
-    - bluez
-
 - name: install build dependencies
   apt:
     name: "{{item}}"

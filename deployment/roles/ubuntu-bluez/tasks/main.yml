@@ -1,11 +1,10 @@
 ---
 - name: disable stock bluez (it's too old)
-  apt:
-    name: "{{item}}"
-    state: absent
-    purge: yes
-  with_items:
-    - bluez
+  service:
+    name: bluetooth
+    state: stopped
+    enabled: no
+  tags: bluez
 
 - name: install runtime dependencies
   apt:
