@@ -92,7 +92,7 @@
   become_user: "{{build_user}}"
 
 - name: configure sources
-  command: ./configure --prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc --localstatedir=/var
+  command: ./configure --enable-experimental --disable-cups --disable-monitor --prefix=/usr/local --disable-systemd
   args:
     chdir: "{{build_dir}}"
     creates: "{{build_dir}}/config.log"
