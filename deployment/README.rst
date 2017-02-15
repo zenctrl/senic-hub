@@ -52,7 +52,17 @@ After a minute or two, the board should reboot and is now ready for action.
 Bootstrapping the RasperberryPI3
 ********************************
 
-The default login is `pi3/raspberry`. During bootstrapping you will be asked (once) for the password and from then on you can log in using the SSH key you configured.
+The default login is `pi3/raspberry`. 
+
+To enable SSH you can either
+
+a) mount the SD card and create a file named `ssh`::
+    
+    sudo touch /Volumes/boot/ssh
+
+b) boot from it, login via console and `sudo touch /boot/ssh`
+
+During bootstrapping you will be asked (once) for the password and from then on you can log in using the SSH key you configured.
 
 
 Bootstrapping the NanoPI Air
