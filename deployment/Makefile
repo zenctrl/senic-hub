@@ -17,7 +17,7 @@ download-pine64: downloads/pine64-image-ubuntubase-31065bsp-longsleep.img.xz
 downloads/pine64-image-ubuntubase-31065bsp-longsleep.img.xz:
 	wget -P downloads/ https://www.pine64.pro/download/ubuntu/image/pine64-image-ubuntubase-31065bsp-longsleep.img.xz 
 
-download-nanopi: downloads/downloads/Armbian_5.25_Nanopiair_Ubuntu_xenial_default_3.4.113.7z
+download-nanopi: downloads/Armbian_5.25_Nanopiair_Ubuntu_xenial_default_3.4.113.7z
 downloads/Armbian_5.25_Nanopiair_Ubuntu_xenial_default_3.4.113.7z:
 	wget -P downloads/ https://dl.armbian.com/nanopiair/archive/Armbian_5.25_Nanopiair_Ubuntu_xenial_default_3.4.113.7z
 
