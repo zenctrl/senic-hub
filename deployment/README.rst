@@ -55,3 +55,28 @@ Bootstrapping the RasperberryPI3
 The default login is `ubuntu/ubuntu` but you are forced to change the password immediately. You must follow this procedure either via SSH or via keyboard/monitor before you can perform the Bootstrapping.
 
 Then, during bootstrapping you will be asked (once) for the password you set and from then on you can log in using the SSH key you configured.
+
+
+Bootstrapping the NanoPI Air
+****************************
+
+Since the Air doesn't have an ethernet port we need to access the serial console in order to perform wifi setup before we can run bootstrapping.
+
+Ideally the four required pins will have been soldered already, but if you are really careful, you can even create a connection without soldering, since you only really need it for a short initial time.
+
+The colors are::
+
+    RED:    5V
+    BLACK:  GND
+    GREEN:  RX
+    WHITE:  TX
+
+You can access the serial console using `screen`, i.e. like so::
+
+    screen  /dev/cu.usbserial 115200 -L
+
+On first boot the (friendly) armbian distro will let you login with `root/1234` via the console and will force you to change it manually to something else and then will ask you to create a sudo user. You can safely abort that part with ctrl-c.
+
+Next run `nmtui-connect YOUR_ROUTER_SSID` and enter the password (you *will* need to attach an antenna to the board).
+
+You can then use the IP address given via DHCP to bootstrap. Note, that setting a custom, static address is currently not supported.
