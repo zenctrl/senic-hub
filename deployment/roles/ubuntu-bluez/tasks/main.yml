@@ -24,17 +24,8 @@
     - python-setuptools
     - supervisor
 
-- name: install bluez (binary)
-  apt:
-    name: "{{item}}"
-    state: installed
-  with_items:
-    - bluez
-  when: not install_from_source
-  tags: bluez
 
 - include: from_src.yml
-  when: install_from_source
   tags: bluez
 
 - name: install dbus-python
