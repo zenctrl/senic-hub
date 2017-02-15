@@ -48,13 +48,14 @@
     group: root
     mode: 755
   tags: bluez
+  when: upload_pi3_driver
 
 - name: upload broadcomm driver
   copy:
     src: BCM43430A1.hcd  # https://github.com/OpenELEC/misc-firmware/raw/master/firmware/brcm/BCM43430A1.hcd
     dest: /lib/firmware/brcm//BCM43430A1.hcd
   tags: bluez
-  when: apply_pi3_patches
+  when: upload_pi3_driver
 
 - name: install broadcomm driver
   file:
@@ -62,7 +63,7 @@
     dest: /etc/BCM43430A1.hcd
     state: link
   tags: bluez
-  when: apply_pi3_patches
+  when: upload_pi3_driver
 
 - name: start and enable bluetooth daemon
   service:
