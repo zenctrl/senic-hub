@@ -32,5 +32,6 @@ def bootstrap(
         fab.sudo("""chown root:root /root/.ssh/authorized_keys""")
         fab.sudo(
             """echo 'PermitRootLogin without-password' > /etc/ssh/sshd_config""")
-        fab.sudo('dpkg --configure -a')
+        fab.sudo("""apt update""")
+        fab.sudo("""apt upgrade -y""")
     fab.reboot()
