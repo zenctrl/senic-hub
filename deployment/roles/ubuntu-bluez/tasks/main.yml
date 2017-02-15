@@ -21,6 +21,8 @@
     - libdbus-glib-1-dev
     - python-gi
     - python-pip
+    - python-setuptools
+    - supervisor
 
 - name: install bluez (binary)
   apt:
@@ -63,9 +65,24 @@
     state: link
   tags: bluez
 
-- name: start and enable bluetooth daemon
+- name: upload hciattach script
+  copy:
+    src: hciattach.sh
+    dest: /usr/local/bin/hciattach.sh
+    mode: "0755"
+
+- name: configure supervisor to manage bluetoothd
+  template:
+    src: bluetoothd_supervisor.conf
+    dest: /etc/supervisor/conf.d/bluetoothd.conf
+    owner: root
+    mode: "0644"
+  notify: reload supervisord
+  tags: supervisord
+
+- name: ensure supervisord is running
   service:
-    name: bluetooth
-    state: restarted
+    name: supervisor
+    state: running
     enabled: yes
-  tags: bluez
+  tags: supervisord

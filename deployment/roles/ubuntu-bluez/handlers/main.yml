@@ -1,0 +1,5 @@
+---
+- name: reload supervisord
+  service:
+    name: supervisor
+    state: restarted
