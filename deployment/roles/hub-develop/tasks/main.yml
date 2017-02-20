@@ -4,6 +4,17 @@
 - name: enable github deploy access
   become: true
   become_user: "{{build_user}}"
+  file:
+    dest: "/home/{{build_user}}/.ssh"
+    mode: "0700"
+    owner: "{{build_user}}"
+    group: "{{build_user}}"
+    state: directory
+  tags: gitco
+
+- name: enable github deploy access
+  become: true
+  become_user: "{{build_user}}"
   copy:
     src: github_deploy_rsa
     dest: "/home/{{build_user}}/.ssh/id_rsa"
