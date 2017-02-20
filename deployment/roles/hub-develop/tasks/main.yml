@@ -3,33 +3,33 @@
 # it assumes the role `ubuntu-build` has been applied
 - name: enable github deploy access
   become: true
-  become_user: "{{builduser}}"
+  become_user: "{{build_user}}"
   copy:
     src: github_deploy_rsa
-    dest: "/home/{{builduser}}/.ssh/id_rsa"
+    dest: "/home/{{build_user}}/.ssh/id_rsa"
     mode: "0600"
-    owner: "{{builduser}}"
-    group: "{{builduser}}"
+    owner: "{{build_user}}"
+    group: "{{build_user}}"
   tags: gitco
 
 - name: checkout hub sources
   git:
     repo: "git@github.com:tomster/nuimo-hub-backend"
     remote: tomster
-    dest: "/home/{{builduser}}/nuimo-hub-backend"
+    dest: "/home/{{build_user}}/nuimo-hub-backend"
     version: "004-available-wifi-networks"
     accept_hostkey: true
   become: true
-  become_user: "{{builduser}}"
+  become_user: "{{build_user}}"
   tags:
     - gitco
     - gitup
 
 - name: bootstrap development checkout
   become: true
-  become_user: "{{builduser}}"
+  become_user: "{{build_user}}"
   command: make
   args:
-    creates: "/home/{{builduser}}/nuimo-hub-backend/application/venv/bin/python"
-    chdir: "/home/{{builduser}}/nuimo-hub-backend/application/"
+    creates: "/home/{{build_user}}/nuimo-hub-backend/application/venv/bin/python"
+    chdir: "/home/{{build_user}}/nuimo-hub-backend/application/"
   tags: gitco

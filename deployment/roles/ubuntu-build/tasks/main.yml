@@ -38,7 +38,7 @@
 - name: create user
   become: true
   user:
-    name: "{{builduser}}"
+    name: "{{build_user}}"
     createhome: yes
     shell: /bin/bash
     # set password to '*' to unlock ssh access
@@ -58,20 +58,21 @@
 - name: enable ssh access
   become: true
   authorized_key:
-    user: "{{builduser}}"
-    key: "{{builduser_key}}"
+    user: "{{build_user}}"
+    key: "{{build_user_key}}"
+  when: build_user_key is defined
 
 - name: configure git
   become: true
-  become_user: "{{builduser}}"
+  become_user: "{{build_user}}"
   copy:
-    dest: "/home/{{builduser}}/.gitconfig"
-    owner: "{{builduser}}"
+    dest: "/home/{{build_user}}/.gitconfig"
+    owner: "{{build_user}}"
     mode: "0700"
     content: |
       [user]
-      name = {{builduser_fullname}}
-      email = {{builduser_email}}
+      name = {{build_user_fullname}}
+      email = {{build_user_email}}
 
       [branch]
       autosetupmerge = true
@@ -148,39 +149,39 @@
         || complete -o default -o nospace -F _git g
 
   with_items:
-    - name: "{{builduser}}"
-      path: "/home/{{builduser}}"
+    - name: "{{build_user}}"
+      path: "/home/{{build_user}}"
     - name: root
       path: /root
 
 - name: configure vim
   become: true
-  become_user: "{{builduser}}"
+  become_user: "{{build_user}}"
   file:
-    dest: "/home/{{builduser}}/.vim/bundle"
-    owner: "{{builduser}}"
+    dest: "/home/{{build_user}}/.vim/bundle"
+    owner: "{{build_user}}"
     mode: "0700"
     state: directory
 
 - name: configure vim
   become: true
-  become_user: "{{builduser}}"
+  become_user: "{{build_user}}"
   copy:
     src: vimrc
-    dest: "/home/{{builduser}}/.vimrc"
-    owner: "{{builduser}}"
+    dest: "/home/{{build_user}}/.vimrc"
+    owner: "{{build_user}}"
     mode: "0700"
 
 - name: install vundle from git
   become: true
-  become_user: "{{builduser}}"
+  become_user: "{{build_user}}"
   git:
     repo: https://github.com/VundleVim/Vundle.vim.git
-    dest: "/home/{{builduser}}/.vim/bundle/Vundle.vim"
+    dest: "/home/{{build_user}}/.vim/bundle/Vundle.vim"
 
 - name: bootstrap vundle
   become: true
-  become_user: "{{builduser}}"
+  become_user: "{{build_user}}"
   command: vim +PluginInstall +qall
   args:
-    creates: "/home/{{builduser}}/.vim/bundle/nerdtree/LICENCE"
+    creates: "/home/{{build_user}}/.vim/bundle/nerdtree/LICENCE"

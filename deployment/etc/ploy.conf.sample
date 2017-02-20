@@ -1,0 +1,30 @@
+# vi:syntax=dosini
+[macro:hub-base]
+user = root
+ssh-fingerprints = ignore
+# password config for bootstrapping only
+password-fallback = true
+ansible-ansible_python_interpreter = python2.7
+roles =
+    ubuntu-build
+    hub-ubuntu
+    hub-hass
+
+[plain-instance:vboxhub]
+<= macro:hub-base
+ip = 192.168.56.5
+port = 22
+ansible-eth_dns = 8.8.8.8
+roles =
+    ubuntu-build
+    hub-ubuntu
+    hub-hass
+    hub-develop
+
+[plain-instance:vboxbuild]
+ip = 192.168.56.4
+user = root
+ssh-fingerprints = ignore
+ansible-eth_dns = 178.19.223.1
+roles =
+    ubuntu-bluez

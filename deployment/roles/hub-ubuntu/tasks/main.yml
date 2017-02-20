@@ -3,13 +3,22 @@
   hostname:
     name: "{{hostname}}"
 
+- name: disable default users
+  user:
+    name: "{{item}}"
+    state: absent
+    remove: yes
+  with_items:
+    - ubuntu
+    - pi
+
 - name: install runtime dependencies
   apt:
     name: "{{item}}"
     state: installed
   with_items:
     - avahi-daemon
-    - python3.5
+    - python3
     - wpasupplicant
     - wireless-tools
     - supervisor
