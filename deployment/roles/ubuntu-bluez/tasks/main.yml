@@ -11,26 +11,13 @@
     name: "{{item}}"
     state: installed
   with_items:
-    - libusb-dev
-    - libdbus-1-dev
-    - libglib2.0-dev
-    - libudev-dev
-    - libical-dev
-    - libreadline-dev
-    - python-dev
-    - libdbus-glib-1-dev
-    - python-gi
-    - python-pip
-    - python-setuptools
+    - python3-dev
+    - python3-gi
+    - python3-dbus
     - supervisor
-
 
 - include: from_src.yml
   tags: bluez
-
-- name: install dbus-python
-  pip:
-    name: dbus-python
 
 - name: create firmware directory
   file:
