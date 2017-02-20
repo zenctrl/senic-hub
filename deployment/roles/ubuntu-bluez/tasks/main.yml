@@ -43,12 +43,6 @@
     state: link
   tags: bluez
 
-- name: upload hciattach script
-  copy:
-    src: hciattach.sh
-    dest: /usr/local/bin/hciattach.sh
-    mode: "0755"
-
 - name: configure supervisor to manage bluetoothd
   template:
     src: bluetoothd_supervisor.conf
