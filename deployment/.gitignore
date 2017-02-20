@@ -4,3 +4,4 @@
 /include/
 /.vagrant
 /.vault_password_file
+/etc/ploy.conf
