@@ -118,6 +118,7 @@
   command: make install
   args:
     chdir: "{{build_dir}}"
-    creates: /usr/bin/bluetoothctl
+    creates: /usr/local/bin/bluetoothctl
   tags: bluez
+  become: true
   when: bluez_binary.stat.exists == True
