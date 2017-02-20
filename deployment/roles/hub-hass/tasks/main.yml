@@ -45,6 +45,11 @@
     chdir: "{{deploy_location}}"
     creates: "{{deploy_location}}/venv/bin/python"
 
+- name: Make sure pip + setuptools are uptodate
+  command: "{{deploy_location}}/venv/bin/pip install -U pip setuptools"
+  args:
+    chdir: "{{deploy_location}}"
+
 - name: upload python requirements
   become: true
   copy:
