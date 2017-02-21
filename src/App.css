@@ -9,26 +9,15 @@ body {
   color: white;
 }
 
-@font-face {
-  font-family: 'Averta Light';
-  src: url('avertastd-light-webfont.eot');
-  src: url('avertastd-light-webfont.eot?#iefix') format('embedded-opentype'),
-       url('avertastd-light-webfont.woff2') format('woff2'),
-       url('avertastd-light-webfont.woff') format('woff'),
-       url('avertastd-light-webfont.ttf') format('truetype'),
-       url('avertastd-light-webfont.svg#averta_stdlight') format('svg');
-  font-weight: 300;
-  font-style: normal;
+input {
+  color: black;
 }
 
 @font-face {
   font-family: 'Averta Regular';
-  src: url('AvertaStd-Regular.otf');
+  src: url('fonts/AvertaStd-Regular.otf');
   font-weight: 300;
   font-style: normal;
-}
-
-* {
 }
 
 .App {
