@@ -46,6 +46,8 @@ def bootstrap(boot_ip=None, authorized_keys='authorized_keys', static_ip=True):
             use_sudo=True,
             mode='0700')
         fab.sudo("""chown root:root /root/.ssh/authorized_keys""")
+    # upgrade to raspbian strech (gives us python3.5)
+    fab.sudo("""echo 'deb http://mirrordirector.raspbian.org/raspbian/ testing main contrib non-free rpi' > /etc/apt/sources.list.d/stretch.list""")
     fab.sudo("""apt update""")
-    fab.sudo("""apt upgrade -y""")
+    fab.sudo("""apt dist-upgrade -y""")
     fab.reboot()

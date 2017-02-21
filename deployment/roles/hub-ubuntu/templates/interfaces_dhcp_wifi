@@ -1,0 +1,1 @@
+iface {{ploy_wlan0}} inet dhcp

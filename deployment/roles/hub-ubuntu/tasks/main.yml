@@ -28,13 +28,29 @@
     - libssl-dev
     - lighttpd
 
+- name: available interfaces directory
+  file:
+    path: /etc/network/interfaces.available
+    owner: root
+    group: root
+    mode: "0755"
+    state: directory
+  tags: wlan
+
 - name: configure network interfaces
   template:
-    src: interfaces
-    dest: /etc/network/interfaces
+    src: "{{item.src}}"
+    dest: "/etc/network/{{item.dest}}"
     owner: root
     mode: "0644"
   when: ploy_wlan0 is defined
+  with_items:
+    - src: interfaces
+      dest: interfaces
+    - src: interfaces_dhcp_wifi
+      dest: interfaces.available/interfaces_dhcp_wifi
+    - src: interfaces_setup_wifi
+      dest: interfaces.available/interfaces_setup_wifi
   notify:
     - restart wlan0
     - restart wlan1
