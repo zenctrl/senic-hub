@@ -26,6 +26,10 @@ def bootstrap(boot_ip=None, authorized_keys='authorized_keys', static_ip=True):
     hostname = env.instance.uid
     env.host_string = 'pi@%s' % hostname
     env.password = 'raspberry'
+    # upgrade to raspbian strech (gives us python3.5)
+    fab.sudo("""echo 'deb http://mirrordirector.raspbian.org/raspbian/ testing main contrib non-free rpi' > /etc/apt/sources.list.d/stretch.list""")
+    fab.sudo("""apt update""")
+    fab.sudo("""apt dist-upgrade -y""")
     AV = env.instance.get_ansible_variables()
     AV.setdefault('eth_ip', final_ip)
     AV.setdefault('eth_iface', 'eth0')
@@ -46,8 +50,4 @@ def bootstrap(boot_ip=None, authorized_keys='authorized_keys', static_ip=True):
             use_sudo=True,
             mode='0700')
         fab.sudo("""chown root:root /root/.ssh/authorized_keys""")
-    # upgrade to raspbian strech (gives us python3.5)
-    fab.sudo("""echo 'deb http://mirrordirector.raspbian.org/raspbian/ testing main contrib non-free rpi' > /etc/apt/sources.list.d/stretch.list""")
-    fab.sudo("""apt update""")
-    fab.sudo("""apt dist-upgrade -y""")
     fab.reboot()
