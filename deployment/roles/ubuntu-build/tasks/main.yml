@@ -33,7 +33,7 @@
     - python3-pip
     - python3-venv
     - screen
-    - vim
+    - vim-nox
 
 - name: create user
   become: true
