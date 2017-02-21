@@ -18,6 +18,7 @@ network={
 }
 '''
 
+
 def get_networks(devices=[DEFAULT_IFACE]):
     networks = dict()
     for device in devices:
