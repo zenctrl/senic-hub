@@ -28,7 +28,7 @@
     repo: "git@github.com:tomster/nuimo-hub-backend"
     remote: tomster
     dest: "/home/{{build_user}}/nuimo-hub-backend"
-    version: "004-available-wifi-networks"
+    version: "wifi-onboarding"
     accept_hostkey: true
   become: true
   become_user: "{{build_user}}"
