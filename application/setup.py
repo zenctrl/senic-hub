@@ -56,7 +56,7 @@ setup(
             'pdbpp',
             'pep8 < 1.6',
             'py >= 1.4.17',
-            'pyflakes < 1.4.0',
+            'pyflakes',
             'pyquery',
             'pyramid_debugtoolbar',
             'pytest',
