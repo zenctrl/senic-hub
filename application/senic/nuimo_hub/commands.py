@@ -86,4 +86,7 @@ def join_wifi(ssid, password, device=DEFAULT_IFACE):
     with open(WPA_SUPPLICANT_FS, 'w') as wpaconf:
         wpaconf.write(WPA_SUPPLICANT_CONF.format(**locals()))
     run(['ifup', device])
+    # clean up after ourselves
+    if os.path.exists(ENTER_SETUP_FLAG):
+        os.remove(ENTER_SETUP_FLAG)
 
