@@ -23,6 +23,7 @@
     - wireless-tools
     - supervisor
     - python3-venv
+    - python3-dbus
     - libffi-dev
     - libssl-dev
     - lighttpd
