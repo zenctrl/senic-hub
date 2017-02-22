@@ -3,7 +3,7 @@ import json
 import os
 
 from os.path import abspath
-from subprocess import run, PIPE
+from subprocess import run, PIPE, TimeoutExpired
 
 import wifi
 from pyramid.paster import get_app
@@ -85,11 +85,13 @@ def join_wifi(ssid, password, device=DEFAULT_IFACE):
     )
     with open(WPA_SUPPLICANT_FS, 'w') as wpaconf:
         wpaconf.write(WPA_SUPPLICANT_CONF.format(**locals()))
-    run(['ifup', device])
-
-    # check, if we were successful:
-    status = run(['wpa_cli', 'status'], stdout=PIPE)
-    success = 'wpa_state=COMPLETED' in status.stdout.decode()
+    try:
+        run(['ifup', device], timeout=30)
+        # check, if we were successful:
+        status = run(['wpa_cli', 'status'], stdout=PIPE)
+        success = 'wpa_state=COMPLETED' in status.stdout.decode()
+    except TimeoutExpired:
+        success = False
 
     if success:
         # clean up after ourselves
