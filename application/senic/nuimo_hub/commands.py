@@ -14,7 +14,7 @@ IFACES_AVAILABLE = '/etc/network/interfaces.available/{}'
 IFACES_D = '/etc/network/interfaces.d/{}'
 ENTER_SETUP_FLAG = '/var/run/NUIMO_SETUP_REQUIRED'
 
-WPA_SUPPLICANT_FS='/etc/wpa_supplicant/wpa_supplicant.conf'
+WPA_SUPPLICANT_FS = '/etc/wpa_supplicant/wpa_supplicant.conf'
 WPA_SUPPLICANT_CONF = '''ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
 network={{
@@ -89,4 +89,3 @@ def join_wifi(ssid, password, device=DEFAULT_IFACE):
     # clean up after ourselves
     if os.path.exists(ENTER_SETUP_FLAG):
         os.remove(ENTER_SETUP_FLAG)
-
