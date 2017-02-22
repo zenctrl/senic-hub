@@ -1,9 +1,13 @@
 import click
 import json
-import wifi
+import os
 
 from os.path import abspath
+from subprocess import run
+
+import wifi
 from pyramid.paster import get_app
+
 
 DEFAULT_IFACE = 'wlan0'
 IFACES_AVAILABLE = '/etc/network/interfaces.available/{}'
@@ -42,7 +46,17 @@ def scan_wifi(config, devices):
 @click.command(help='Activates the adhoc network (for wifi setup')
 @click.argument('device', default=DEFAULT_IFACE)
 def activate_adhoc(device=DEFAULT_IFACE):
-    pass
+    run(['ifdown', device])
+    try:
+        os.remove(IFACES_D.format(device))
+    except FileNotFoundError:
+        pass
+    # new symlink
+    os.symlink(
+        IFACES_AVAILABLE.format('interfaces_setup_wifi'),
+        IFACES_D.format(device)
+    )
+    run(['ifup', device])
 
 
 @click.command(help='Activate the wifi-onboarding setup')
