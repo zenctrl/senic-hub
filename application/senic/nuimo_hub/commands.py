@@ -101,4 +101,9 @@ def join_wifi(ssid, password, device=DEFAULT_IFACE):
         exit(0)
     else:
         click.echo("Could not join %s." % ssid)
+        # signal the setup mode is active because of
+        # failed attempt (as opposed to not having tried
+        # yet).
+        with open(ENTER_SETUP_FLAG, 'w') as flag:
+            flag.write('FAILED')
         exit(1)
