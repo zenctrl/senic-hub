@@ -97,6 +97,8 @@ def join_wifi(ssid, password, device=DEFAULT_IFACE):
         # clean up after ourselves
         if os.path.exists(ENTER_SETUP_FLAG):
             os.remove(ENTER_SETUP_FLAG)
+        click.echo("Success!")
         exit(0)
     else:
+        click.echo("Could not join %s." % ssid)
         exit(1)
