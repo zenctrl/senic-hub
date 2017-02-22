@@ -50,47 +50,6 @@
   become: true
   become_user: "{{build_user}}"
 
-- name: upload pi3 patches
-  copy:
-    src: "{{item}}" 
-    dest: "{{src_dest}}/"
-  with_items:
-    - 3b07a1eb296862da889609a84f8e10b299b7442d.zip  # https://gist.github.com/pelwell/c8230c48ea24698527cd/archive/3b07a1eb296862da889609a84f8e10b299b7442d.zip
-  tags: bluez
-  when: apply_pi3_patches
-
-- name: unpack patch
-  command: "unzip {{src_dest}}3b07a1eb296862da889609a84f8e10b299b7442d.zip"
-  args:
-    chdir: "{{build_dir}}"
-    creates: "{{build_dir}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware.patch"
-  tags: bluez
-  become: true
-  become_user: "{{build_user}}"
-  when: apply_pi3_patches
-
-- stat:
-    path: "{{build_dir}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware.patch"
-  register: bluez_patchfiles
-  tags: bluez
-
-- name: patch sources
-  command: "git apply -v c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/*"
-  args:
-    chdir: "{{build_dir}}"
-  when: bluez_patchfiles.stat.exists == True
-  tags: bluez
-  become: true
-  become_user: "{{build_user}}"
-
-- name: clean up patches
-  shell: "rm {{build_dir}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/*"
-  args:
-    removes: "{{build_dir}}/c8230c48ea24698527cd-3b07a1eb296862da889609a84f8e10b299b7442d/0004-Move-the-43xx-firmware-into-lib-firmware.patch"
-  tags: bluez
-  become: true
-  become_user: "{{build_user}}"
-
 - name: configure sources
   command: ./configure --disable-cups --disable-monitor --disable-systemd --prefix=/usr/local
   args:
