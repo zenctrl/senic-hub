@@ -14,12 +14,13 @@ IFACES_AVAILABLE = '/etc/network/interfaces.available/{}'
 IFACES_D = '/etc/network/interfaces.d/{}'
 ENTER_SETUP_FLAG = '/var/run/NUIMO_SETUP_REQUIRED'
 
+WPA_SUPPLICANT_FS='/etc/wpa_supplicant/wpa_supplicant.conf'
 WPA_SUPPLICANT_CONF = '''ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
-network={
+network={{
     ssid="{ssid}"
-    psk="{psk}"
-}
+    psk="{password}"
+}}
 '''
 
 
@@ -69,19 +70,20 @@ def enter_wifi_setup(device=DEFAULT_IFACE):
 @click.command(help='join a given wifi network (requires root privileges)')
 @click.argument('ssid')
 @click.argument('password')
-@click.argument('device')
+@click.argument('device', default=DEFAULT_IFACE)
 def join_wifi(ssid, password, device=DEFAULT_IFACE):
-    networks = get_networks(devices=[device])
+    run(['/usr/bin/supervisorctl', 'stop', 'dhcpd'])
+    run(['ifdown', device])
     try:
-        cell = networks[ssid]['cell']
-    except KeyError:
-        exit('No network named {} found'.format(ssid))
-    # make sure we delete an existing scheme
-    # this allows us to overwrite it, i.e. when a user
-    # has provided the wrong password the first time round
-    scheme = wifi.Scheme.find(device, 'default')
-    if scheme is not None:
-        scheme.delete()
-    scheme = wifi.Scheme.for_cell(device, 'default', cell, password)
-    scheme.save()
-    scheme.activate()
+        os.remove(IFACES_D.format(device))
+    except FileNotFoundError:
+        pass
+    # new symlink
+    os.symlink(
+        IFACES_AVAILABLE.format('interfaces_dhcp_wifi'),
+        IFACES_D.format(device)
+    )
+    with open(WPA_SUPPLICANT_FS, 'w') as wpaconf:
+        wpaconf.write(WPA_SUPPLICANT_CONF.format(**locals()))
+    run(['ifup', device])
+
