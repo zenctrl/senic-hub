@@ -20,7 +20,8 @@ Plugin 'tomtom/tcomment_vim'
 Bundle "tobyS/rst-headings.vim"
 Bundle "altercation/vim-colors-solarized"
 Bundle "tacahiroy/ctrlp-funky"
-Plugin 'davidhalter/jedi-vim'
+" Deactivated by default (quite resource hungry)
+" Plugin 'davidhalter/jedi-vim'
 Plugin 'hynek/vim-python-pep8-indent'
 Bundle "moll/vim-bbye"
 Bundle "chase/vim-ansible-yaml"
