@@ -60,9 +60,12 @@ def activate_adhoc(device=DEFAULT_IFACE):
 
 
 @click.command(help='Activate the wifi-onboarding setup')
-@click.argument('device')
+@click.argument('device', default=DEFAULT_IFACE)
 def enter_wifi_setup(device=DEFAULT_IFACE):
-    pass
+    if not os.path.exists(ENTER_SETUP_FLAG):
+        exit(0)
+    activate_adhoc(device)
+    run(['/usr/bin/supervisorctl', 'start', 'dhcpd'])
 
 
 @click.command(help='join a given wifi network (requires root privileges)')
