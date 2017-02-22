@@ -6,6 +6,7 @@
 
 - name: restart wlan1
   raw: "ifdown {{ploy_wlan1}} && ifup {{ploy_wlan1}}"
+  when: ploy_wlan0 != ploy_wlan1
   args:
     executable: /bin/bash
 
