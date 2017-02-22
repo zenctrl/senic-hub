@@ -1,0 +1,86 @@
+---
+# A role to install Python 3.5 from sources
+# 
+# It was created mainly because we needed a reliable way to install
+# Python 3.5 on Raspbian Jessie, because if we dist-upgraded that to
+# a version that included Python 3.5 the bluetooth device became unavailable
+
+- name: install build dependencies
+  apt:
+    name: "{{item}}"
+    state: installed
+  with_items:
+    - build-essential
+    - libc6-dev
+    - libncurses5-dev
+    - libncursesw5-dev
+    - libreadline6-dev
+    - libdb5.3-dev
+    - libgdbm-dev
+    - libsqlite3-dev
+    - libssl-dev
+    - libbz2-dev
+    - libexpat1-dev
+    - liblzma-dev
+    - zlib1g-dev
+
+- name: create build user
+  become: true
+  user:
+    name: "{{build_user}}"
+    createhome: yes
+    shell: /bin/bash
+    # set password to '*' to unlock ssh access
+    password: $6$loHAn4IfYLEdMc$e0de/845DozoVAzG1rKx8eRqrBxRLnYJO746dqozpxYhxSgCfA7bI9p0KoDqNU8A0hot1zqJvMQNWM1IuJGnx1
+    update_password: always
+    groups: sudo
+    append: yes
+
+- name: ensure src directory exists
+  file:
+    dest: "{{src_dest}}"
+    owner: "{{build_user}}"
+    mode: "0755"
+    state: directory
+
+- name: download python sources
+  get_url:
+    url: "https://www.python.org/ftp/python/{{python_version}}/Python-{{python_version}}.tgz"
+    dest: "{{src_dest}}/"
+
+- name: unpack sources
+  command: "tar xf Python-{{python_version}}.tgz"
+  args:
+    chdir: "{{src_dest}}" 
+    creates: "{{build_dir}}/README"
+  become: true
+  become_user: "{{build_user}}"
+
+- name: configure sources
+  command: ./configure
+  args:
+    chdir: "{{build_dir}}"
+    creates: "{{build_dir}}/config.log"
+  become: true
+  become_user: "{{build_user}}"
+
+- name: compile sources
+  command: make -j 4
+  args:
+    chdir: "{{build_dir}}"
+    creates: "{{build_dir}}/python"
+  become: true
+  become_user: "{{build_user}}"
+
+- stat:
+    path: "{{build_dir}}/python"
+  register: python_binary
+
+- name: install sources
+  command: make install
+  args:
+    chdir: "{{build_dir}}"
+    creates: /usr/local/bin/python3.5
+  tags: python
+  become: true
+  when: python_binary.stat.exists == True
