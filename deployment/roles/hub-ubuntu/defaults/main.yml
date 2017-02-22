@@ -3,3 +3,4 @@ ploy_adhoc_channel: 1
 wwwuser: www-data
 frontend_document_root: /var/www/nuimo_hub
 hostname: "{{ploy_hostname}}-{{ansible_machine_id[:4]}}"
+ploy_wlan1: "{{ploy_wlan0 | default('')}}"
