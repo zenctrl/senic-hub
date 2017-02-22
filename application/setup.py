@@ -78,7 +78,6 @@ setup(
         [console_scripts]
         scan_wifi = senic.nuimo_hub.commands:scan_wifi
         enter_wifi_setup = senic.nuimo_hub.commands:enter_wifi_setup
-        activate_adhoc = senic.nuimo_hub.commands:activate_adhoc
         join_wifi = senic.nuimo_hub.commands:join_wifi
     """,
 )

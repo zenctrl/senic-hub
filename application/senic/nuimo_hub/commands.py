@@ -43,8 +43,6 @@ def scan_wifi(config, devices):
         json.dump(json_networks, wifi_file)
 
 
-@click.command(help='Activates the adhoc network (for wifi setup')
-@click.argument('device', default=DEFAULT_IFACE)
 def activate_adhoc(device=DEFAULT_IFACE):
     run(['ifdown', device])
     try:
