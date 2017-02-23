@@ -1,11 +1,12 @@
 import React, { Component } from 'react'
 import { Router, Route, hashHistory } from 'react-router'
 import './App.css'
-import Setup from './Setup'
-import SetupWelcome from './SetupWelcome'
-import SetupWifiPassword from './SetupWifiPassword'
+import Setup              from './Setup'
+import SetupWelcome       from './SetupWelcome'
+import SetupWifiPassword  from './SetupWifiPassword'
 import SetupWifiSelection from './SetupWifiSelection'
-import SetupCompletion from './SetupCompletion'
+import SetupNuimo         from './SetupNuimo'
+import SetupCompletion    from './SetupCompletion'
 
 class App extends Component {
   render() {
@@ -17,6 +18,7 @@ class App extends Component {
             <Route path='welcome' component={SetupWelcome} />
             <Route path='wifi' component={SetupWifiSelection} />
             <Route path='wifi/:ssid' component={SetupWifiPassword} />
+            <Route path='nuimo' component={SetupNuimo} />
             <Route path='completed' component={SetupCompletion} />
           </Route>
         </Router>
