@@ -39,11 +39,11 @@ class SetupDevices extends Component {
   }
 
   pollDevices() {
+    //TODO: Promise chain doesn't get cancelled when component unmounts
     fetch('/-/setup/devices')
       //TODO: Write tests for all possible API call responses, server not available, etc.
       .then((response) => response.json())
       .then((devices) => {
-        console.log(devices)
         this.setState({ devices: devices })
         this.devicesPollTimer = setTimeout(this.pollDevices.bind(this), this.devicesPollInterval)
       })

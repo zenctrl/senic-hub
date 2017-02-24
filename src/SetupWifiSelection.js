@@ -41,6 +41,7 @@ class SetupWifiSelection extends Component {
   }
 
   pollSsids() {
+    //TODO: Promise chain doesn't get cancelled when component unmounts
     fetch('/-/setup/wifi')
       //TODO: Write tests for all possible API call responses, server not available, etc.
       .then((response) => response.json())

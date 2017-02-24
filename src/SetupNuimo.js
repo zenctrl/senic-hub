@@ -42,11 +42,11 @@ class SetupNuimo extends Component {
   }
 
   pollNuimos() {
+    //TODO: Promise chain doesn't get cancelled when component unmounts
     fetch('/-/setup/nuimo')
       //TODO: Write tests for all possible API call responses, server not available, etc.
       .then((response) => response.json())
       .then((nuimos) => {
-        console.log(nuimos)
         this.setState({ nuimos: nuimos })
         this.nuimoPollTimer = setTimeout(this.pollNuimos.bind(this), this.nuimoPollInterval)
       })
