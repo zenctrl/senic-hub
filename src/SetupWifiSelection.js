@@ -49,7 +49,9 @@ class SetupWifiSelection extends Component {
       .then((response) => response.json())
       .then((ssids) => {
         //TODO: Remove random SSID filtering
-        ssids = ssids.filter(() => Math.random() > 0.2)
+        ssids = ssids
+          .filter(() => Math.random() > 0.05)
+          .sort((lhs, rhs) => lhs.toLowerCase().localeCompare(rhs.toLowerCase()))
         this.setState({ssids: ssids})
         this.ssidPollTimer = setTimeout(this.pollSsids.bind(this), this.ssidPollInterval)
       })
