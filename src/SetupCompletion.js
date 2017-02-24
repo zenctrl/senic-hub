@@ -7,8 +7,9 @@ class SetupCompletion extends Component {
   render() {
     return (
       <div className="SetupCompletion">
-        <p>That was easy, he?</p>
-        <Link to="setup/tutorial">Continue</Link>
+        <p>You're all set</p>
+        <p>Your smart home is now ready to use</p>
+        <Link to="setup/tutorial">Watch tutorial</Link>
       </div>
     );
   }
