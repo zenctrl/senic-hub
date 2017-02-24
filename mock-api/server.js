@@ -1,11 +1,11 @@
+var fs         = require('fs');
 var jsonServer = require('json-server')
+
+routes = JSON.parse(fs.readFileSync('routes.json'))
 
 var server = jsonServer.create()
 server.use(jsonServer.defaults())
-server.use(jsonServer.rewriter({
-  "/-/": "/",
-  "/setup/wifi": "/setup-wifi"
-}))
+server.use(jsonServer.rewriter(routes))
 server.use(function (req, res, next) {
   // Respond all POST requests with 200 ignoring the request
   if (req.method === 'POST') {

@@ -1,4 +1,5 @@
 {
   "/-/": "/",
-  "/setup/wifi": "/setup-wifi"
+  "/setup/wifi": "/setup-wifi",
+  "/setup/nuimo": "/setup-nuimo"
 }
