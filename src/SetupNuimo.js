@@ -17,8 +17,18 @@ class SetupNuimo extends Component {
   render() {
     return (
       <div className="SetupNuimo">
-        <p>Were now looking for your Nuimo</p>
-        <p>Number of Nuimos found: { this.state.nuimos.length }</p>
+        <p>We're now looking for your Nuimo</p>
+        {
+          this.state.nuimos.length == 0
+            ? <div className="SetupNuimo_Progress" />
+            : [
+                <svg className="SetupNuimo_Success" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                  <circle cx="26" cy="26" r="25" fill="none"/>
+                  <path fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>,
+                <Link to="setup/completed">Continue</Link>
+              ]
+        }
       </div>
     )
   }
