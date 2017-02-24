@@ -1,5 +1,6 @@
-import React, { Component } from 'react';
-import { Link } from 'react-router';
+import React, { Component } from 'react'
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+import { Link } from 'react-router'
 
 import './SetupDevices.css'
 
@@ -18,13 +19,20 @@ class SetupDevices extends Component {
     return (
       <div className="SetupDevices">
         <p>We're now looking for your smart devices</p>
-        <table>
-          <tbody>
-          {
-            this.state.devices.map((device, index) => <tr key={index}><td>{ device.label }</td></tr>)
-          }
-          </tbody>
-        </table>
+
+          <table>
+            <ReactCSSTransitionGroup component="tbody" transitionName="SetupDevices_Transition" transitionEnterTimeout={500}>
+            {
+              this.state.devices.map((device, index) =>
+                <tr key={index}>
+                  <td>
+                    { device.label }
+                  </td>
+                </tr>
+              )
+            }
+            </ReactCSSTransitionGroup>
+          </table>
         <Link to="setup/completed">Continue</Link>
       </div>
     )

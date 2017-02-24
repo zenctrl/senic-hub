@@ -8,3 +8,14 @@
   margin-top: 20px;
   margin-bottom: 20px;
 }
+
+.SetupDevices_Transition-enter {
+  opacity: 0.01;
+  transform: scale(0.01);
+}
+
+.SetupDevices_Transition-enter-active {
+  opacity: 1;
+  transform: scale(1.0);
+  transition: opacity 300ms ease-in, transform 300ms cubic-bezier(0.550, 1.650, 0.695, 0.850);
+}

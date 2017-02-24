@@ -5,7 +5,7 @@
     justify-content: center;
 }
 
-.Setup span {
+.Setup > span {
     color: #00000000;
 	border: none;
     border-image-width: 0;
@@ -20,7 +20,7 @@
     height: 203px;
 }
 
-.Setup h1 {
+.Setup > h1 {
 	font-size: 30px;
 	font-weight: normal;
 	letter-spacing: 0.1em;
