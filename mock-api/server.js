@@ -6,10 +6,10 @@ routes = JSON.parse(fs.readFileSync('routes.json'))
 var server = jsonServer.create()
 server.use(jsonServer.defaults())
 server.use(jsonServer.rewriter(routes))
-server.use(function (req, res, next) {
+server.use(function (request, response, next) {
   // Respond all POST requests with 200 ignoring the request
-  if (req.method === 'POST') {
-    res.jsonp(req.query)
+  if (request.method === 'POST') {
+    response.jsonp(request.query)
   }
   else {
     next()
