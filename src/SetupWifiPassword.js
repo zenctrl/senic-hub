@@ -12,7 +12,7 @@ class SetupWifiPassword extends Component {
       <div className='SetupWifiPassword'>
         <div>Please enter the password for { this.props.params.ssid }</div>
         <input type="password" value={this.state.password} onChange={this.onPasswordChange.bind(this)} />
-        <input type="button" value="Continue" onClick={this.submitPassword.bind(this)}/>
+        <a href="#" onClick={this.submitPassword.bind(this)}>Continue</a>
       </div>
     )
   }
