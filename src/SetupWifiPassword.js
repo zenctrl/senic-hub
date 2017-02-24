@@ -30,7 +30,7 @@ class SetupWifiPassword extends Component {
     //TODO: Handle all error cases
     fetch('/-/setup/wifi', { method: 'POST', body: postData })
       .then((response) => response.json())
-      .then((json) => this.props.router.push('/setup/completed') )
+      .then((json) => this.props.router.push('/setup/nuimo') )
       .catch((error) => console.error(error))
     event.preventDefault()
   }
