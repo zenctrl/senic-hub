@@ -4,8 +4,7 @@
   align-items: center;
 }
 
-.SetupDevices table {
-  margin-top: 20px;
+.SetupDevices > *:not(:last-child) {
   margin-bottom: 20px;
 }
 

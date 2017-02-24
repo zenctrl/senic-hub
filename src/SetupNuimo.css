@@ -4,6 +4,10 @@
   align-items: center;
 }
 
+.SetupNuimo > *:not(:last-child) {
+  margin-bottom: 20px;
+}
+
 .SetupNuimo .SetupNuimo_Progress {
   color: #ffffff;
   font-size: 20px;

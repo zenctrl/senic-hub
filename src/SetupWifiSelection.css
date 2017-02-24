@@ -4,8 +4,8 @@
     align-items: center;
 }
 
-.SetupWifiSelection p {
-	margin-bottom: 45px;
+.SetupWifiSelection > *:not(:last-child) {
+  margin-bottom: 20px;
 }
 
 .SetupWifiSelection table {
