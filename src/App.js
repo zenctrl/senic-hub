@@ -8,6 +8,7 @@ import SetupWifiSelection from './SetupWifiSelection'
 import SetupNuimo         from './SetupNuimo'
 import SetupDevices       from './SetupDevices'
 import SetupCompletion    from './SetupCompletion'
+import SetupTutorialVideo from './SetupTutorialVideo'
 
 class App extends Component {
   render() {
@@ -22,6 +23,7 @@ class App extends Component {
             <Route path='nuimo' component={SetupNuimo} />
             <Route path='devices' component={SetupDevices} />
             <Route path='completed' component={SetupCompletion} />
+            <Route path='tutorial' component={SetupTutorialVideo} />
           </Route>
         </Router>
       </div>
