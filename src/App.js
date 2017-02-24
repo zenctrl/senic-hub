@@ -6,6 +6,7 @@ import SetupWelcome       from './SetupWelcome'
 import SetupWifiPassword  from './SetupWifiPassword'
 import SetupWifiSelection from './SetupWifiSelection'
 import SetupNuimo         from './SetupNuimo'
+import SetupDevices       from './SetupDevices'
 import SetupCompletion    from './SetupCompletion'
 
 class App extends Component {
@@ -19,6 +20,7 @@ class App extends Component {
             <Route path='wifi' component={SetupWifiSelection} />
             <Route path='wifi/:ssid' component={SetupWifiPassword} />
             <Route path='nuimo' component={SetupNuimo} />
+            <Route path='devices' component={SetupDevices} />
             <Route path='completed' component={SetupCompletion} />
           </Route>
         </Router>

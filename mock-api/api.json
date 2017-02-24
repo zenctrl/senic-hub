@@ -1,4 +1,13 @@
 {
   "setup-wifi": [ "WIFI-1", "WIFI-2", "WIFI-3", "WIFI-4", "WIFI-5", "WIFI-6" ],
-  "setup-nuimo": [ { "mac-address": "aa:bb:cc:dd:ee:ff", "color": "black" } ]
+  "setup-nuimo": [ { "mac-address": "aa:bb:cc:dd:ee:ff", "color": "black" } ],
+  "setup-devices": [
+  	{ "label": "Sonos Speaker 1" },
+  	{ "label": "Sonos Speaker 2" },
+  	{ "label": "Philips Hue Light 1" },
+  	{ "label": "Philips Hue Light 2" },
+  	{ "label": "Philips Hue Light 3" },
+  	{ "label": "Raumfeld Speaker 1" },
+  	{ "label": "Raumfeld Speaker 2" }
+  ]
 }

@@ -26,7 +26,7 @@ class SetupNuimo extends Component {
                   <circle cx="26" cy="26" r="25" fill="none"/>
                   <path fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
                 </svg>,
-                <Link key="2" to="setup/completed">Continue</Link>
+                <Link key="2" to="setup/devices">Continue</Link>
               ]
         }
       </div>
