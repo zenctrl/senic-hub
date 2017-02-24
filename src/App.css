@@ -9,7 +9,7 @@ body {
   color: white;
 }
 
-input {
+input[type="password"] {
   color: black;
 }
 
