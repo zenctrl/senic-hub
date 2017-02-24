@@ -2,8 +2,10 @@ var fs         = require('fs');
 var jsonServer = require('json-server')
 
 routes = JSON.parse(fs.readFileSync(__dirname + '/routes.json'))
+api = JSON.parse(fs.readFileSync(__dirname + '/api.json'))
 
 var firstNuimoSetupRequestDate = null
+var firstDevicesSetupRequestDate = null
 
 var server = jsonServer.create()
 server.use(jsonServer.defaults())
@@ -26,6 +28,12 @@ server.use(function (request, response, next) {
     else {
       response.jsonp([]) // Nuimo not yet discovered
     }
+  }
+  else if (request.url === '/setup-devices' && request.method === 'GET') {
+    firstDevicesSetupRequestDate = firstDevicesSetupRequestDate || Date.now()
+    let millisSinceFirstRequest = Date.now() - firstDevicesSetupRequestDate
+    let devices = api["setup-devices"].filter((device, index) => millisSinceFirstRequest > index * 1000 )
+    response.jsonp(devices)
   }
   else {
     next()
