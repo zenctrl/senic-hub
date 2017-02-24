@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Router, Route, hashHistory } from 'react-router'
+import { Router, Route, Redirect, hashHistory } from 'react-router'
 import './App.css'
 import Setup              from './Setup'
 import SetupWelcome       from './SetupWelcome'
@@ -16,6 +16,8 @@ class App extends Component {
     return (
       <div className="App">
         <Router history={hashHistory}>
+          <Redirect from="/" to="/setup/welcome" />
+          <Redirect from="/setup" to="/setup/welcome" />
           <Route path='setup' component={Setup}>
             <Route path='welcome' component={SetupWelcome} />
             <Route path='wifi' component={SetupWifiSelection} />
