@@ -1,7 +1,7 @@
 var fs         = require('fs');
 var jsonServer = require('json-server')
 
-routes = JSON.parse(fs.readFileSync('routes.json'))
+routes = JSON.parse(fs.readFileSync(__dirname + '/routes.json'))
 
 var firstNuimoSetupRequestDate = null
 
