@@ -20,20 +20,15 @@ class SetupWifiSelection extends Component {
     return (
       <div className="SetupWifiSelection">
         <p>Please select your Wi-Fi network:</p>
-        <table>
-          <tbody>
-          {
-            this.state.ssids.map((name) =>
-              <tr key={name}>
-                <td>
-                  <Link to={'/setup/wifi/' + name}>
-                    { name }
-                  </Link>
-                </td>
-              </tr>)
-          }
-          </tbody>
-        </table>
+        <div className="SetupWifiSelection_Ssids">
+        {
+          this.state.ssids.map((name) =>
+            <Link key={name} to={'/setup/wifi/' + name}>
+              { name }
+            </Link>
+          )
+        }
+        </div>
         <img src={nav} role="presentation" />
       </div>
     )
