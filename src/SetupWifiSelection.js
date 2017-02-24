@@ -23,7 +23,14 @@ class SetupWifiSelection extends Component {
         <table>
           <tbody>
           {
-            this.state.ssids.map((name) => <tr key={name}><td><Link to={'/setup/wifi/' + name}>{name}</Link></td></tr>)
+            this.state.ssids.map((name) =>
+              <tr key={name}>
+                <td>
+                  <Link to={'/setup/wifi/' + name}>
+                    { name }
+                  </Link>
+                </td>
+              </tr>)
           }
           </tbody>
         </table>
