@@ -7,7 +7,7 @@ import nav from './nav-dots-1.png';
 
 class SetupWifiSelection extends Component {
   ssidPollInterval = 1000
-  ssidPollTimer = 0
+  ssidPollTimer = null
 
   constructor() {
     super()
@@ -27,7 +27,7 @@ class SetupWifiSelection extends Component {
           }
           </tbody>
         </table>
-        <img src={nav} />
+        <img src={nav} role="presentation" />
       </div>
     )
   }

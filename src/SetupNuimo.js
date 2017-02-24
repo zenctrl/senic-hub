@@ -5,7 +5,7 @@ import './SetupNuimo.css'
 
 class SetupNuimo extends Component {
   nuimoPollInterval = 1000
-  nuimoPollTimer = 0
+  nuimoPollTimer = null
 
   constructor() {
     super()
@@ -19,14 +19,14 @@ class SetupNuimo extends Component {
       <div className="SetupNuimo">
         <p>We're now looking for your Nuimo</p>
         {
-          this.state.nuimos.length == 0
+          this.state.nuimos.length === 0
             ? <div className="SetupNuimo_Progress" />
             : [
-                <svg className="SetupNuimo_Success" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                <svg key="1" className="SetupNuimo_Success" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
                   <circle cx="26" cy="26" r="25" fill="none"/>
                   <path fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
                 </svg>,
-                <Link to="setup/completed">Continue</Link>
+                <Link key="2" to="setup/completed">Continue</Link>
               ]
         }
       </div>
