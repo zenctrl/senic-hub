@@ -72,8 +72,20 @@ def enter_wifi_setup(device=DEFAULT_IFACE):
     if not os.path.exists(ENTER_SETUP_FLAG):
         exit(0)
     activate_adhoc(device)
-    run(['/usr/bin/supervisorctl', 'start', 'dhcpd'])
     run(['/usr/bin/supervisorctl', 'start', 'scan_wifi'])
+    click.echo("Entering wifi setup mode")
+    retries = 3
+    success = False
+    while retries > 0:
+        activate_adhoc(device)
+        run(['/usr/bin/supervisorctl', 'start', 'dhcpd'])
+        dhcpd_status = run(['/usr/bin/supervisorctl', 'status', 'dhcpd'], stdout=PIPE)
+        retries -= 1
+        success = 'RUNNING' in dhcpd_status.stdout.decode()
+        if success:
+            exit("Successfully entered wifi setup mode")
+        click.echo("Retrying...")
+    click.echo("Unable to enter wifi setup mode. Check supervisord log for details")
 
 
 @click.command(help='join a given wifi network (requires root privileges)')
