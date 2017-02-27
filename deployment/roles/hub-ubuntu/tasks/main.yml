@@ -117,3 +117,12 @@
 - include: dhcp.yml
   tags: dhcp
   when: ploy_wlan0 is defined
+
+- name: allow run user to setup wifi
+  template:
+    src: sudo_nuimo_wifi
+    dest: /etc/sudoers.d/010_nuimo_wifi
+    owner: root
+    mode: "0755"
+    validate: visudo -cf %s
+
