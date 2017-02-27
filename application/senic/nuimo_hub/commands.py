@@ -73,6 +73,7 @@ def enter_wifi_setup(device=DEFAULT_IFACE):
         exit(0)
     activate_adhoc(device)
     run(['/usr/bin/supervisorctl', 'start', 'dhcpd'])
+    run(['/usr/bin/supervisorctl', 'start', 'scan_wifi'])
 
 
 @click.command(help='join a given wifi network (requires root privileges)')
@@ -80,6 +81,7 @@ def enter_wifi_setup(device=DEFAULT_IFACE):
 @click.argument('password')
 @click.argument('device', default=DEFAULT_IFACE)
 def join_wifi(ssid, password, device=DEFAULT_IFACE):
+    run(['/usr/bin/supervisorctl', 'stop', 'scan_wifi'])
     run(['/usr/bin/supervisorctl', 'stop', 'dhcpd'])
     run(['ifdown', device])
     try:
