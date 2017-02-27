@@ -1,6 +1,7 @@
 import click
 import json
 import os
+import time
 
 from os.path import abspath
 from subprocess import run, PIPE, TimeoutExpired
@@ -33,15 +34,22 @@ def get_networks(devices=[DEFAULT_IFACE]):
 
 @click.command(help='scan the wifi interfaces for networks (requires root privileges)')
 @click.option('--config', '-c', default='development.ini', help='app configuration file')
+@click.option('--forever/--no-forever', default=False, help='scan forever (until interupted')
+@click.option('--waitsec', default=20, help='How many seconds to wait inbetween scans (only when forever')
 @click.argument('devices', nargs=-1)
-def scan_wifi(config, devices):
+def scan_wifi(config, devices, forever=False, waitsec=20):
     if devices == ():
         devices = [DEFAULT_IFACE]
-    networks = get_networks(devices=devices)
-    json_networks = {n['cell'].ssid: dict(device=n['device']) for n in networks.values()}
-    app = get_app(abspath(config))
-    with open(app.registry.settings['fs_wifi_networks'], 'w') as wifi_file:
-        json.dump(json_networks, wifi_file)
+    while True:
+        click.echo("Scanning for wifi networks")
+        networks = get_networks(devices=devices)
+        json_networks = {n['cell'].ssid: dict(device=n['device']) for n in networks.values()}
+        app = get_app(abspath(config))
+        with open(app.registry.settings['fs_wifi_networks'], 'w') as wifi_file:
+            json.dump(json_networks, wifi_file)
+        if not forever:
+            exit(0)
+        time.sleep(waitsec)
 
 
 def activate_adhoc(device=DEFAULT_IFACE):
