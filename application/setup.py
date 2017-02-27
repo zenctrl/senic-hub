@@ -42,7 +42,7 @@ setup(
         'pyramid_tm',
         'pytz',
         'requests',
-        'senic.cryptoyaml',
+        'cryptoyaml',
         'wifi',
     ],
     extras_require={

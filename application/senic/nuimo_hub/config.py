@@ -43,7 +43,7 @@ def crypto_settings(global_config, **settings):
     `development.key` and `developmen.yml.aes` then those will be used by default.
     """
     from os import path
-    from senic.cryptoyaml import CryptoYAML, generate_key
+    from cryptoyaml import CryptoYAML, generate_key
     basename = path.splitext(path.basename(global_config['__file__']))[0]
     settings_datafile = '{}.yml.aes'.format(basename)
     settings_datafile = settings.get('crypto_settings_datafile', settings_datafile)
