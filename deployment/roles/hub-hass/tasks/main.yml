@@ -45,8 +45,8 @@
     chdir: "{{deploy_location}}"
     creates: "{{deploy_location}}/venv/bin/python"
 
-- name: Make sure pip + setuptools are uptodate
-  command: "{{deploy_location}}/venv/bin/pip install -U pip setuptools"
+- name: Make sure pip, setuptools & six are uptodate
+  command: "{{deploy_location}}/venv/bin/pip install -U pip setuptools six"
   args:
     chdir: "{{deploy_location}}"
 
