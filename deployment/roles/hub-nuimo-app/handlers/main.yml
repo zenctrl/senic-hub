@@ -1,0 +1,10 @@
+---
+- name: restart nuimo app
+  supervisorctl:
+    name: nuimo_app
+    state: restarted
+
+- name: restart dbus
+  service:
+    name: dbus
+    state: restarted
