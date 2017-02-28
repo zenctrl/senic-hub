@@ -1,8 +1,16 @@
 import os
+from subprocess import run
 from cornice.service import Service
+import colander
 from pyramid.response import FileResponse
 
 from ..config import path
+
+
+class JoinWifiSchema(colander.MappingSchema):
+    ssid = colander.SchemaNode(colander.String())
+    password = colander.SchemaNode(colander.String())
+    device = colander.SchemaNode(colander.String())
 
 
 wifi_setup = Service(
@@ -22,6 +30,11 @@ def scan_wifi_networks(request):
         return dict()
 
 
-@wifi_setup.post()
+@wifi_setup.post(renderer='json', schema=JoinWifiSchema)
 def join_network(request):
-    pass
+    run([
+        os.path.join(request.registry.settings['fs_bin'], 'join_wifi'),
+        request.validated['ssid'],
+        request.validated['password'],
+        request.validated['device'],
+    ])
