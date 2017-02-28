@@ -79,7 +79,9 @@ def enter_wifi_setup(device=DEFAULT_IFACE):
     while retries > 0:
         activate_adhoc(device)
         run(['/usr/bin/supervisorctl', 'start', 'dhcpd'])
-        dhcpd_status = run(['/usr/bin/supervisorctl', 'status', 'dhcpd'], stdout=PIPE)
+        dhcpd_status = run(
+            ['/usr/bin/supervisorctl', 'status', 'dhcpd'],
+            stdout=PIPE)
         retries -= 1
         success = 'RUNNING' in dhcpd_status.stdout.decode()
         if success:
