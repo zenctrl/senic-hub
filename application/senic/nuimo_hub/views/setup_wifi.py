@@ -33,6 +33,7 @@ def scan_wifi_networks(request):
 @wifi_setup.post(renderer='json', schema=JoinWifiSchema)
 def join_network(request):
     run([
+        'sudo',
         os.path.join(request.registry.settings['fs_bin'], 'join_wifi'),
         request.validated['ssid'],
         request.validated['password'],
