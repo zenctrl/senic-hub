@@ -25,18 +25,20 @@ def asset_path(*parts):
 
 
 # settings for test configuration
-settings = {
-    'testing': True,
-    'debug': False,
-    'fs_wifi_networks': asset_path('wifi_networks.json'),
-    'fs_enter_setup_flag': asset_path('NUIMO_SETUP_REQUIRED'),
-    'crypto_settings_datafile': asset_path('testing.yml.aes'),
-    'crypto_settings_keyfile': asset_path('testing.key'),
-}
+@fixture
+def settings():
+    return {
+        'testing': True,
+        'debug': False,
+        'fs_wifi_networks': asset_path('wifi_networks.json'),
+        'fs_enter_setup_flag': asset_path('NUIMO_SETUP_REQUIRED'),
+        'crypto_settings_datafile': asset_path('testing.yml.aes'),
+        'crypto_settings_keyfile': asset_path('testing.key'),
+    }
 
 
 @fixture
-def config(request):
+def config(request, settings):
     """ Sets up a Pyramid `Configurator` instance suitable for testing. """
     config = setUp(settings=dict(settings))
     request.addfinalizer(tearDown)
