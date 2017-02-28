@@ -1,5 +1,5 @@
 ---
-python_interpreter: python3.5
+python_interpreter: python3
 deploy_location: /srv/nuimo_hub
 data_location: /srv/nuimo_hub/data
 deploy_user: senic
