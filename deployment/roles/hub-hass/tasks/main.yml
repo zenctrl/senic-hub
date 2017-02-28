@@ -63,7 +63,6 @@
       aiohttp_cors==0.5.0  # requirement of HTTP component
       phue==0.9  # requirement of Philips Hue component
       SoCo==0.12  # requirement of Sonos component
-      sqlalchemy==1.1.5  # requirement of Recorder (through History) component
 
 - name: install application
   pip:
