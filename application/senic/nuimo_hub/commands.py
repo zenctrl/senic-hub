@@ -70,6 +70,7 @@ def activate_adhoc(device=DEFAULT_IFACE):
 @click.argument('device', default=DEFAULT_IFACE)
 def enter_wifi_setup(device=DEFAULT_IFACE):
     if not os.path.exists(ENTER_SETUP_FLAG):
+        os.click("Not entering wifi setup mode. %s not found" % ENTER_SETUP_FLAG)
         exit(0)
     activate_adhoc(device)
     run(['/usr/bin/supervisorctl', 'start', 'scan_wifi'])
