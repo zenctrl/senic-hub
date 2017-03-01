@@ -36,12 +36,19 @@
   tags: bluez
   when: upload_pi3_driver
 
+- stat:
+    path: /lib/firmware/BCM43430A1.hcd
+  register: broadcomm_driver_exists
+  tags: bluez
+
+
 - name: install broadcomm driver
   file:
     src: /lib/firmware/BCM43430A1.hcd
     dest: /etc/BCM43430A1.hcd
     state: link
   tags: bluez
+  when: broadcomm_driver_exists.stat.exists == True
 
 - name: configure supervisor to manage bluetoothd
   template:
