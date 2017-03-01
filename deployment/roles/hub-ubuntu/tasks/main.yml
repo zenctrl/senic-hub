@@ -128,12 +128,17 @@
   when: ploy_wlan0 is defined
   tags: wifi
 
-- name: configure supervisor to scan for wifi
+- name: configure supervisor
   template:
-    src: scan_wifi_supervisor.conf
-    dest: /etc/supervisor/conf.d/scan_wifi.conf
+    src: "{{item}}_supervisor.conf"
+    dest: "/etc/supervisor/conf.d/{{item}}.conf"
     owner: root
     mode: "0644"
+  with_items:
+    - scan_wifi
+    - wifi_setup
   notify: reload supervisord
   when: ploy_wlan0 is defined
   tags: wifi
+
+
