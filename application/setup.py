@@ -70,6 +70,7 @@ setup(
             'tox',
             'waitress',
             'webtest',
+            'wheel',
         ],
     },
     entry_points="""
