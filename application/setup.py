@@ -42,7 +42,7 @@ setup(
         'pyramid_tm',
         'pytz',
         'requests',
-        'senic.cryptoyaml',
+        'cryptoyaml',
         'wifi',
     ],
     extras_require={
@@ -56,7 +56,7 @@ setup(
             'pdbpp',
             'pep8 < 1.6',
             'py >= 1.4.17',
-            'pyflakes < 1.4.0',
+            'pyflakes',
             'pyquery',
             'pyramid_debugtoolbar',
             'pytest',
@@ -70,6 +70,7 @@ setup(
             'tox',
             'waitress',
             'webtest',
+            'wheel',
         ],
     },
     entry_points="""
@@ -77,6 +78,7 @@ setup(
         main = senic.nuimo_hub:main
         [console_scripts]
         scan_wifi = senic.nuimo_hub.commands:scan_wifi
+        enter_wifi_setup = senic.nuimo_hub.commands:enter_wifi_setup
         join_wifi = senic.nuimo_hub.commands:join_wifi
     """,
 )

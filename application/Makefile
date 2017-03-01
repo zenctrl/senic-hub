@@ -9,7 +9,7 @@ tests: venv/bin/py.test
 
 venv/bin/python$(python_version) venv/bin/pip:
 	python$(python_version) -m venv venv
-	venv/bin/pip install --upgrade pip
+	venv/bin/pip install --upgrade pip setuptools
 
 venv/bin/pserve venv/bin/py.test venv/bin/devpi: venv/bin/python$(python_version) venv/bin/pip setup.py
 	venv/bin/pip install senic.cryptoyaml
@@ -17,7 +17,7 @@ venv/bin/pserve venv/bin/py.test venv/bin/devpi: venv/bin/python$(python_version
 	@touch $@
 
 upload: setup.py venv/bin/py.test venv/bin/devpi
-	PATH=${PWD}/venv/bin:${PATH} venv/bin/devpi upload --no-vcs --with-docs
+	PATH=${PWD}/venv/bin:${PATH} venv/bin/devpi upload --no-vcs --with-docs --formats bdist_wheel
 
 docs:
 	$(MAKE) -C ../docs/

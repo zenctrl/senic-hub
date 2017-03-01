@@ -4,6 +4,17 @@
 - name: enable github deploy access
   become: true
   become_user: "{{build_user}}"
+  file:
+    dest: "/home/{{build_user}}/.ssh"
+    mode: "0700"
+    owner: "{{build_user}}"
+    group: "{{build_user}}"
+    state: directory
+  tags: gitco
+
+- name: enable github deploy access
+  become: true
+  become_user: "{{build_user}}"
   copy:
     src: github_deploy_rsa
     dest: "/home/{{build_user}}/.ssh/id_rsa"
@@ -17,7 +28,7 @@
     repo: "git@github.com:tomster/nuimo-hub-backend"
     remote: tomster
     dest: "/home/{{build_user}}/nuimo-hub-backend"
-    version: "004-available-wifi-networks"
+    version: "wifi-onboarding"
     accept_hostkey: true
   become: true
   become_user: "{{build_user}}"

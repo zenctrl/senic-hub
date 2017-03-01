@@ -1,0 +1,7 @@
+iface {{ploy_wlan1}} inet static
+  address 10.0.23.23
+  netmask 255.255.255.0
+  wireless-channel {{ploy_adhoc_channel}}
+  wireless-essid {{ploy_hostname}}-{{ansible_machine_id[:6]}}
+  wireless-mode ad-hoc
+  wireless-key off

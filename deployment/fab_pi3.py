@@ -26,6 +26,8 @@ def bootstrap(boot_ip=None, authorized_keys='authorized_keys', static_ip=True):
     hostname = env.instance.uid
     env.host_string = 'pi@%s' % hostname
     env.password = 'raspberry'
+    fab.sudo("""apt update""")
+    fab.sudo("""apt upgrade -y""")
     AV = env.instance.get_ansible_variables()
     AV.setdefault('eth_ip', final_ip)
     AV.setdefault('eth_iface', 'eth0')
@@ -46,6 +48,4 @@ def bootstrap(boot_ip=None, authorized_keys='authorized_keys', static_ip=True):
             use_sudo=True,
             mode='0700')
         fab.sudo("""chown root:root /root/.ssh/authorized_keys""")
-    fab.sudo("""apt update""")
-    fab.sudo("""apt upgrade -y""")
     fab.reboot()
