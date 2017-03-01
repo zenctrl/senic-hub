@@ -15,7 +15,7 @@ class JoinWifiSchema(colander.MappingSchema):
 
 wifi_setup = Service(
     name='wifi_setup',
-    path=path('/setup/wifi'),
+    path=path('setup/wifi'),
     renderer='json',
     accept='application/json')
 
