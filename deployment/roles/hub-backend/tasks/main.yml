@@ -90,6 +90,48 @@
   notify: restart nuimo_hub
   tags: update_backend
 
+- name: initialize cryptoyaml key
+  become: true
+  become_user: "{{deploy_user}}"
+  command: "{{deploy_location}}/venv/bin/cryptoyaml generate_key {{deploy_location}}/production.key"
+  args:
+    chdir: "{{deploy_location}}"
+    creates: "{{deploy_location}}/production.key"
+  environment:
+    LC_ALL: C.UTF-8
+    LANG: C.UTF-8
+  tags: debugx
+
+- name: initialize cryptoyaml settings
+  become: true
+  become_user: "{{deploy_user}}"
+  command: "{{deploy_location}}/venv/bin/cryptoyaml create {{deploy_location}}/production.yml.aes --keyfile {{deploy_location}}/production.key"
+  args:
+    chdir: "{{deploy_location}}"
+    creates: "{{deploy_location}}/production.yml.aes"
+  environment:
+    LC_ALL: C.UTF-8
+    LANG: C.UTF-8
+  tags: debugx
+
+- name: enable read access to production.key
+  become: true
+  file:
+    dest: "{{deploy_location}}/production.key"
+    owner: "{{run_user}}"
+    group: "{{run_user}}"
+    mode: "0400"
+  tags: debugx
+
+- name: enable write access to crypto settings
+  become: true
+  file:
+    dest: "{{deploy_location}}/production.yml.aes"
+    owner: "{{run_user}}"
+    group: "{{run_user}}"
+    mode: "0644"
+  tags: debugx
+
 - name: configure supervisor
   become: yes
   template:
