@@ -81,6 +81,8 @@
     virtualenv: "{{deploy_location}}/venv/"
     requirements: "{{deploy_location}}/requirements.txt"
     extra_args: "--pre --upgrade -i {{devpi_index_url}}"
+  become: yes
+  become_user: "{{deploy_user}}"
   notify: restart nuimo_hub
   tags: update_backend
 
