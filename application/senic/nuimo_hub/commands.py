@@ -85,6 +85,7 @@ def enter_wifi_setup(device=DEFAULT_IFACE):
         retries -= 1
         success = 'RUNNING' in dhcpd_status.stdout.decode()
         if success:
+            run(['/bin/systemctl', 'restart', 'avahi-daemon'])
             exit("Successfully entered wifi setup mode")
         click.echo("Retrying...")
     click.echo("Unable to enter wifi setup mode. Check supervisord log for details")
@@ -121,6 +122,7 @@ def join_wifi(ssid, password, device=DEFAULT_IFACE):
         # clean up after ourselves
         if os.path.exists(ENTER_SETUP_FLAG):
             os.remove(ENTER_SETUP_FLAG)
+        run(['/bin/systemctl', 'restart', 'avahi-daemon'])
         click.echo("Success!")
         exit(0)
     else:
