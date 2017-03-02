@@ -1,9 +1,13 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router';
 
+import './SetupWifiSelection.css'
+
+import nav from './nav-dots-1.png';
+
 class SetupWifiSelection extends Component {
   ssidPollInterval = 1000
-  ssidPollTimer = 0
+  ssidPollTimer = null
 
   constructor() {
     super()
@@ -14,15 +18,19 @@ class SetupWifiSelection extends Component {
 
   render() {
     return (
-      <div>
-        Please select your Wi-Fi network:
-        <table>
-          <tbody>
-          {
-            this.state.ssids.map((name) => <tr key={name}><td><Link to={'/setup/wifi/' + name}>{name}</Link></td></tr>)
-          }
-          </tbody>
-        </table>
+      <div className="SetupWifiSelection">
+        <p>Please select your Wi-Fi network:</p>
+        <div className="SetupWifiSelection_Ssids">
+        {
+          this.state.ssids.map((name) =>
+            <Link key={name} to={'/setup/wifi/' + name}>
+              <span className="SetupWifiSelection_WifiIcon"></span>
+              <span>{ name }</span>
+            </Link>
+          )
+        }
+        </div>
+        <img src={nav} role="presentation" />
       </div>
     )
   }
@@ -36,12 +44,15 @@ class SetupWifiSelection extends Component {
   }
 
   pollSsids() {
+    //TODO: Promise chain doesn't get cancelled when component unmounts
     fetch('/-/setup/wifi')
       //TODO: Write tests for all possible API call responses, server not available, etc.
       .then((response) => response.json())
       .then((ssids) => {
         //TODO: Remove random SSID filtering
-        ssids = ssids.filter(() => Math.random() > 0.2)
+        ssids = ssids
+          .filter(() => Math.random() > 0.05)
+          .sort((lhs, rhs) => lhs.toLowerCase().localeCompare(rhs.toLowerCase()))
         this.setState({ssids: ssids})
         this.ssidPollTimer = setTimeout(this.pollSsids.bind(this), this.ssidPollInterval)
       })

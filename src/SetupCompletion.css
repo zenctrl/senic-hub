@@ -1,0 +1,9 @@
+.SetupCompletion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.SetupCompletion > *:not(:last-child) {
+	margin-bottom: 20px;
+}

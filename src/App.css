@@ -1,6 +1,29 @@
+body {
+  background-color: #242626;
+}
+
+* {
+  font-family: 'Averta Regular';
+  font-size: 18px;
+  margin: 0px;
+  color: white;
+}
+
+input[type="password"] {
+  color: black;
+}
+
+@font-face {
+  font-family: 'Averta Regular';
+  src: url('fonts/AvertaStd-Regular.otf');
+  font-weight: 300;
+  font-style: normal;
+}
+
 .App {
-  padding-top: 2em;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  height: 100vh;
 }
