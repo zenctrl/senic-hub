@@ -49,10 +49,9 @@ class SetupWifiSelection extends Component {
       //TODO: Write tests for all possible API call responses, server not available, etc.
       .then((response) => response.json())
       .then((ssids) => {
-        //TODO: Remove random SSID filtering
-        ssids = ssids
-          .filter(() => Math.random() > 0.05)
-          .sort((lhs, rhs) => lhs.toLowerCase().localeCompare(rhs.toLowerCase()))
+        //TODO: As soon as backend only returns array, remove following line
+        ssids = Object.keys(ssids)
+        ssids = ssids.sort((lhs, rhs) => lhs.toLowerCase().localeCompare(rhs.toLowerCase()))
         this.setState({ssids: ssids})
         this.ssidPollTimer = setTimeout(this.pollSsids.bind(this), this.ssidPollInterval)
       })
