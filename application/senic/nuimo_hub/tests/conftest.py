@@ -35,6 +35,7 @@ def settings():
         'fs_enter_setup_flag': asset_path('NUIMO_SETUP_REQUIRED'),
         'crypto_settings_datafile': asset_path('testing.yml.aes'),
         'crypto_settings_keyfile': asset_path('testing.key'),
+        'fs_device_list': asset_path('device_list.json'),
     }
 
 
