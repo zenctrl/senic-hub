@@ -1,10 +1,10 @@
 import os
-from subprocess import run
 from cornice.service import Service
 import colander
 from pyramid.response import FileResponse
 
 from ..config import path
+from ..subprocess_run import run
 
 
 class JoinWifiSchema(colander.MappingSchema):

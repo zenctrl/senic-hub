@@ -1,6 +1,6 @@
 # convenience makefile to set up the backend for local development
-password = 
-python_version = 3.5
+password =
+python_version = 3
 
 all: venv/bin/pserve
 
