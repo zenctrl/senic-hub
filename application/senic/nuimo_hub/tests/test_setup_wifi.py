@@ -8,7 +8,7 @@ def url(route_url):
 
 
 def test_get_scanned_wifi(browser, url):
-    assert browser.get_json(url).json['grandpausethisnetwork']['device'] == "wlan0"
+    assert browser.get_json(url).json == ['grandpausethisnetwork']
 
 
 @pytest.fixture
@@ -18,7 +18,7 @@ def no_such_wifi(settings):
 
 
 def test_get_scanned_wifi_empty(no_such_wifi, browser, url):
-    assert browser.get_json(url).json == {}
+    assert browser.get_json(url).json == []
 
 
 @pytest.yield_fixture(autouse=True)

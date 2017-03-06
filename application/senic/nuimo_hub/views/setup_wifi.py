@@ -1,8 +1,8 @@
+import json
 import os
 from subprocess import run
 from cornice.service import Service
 import colander
-from pyramid.response import FileResponse
 
 from ..config import path
 
@@ -25,9 +25,10 @@ def scan_wifi_networks(request):
     fs_path = request.registry.settings.get(
         'fs_wifi_networks', 'wifi_networks.json')
     if os.path.exists(fs_path):
-        return FileResponse(fs_path, request)
+        networks = json.load(open(fs_path))
+        return networks.keys()
     else:
-        return dict()
+        return []
 
 
 @wifi_setup.post(renderer='json', schema=JoinWifiSchema)
