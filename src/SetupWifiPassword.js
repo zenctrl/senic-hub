@@ -22,15 +22,23 @@ class SetupWifiPassword extends Component {
   }
 
   submitPassword(event) {
-    let postData = new FormData()
-    postData.append('json', JSON.stringify({
+    let postBody = {
       'ssid':     this.props.params.ssid,
-      'password': this.state.password
-    }))
+      'password': this.state.password,
+      //TODO: Remove following line as soon as it isn't required any longer
+      'device':   'wlan0'
+    }
     //TODO: Handle all error cases
-    fetch('/-/setup/wifi', { method: 'POST', body: postData })
+    fetch('/-/setup/wifi', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(postBody)
+    })
       .then((response) => response.json())
-      .then((json) => this.props.router.push('/setup/nuimo') )
+      .then((json) => this.props.router.push('/setup/nuimo'))
       .catch((error) => console.error(error))
     event.preventDefault()
   }
