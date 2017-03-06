@@ -25,7 +25,7 @@ def scan_wifi_networks(request):
         'fs_wifi_networks', 'wifi_networks.json')
     if os.path.exists(fs_path):
         networks = json.load(open(fs_path))
-        return networks.keys()
+        return list(networks.keys())
     else:
         return []
 
