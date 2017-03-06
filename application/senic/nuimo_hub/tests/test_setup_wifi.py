@@ -37,6 +37,7 @@ def test_join_wifi(browser, url, mocked_run, settings):
         device='wlan0')).json
     mocked_run.assert_called_once_with(
         [
+            'sudo',
             '%s/join_wifi' % settings['fs_bin'],
             'grandpausethisnetwork',
             'foobar',
