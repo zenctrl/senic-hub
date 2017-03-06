@@ -10,7 +10,6 @@ from ..config import path
 class JoinWifiSchema(colander.MappingSchema):
     ssid = colander.SchemaNode(colander.String())
     password = colander.SchemaNode(colander.String())
-    device = colander.SchemaNode(colander.String())
 
 
 wifi_setup = Service(
@@ -38,5 +37,4 @@ def join_network(request):
         os.path.join(request.registry.settings['fs_bin'], 'join_wifi'),
         request.validated['ssid'],
         request.validated['password'],
-        request.validated['device'],
     ])

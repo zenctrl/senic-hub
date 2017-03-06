@@ -41,6 +41,5 @@ def test_join_wifi(browser, url, mocked_run, settings):
             '%s/join_wifi' % settings['fs_bin'],
             'grandpausethisnetwork',
             'foobar',
-            'wlan0'
         ]
     )
