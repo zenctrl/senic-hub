@@ -44,6 +44,7 @@ setup(
         'requests',
         'cryptoyaml',
         'wifi',
+        'netdisco==0.9.1',
     ],
     extras_require={
         'development': [
