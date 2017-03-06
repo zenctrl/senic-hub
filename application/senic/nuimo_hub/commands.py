@@ -4,7 +4,8 @@ import os
 import time
 
 from os.path import abspath
-from subprocess import run, PIPE, TimeoutExpired
+from subprocess import PIPE, TimeoutExpired
+from .subprocess_run import run
 
 import wifi
 from pyramid.paster import get_app
