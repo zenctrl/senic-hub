@@ -98,3 +98,4 @@ def upload_app_src():
     with fab.lcd('../application'):
         target = '/home/{build_user}/nuimo-hub-backend/application'.format(**AV)
         rsync('-avz', "--exclude", ".*", "--exclude", "'venv'", '.', '{host_string}:%s' % target)
+        fab.sudo(('/srv/nuimo_hub/venv/bin/pip install -e /home/{deploy_user}/nuimo-hub-backend/application/'.format(**AV)))
