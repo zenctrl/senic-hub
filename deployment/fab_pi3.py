@@ -4,6 +4,7 @@ from fabric import api as fab
 from fabric.api import task, env
 from ploy.common import shjoin
 
+AV = None
 
 eth_interface = """auto {eth_iface}
 interface {eth_iface}
@@ -53,6 +54,14 @@ def bootstrap(boot_ip=None, authorized_keys='authorized_keys', static_ip=True):
     fab.reboot()
 
 
+def get_vars():
+    global AV
+    if AV is None:
+        hostname = env.host_string.split('@')[-1].split('-')[1]
+        AV = dict(hostname=hostname, **env.instances[hostname].get_ansible_variables())
+    return AV
+
+
 @task
 def rsync(*args, **kwargs):
     """ wrapper around the rsync command.
@@ -81,3 +90,11 @@ def rsync(*args, **kwargs):
     cmd_parts.extend(args)
     cmd = shjoin(cmd_parts)
     return fab.local(cmd, **kwargs)
+
+
+@task
+def upload_app_src():
+    get_vars()
+    with fab.lcd('../application'):
+        target = '/home/{build_user}/nuimo-hub-backend/application'.format(**AV)
+        rsync('-avz', "--exclude", ".*", "--exclude", "'venv'", '.', '{host_string}:%s' % target)

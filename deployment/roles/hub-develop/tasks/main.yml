@@ -1,6 +1,16 @@
 ---
 # a role that sets up an environment for developing the hub on a ubuntu machine
 # it assumes the role `ubuntu-build` has been applied
+
+- name: install dependencies
+  apt:
+    name: "{{item}}"
+    state: installed
+  become: true
+  with_items:
+    - rsync
+
+
 - name: enable github deploy access
   become: true
   become_user: "{{build_user}}"
@@ -10,6 +20,7 @@
     owner: "{{build_user}}"
     group: "{{build_user}}"
     state: directory
+  when: source_transport == 'git'
   tags: gitco
 
 - name: enable github deploy access
@@ -21,6 +32,7 @@
     mode: "0600"
     owner: "{{build_user}}"
     group: "{{build_user}}"
+  when: source_transport == 'git'
   tags: gitco
 
 - name: checkout hub sources
@@ -35,6 +47,7 @@
   tags:
     - gitco
     - gitup
+  when: source_transport == 'git'
 
 - name: bootstrap development checkout
   become: true
@@ -44,3 +57,13 @@
     creates: "/home/{{build_user}}/nuimo-hub-backend/application/venv/bin/python"
     chdir: "/home/{{build_user}}/nuimo-hub-backend/application/"
   tags: gitco
+  when: source_transport == 'git'
+
+- name: create hub sources destination
+  file:
+    dest: "/home/{{build_user}}/nuimo-hub-backend/application"
+    state: directory
+  become: true
+  become_user: "{{build_user}}"
+  tags: rsync
+  when: source_transport == 'rsync'
