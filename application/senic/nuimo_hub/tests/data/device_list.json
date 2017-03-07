@@ -1,1 +1,1 @@
-{"id": 0, "type": "philips_hue", "ip": "127.0.0.1"}
+[{"id": 0, "type": "philips_hue", "ip": "127.0.0.1"}, {"id": 1, "type": "sonos", "ip": "127.0.0.1"}]
