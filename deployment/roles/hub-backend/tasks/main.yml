@@ -100,7 +100,6 @@
   environment:
     LC_ALL: C.UTF-8
     LANG: C.UTF-8
-  tags: debugx
 
 - name: initialize cryptoyaml settings
   become: true
@@ -112,7 +111,6 @@
   environment:
     LC_ALL: C.UTF-8
     LANG: C.UTF-8
-  tags: debugx
 
 - name: enable read access to production.key
   become: true
@@ -121,7 +119,6 @@
     owner: "{{run_user}}"
     group: "{{run_user}}"
     mode: "0400"
-  tags: debugx
 
 - name: enable write access to crypto settings
   become: true
@@ -130,7 +127,6 @@
     owner: "{{run_user}}"
     group: "{{run_user}}"
     mode: "0644"
-  tags: debugx
 
 - name: configure supervisor
   become: yes
