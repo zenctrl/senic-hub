@@ -1,6 +1,32 @@
 ---
 # a role that sets up an environment for developing the hub on a ubuntu machine
 # it assumes the role `ubuntu-build` has been applied
+- name: create user
+  become: true
+  user:
+    name: "{{build_user}}"
+    createhome: yes
+    shell: /bin/bash
+    # set password to '*' to unlock ssh access
+    password: $6$loHAn4IfYLEdMc$e0de/845DozoVAzG1rKx8eRqrBxRLnYJO746dqozpxYhxSgCfA7bI9p0KoDqNU8A0hot1zqJvMQNWM1IuJGnx1
+    update_password: always
+    groups: sudo
+    append: yes
+
+- name: Allow 'sudo' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%sudo'
+    line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+    validate: visudo -cf %s
+
+- name: enable ssh access
+  become: true
+  authorized_key:
+    user: "{{build_user}}"
+    key: "{{build_user_key}}"
+  when: build_user_key is defined
 
 - name: install dependencies
   apt:
@@ -9,7 +35,6 @@
   become: true
   with_items:
     - rsync
-
 
 - name: enable github deploy access
   become: true
