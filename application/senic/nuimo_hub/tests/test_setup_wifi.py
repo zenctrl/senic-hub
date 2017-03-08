@@ -3,12 +3,12 @@ from mock import patch
 
 
 @pytest.fixture
-def url(route_url):
+def setup_url(route_url):
     return route_url('wifi_setup')
 
 
-def test_get_scanned_wifi(browser, url):
-    assert browser.get_json(url).json == ['grandpausethisnetwork']
+def test_get_scanned_wifi(browser, setup_url):
+    assert browser.get_json(setup_url).json == ['grandpausethisnetwork']
 
 
 @pytest.fixture
@@ -17,8 +17,8 @@ def no_such_wifi(settings):
     return settings
 
 
-def test_get_scanned_wifi_empty(no_such_wifi, browser, url):
-    assert browser.get_json(url).json == []
+def test_get_scanned_wifi_empty(no_such_wifi, browser, setup_url):
+    assert browser.get_json(setup_url).json == []
 
 
 @pytest.yield_fixture(autouse=True)
@@ -30,8 +30,8 @@ def mocked_run(request):
         yield mocked_run
 
 
-def test_join_wifi(browser, url, mocked_run, settings):
-    browser.post_json(url, dict(
+def test_join_wifi(browser, setup_url, mocked_run, settings):
+    browser.post_json(setup_url, dict(
         ssid='grandpausethisnetwork',
         password='foobar',
         device='wlan0')).json
