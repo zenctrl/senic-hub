@@ -99,15 +99,3 @@
     - gitco
     - gitup
   when: source_transport == 'git'
-
-- name: bootstrap development checkout
-  become: true
-  become_user: "{{build_user}}"
-  command: make
-  args:
-    creates: "/home/{{build_user}}/nuimo-hub-backend/application/venv/bin/python"
-    chdir: "/home/{{build_user}}/nuimo-hub-backend/application/"
-  tags: gitco
-  when: source_transport == 'git'
-
-
