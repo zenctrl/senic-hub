@@ -1,4 +1,7 @@
 ---
+- name: reload supervisord
+  raw: "supervisorctl reload"
+
 - name: restart nuimo_hub
   supervisorctl:
     name: nuimo_hub
