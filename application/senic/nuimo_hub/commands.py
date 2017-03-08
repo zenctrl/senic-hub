@@ -94,6 +94,10 @@ def enter_wifi_setup(config, device=DEFAULT_IFACE):
         success = 'RUNNING' in dhcpd_status.stdout.decode()
         if success:
             run(['/bin/systemctl', 'restart', 'avahi-daemon'])
+            # signal that we no longer have joined a wifi
+            JOINED_WIFI = app.registry.settings['fs_joined_wifi']
+            if os.path.exists(JOINED_WIFI ):
+                os.remove(JOINED_WIFI )
             exit("Successfully entered wifi setup mode")
         click.echo("Retrying...")
     click.echo("Unable to enter wifi setup mode. Check supervisord log for details")
@@ -130,6 +134,8 @@ def join_wifi(config, ssid, password, device=DEFAULT_IFACE):
     if success:
         # clean up after ourselves
         app = get_app(abspath(config))
+        with open(app.registry.settings['fs_joined_wifi'], 'w') as joined_wifi:
+            joined_wifi.write(ssid)
         ENTER_SETUP_FLAG = app.registry.settings['fs_enter_setup_flag']
         if os.path.exists(ENTER_SETUP_FLAG):
             os.remove(ENTER_SETUP_FLAG)
