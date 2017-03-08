@@ -15,7 +15,6 @@
     owner: "{{build_user}}"
     group: "{{build_user}}"
     state: directory
-  when: source_transport == 'git'
   tags: gitco
 
 - name: enable github deploy access

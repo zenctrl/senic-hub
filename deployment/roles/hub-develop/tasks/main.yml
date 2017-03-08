@@ -1,6 +1,21 @@
 ---
 # a role that sets up an environment for developing the hub on a ubuntu machine
-# it assumes the role `ubuntu-build` has been applied
+# it requires that the roles `hub-backend` and `hub-ubuntu` have been applied already
+- name: install development dependencies
+  apt:
+    name: "{{item}}"
+    state: installed
+  become: true
+  with_items:
+    - bash-completion
+    - build-essential
+    - htop
+    - python3-dev
+    - python3-flake8
+    - python3-pip
+    - python3-venv
+    - screen
+
 - name: create user
   become: true
   user:
@@ -45,6 +60,42 @@
   become_user: "{{build_user}}"
   tags: rsync
   when: source_transport == 'rsync'
+
+- name: configure shell
+  become: true
+  become_user: "{{item.name}}"
+  copy:
+    dest: "{{item.path}}/.bash_aliases"
+    owner: "{{item.name}}"
+    mode: "0700"
+    content: |
+      export EDITOR=vim
+      alias ll="ls -la"
+      set +o allexport
+      unset MANPATH
+      alias g="git"
+      export LC_ALL=C.UTF-8
+      export LANG=C.UTF-8
+
+      # prompt
+      function parse_git_branch {
+        ref=$(git-symbolic-ref HEAD 2> /dev/null) || return
+        echo "("${ref#refs/heads/}")"
+      }
+
+      export GIT_PS1_SHOWDIRTYSTATE=1
+      export GIT_PS1_SHOWBRANCHREMOTE=1
+      export GIT_PS1_SHOWUPSTREAM='auto'
+      PS1='# \[\e[0;33;33m\]\u@\H\[\033[0;32m\]`__git_ps1` \[\e[0;33;33m\]\w \n\[\e[0m\]# '
+      # Make it also work for the 'g' alias of the git command
+      complete -o bashdefault -o default -o nospace -F _git g 2>/dev/null \
+        || complete -o default -o nospace -F _git g
+
+  with_items:
+    - name: "{{build_user}}"
+      path: "/home/{{build_user}}"
+    - name: root
+      path: /root
 
 - include: vim.yml
   when: configure_vim
