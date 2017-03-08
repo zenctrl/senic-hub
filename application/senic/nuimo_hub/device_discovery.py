@@ -1,7 +1,11 @@
+import json
 import logging
+import os.path
 import re
 
 from netdisco.discovery import NetworkDiscovery
+
+import requests
 
 
 SUPPORTED_DEVICES = [
@@ -64,3 +68,75 @@ def extract_philips_hue_bridge_ip(device_info):
     result = re.search("http://([\.0-9]+):80", bridge_url)
     if result:
         return result.group(1)
+
+
+class PhilipsHueBridge:
+    def __init__(self, ip_address, data_location):
+        self.bridge_url = "http://{}/api".format(ip_address)
+        self.state_file_path = os.path.join(data_location, ip_address)
+        self.app_name = "senic hub#192.168.1.12"  # TODO get real IP of the hub
+
+        self._username = None
+        self._http_session = requests.Session()
+
+    def _request(self, url, method="GET", payload=None, timeout=5):
+        request = requests.Request(method, url, data=payload)
+        response = self._http_session.send(request.prepare(), timeout=timeout)
+        if response.status_code != 200:
+            logger.debug("Response from Hue bridge %s: %s", url, response.status_code)
+            return
+
+        data = response.json()
+        if isinstance(data, list):
+            data = data[0]
+
+        if "error" in data:
+            logger.error("Response from Hue bridge %s: %s", self.bridge_url, data)
+            return
+
+        return data
+
+    def authenticate(self):
+        """
+        Make the authentication requests to Philips Hue bridge.
+
+        Caller has to make 2 requests. First request initiates the
+        authentication handshake. Then user has to authenticate with
+        the Philips Hue bridge by pressing the button on the bridge
+        within 30 seconds. The second request will write the state
+        file with the username in case of successful authentication.
+
+        """
+        payload = json.dumps({"devicetype": self.app_name})
+        response = self._request(self.bridge_url, method="POST", payload=payload)
+        if response:
+            self._username = response["success"]["username"]
+
+            with open(self.state_file_path, "w") as f:
+                json.dump({"devicetype": self.app_name, "username": self._username}, f)
+
+    def is_authenticated(self):
+        if self.username is None:
+            return False
+
+        # Verify that we can still authenticate with the bridge using
+        # the username that we have saved. We do this by getting the
+        # bridge configuration.
+        return bool(self.get_state())
+
+    @property
+    def username(self):
+        if self._username:
+            return self._username
+
+        if os.path.exists(self.state_file_path):
+            with open(self.state_file_path, "r") as f:
+                data = json.load(f)
+
+            self._username = data.get("username")
+
+            return self._username
+
+    def get_state(self):
+        url = "{}/{}".format(self.bridge_url, self.username)
+        return self._request(url)

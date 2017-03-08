@@ -1,14 +1,17 @@
 import json
+import logging
 import os
-
-import colander
 
 from cornice.service import Service
 
+from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound
 from pyramid.response import FileResponse
 
 from ..config import path
-from ..device_discovery import discover
+from ..device_discovery import PhilipsHueBridge, discover
+
+
+logger = logging.getLogger(__name__)
 
 
 list_service = Service(
@@ -16,10 +19,6 @@ list_service = Service(
     path=path('setup/devices'),
     renderer='json',
 )
-
-
-class DevicesDiscoverSchema(colander.MappingSchema):
-    pass
 
 
 discover_service = Service(
@@ -41,11 +40,11 @@ def devices_list_view(request):
     if os.path.exists(fs_path):
         return FileResponse(fs_path, request)
     else:
-        return dict()
+        return []
 
 
 @discover_service.post()
-def devices_discover_view(request, schema=DevicesDiscoverSchema):
+def devices_discover_view(request):
     """
     Discovers devices, writes results to a file and returns them in
     response.
@@ -60,3 +59,41 @@ def devices_discover_view(request, schema=DevicesDiscoverSchema):
         json.dump(discovered_devices, f)
 
     return discovered_devices
+
+
+authenticate_service = Service(
+    name='devices_authenticate',
+    path=path('setup/devices/{device_id:\d+}/authenticate'),
+    renderer='json',
+    accept='application/json',
+)
+
+
+@authenticate_service.post()
+def devices_authenticate_view(request):
+    device_id = int(request.matchdict["device_id"])
+    logger.debug("Authenticating device with ID=%s", device_id)
+
+    device_list_path = request.registry.settings['fs_device_list']
+    if not os.path.exists(device_list_path):
+        raise HTTPNotFound("Device discovery was not run...")
+
+    device = get_device(device_list_path, device_id)
+    if device is None:
+        raise HTTPBadRequest("Device with id = {} not found...".format(device_id))
+    elif device["type"] != "philips_hue":
+        raise HTTPBadRequest("Device doesn't require authentication...")
+
+    data_location = request.registry.settings.get("fs_data_location", "/tmp")
+    bridge = PhilipsHueBridge(device["ip"], data_location)
+    if not bridge.is_authenticated():
+        bridge.authenticate()
+
+    return {"id": device_id, "authenticated": bridge.is_authenticated()}
+
+
+def get_device(device_list_path, device_id):
+    with open(device_list_path, "r") as f:
+        devices = json.loads(f.read())
+
+    return next((x for x in devices if x["id"] == device_id), None)
