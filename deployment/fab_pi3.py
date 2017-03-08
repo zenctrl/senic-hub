@@ -96,6 +96,7 @@ def rsync(*args, **kwargs):
 def upload_app_src():
     get_vars()
     with fab.lcd('../application'):
+        env.instance.config['user'] = AV['build_user']
         target = '/home/{build_user}/nuimo-hub-backend/application'.format(**AV)
-        rsync('-avz', "--exclude", ".*", "--exclude", "'venv'", '.', '{host_string}:%s' % target)
         fab.sudo(('/srv/nuimo_hub/venv/bin/pip install -e /home/{deploy_user}/nuimo-hub-backend/application/'.format(**AV)))
+        rsync('-rlptD', "--exclude", ".*", "--exclude", "'venv'", '.', '{host_string}:%s' % target)
