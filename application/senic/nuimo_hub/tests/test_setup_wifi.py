@@ -39,6 +39,7 @@ def test_join_wifi(browser, url, mocked_run, settings):
         [
             'sudo',
             '%s/join_wifi' % settings['bin_path'],
+            '-c {fs_config_ini}'.format(**settings),
             'grandpausethisnetwork',
             'foobar',
         ]

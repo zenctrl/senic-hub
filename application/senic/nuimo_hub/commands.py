@@ -20,8 +20,6 @@ import requests
 DEFAULT_IFACE = 'wlan0'
 IFACES_AVAILABLE = '/etc/network/interfaces.available/{}'
 IFACES_D = '/etc/network/interfaces.d/{}'
-ENTER_SETUP_FLAG = '/srv/nuimo_hub/data/WIFI_SETUP_REQUIRED'
-
 WPA_SUPPLICANT_FS = '/etc/wpa_supplicant/wpa_supplicant.conf'
 WPA_SUPPLICANT_CONF = '''ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
@@ -75,7 +73,9 @@ def activate_adhoc(device=DEFAULT_IFACE):
 
 @click.command(help='Activate the wifi-onboarding setup')
 @click.argument('device', default=DEFAULT_IFACE)
-def enter_wifi_setup(device=DEFAULT_IFACE):
+def enter_wifi_setup(config, device=DEFAULT_IFACE):
+    app = get_app(abspath(config))
+    ENTER_SETUP_FLAG = app.registry.settings['fs_enter_setup_flag']
     if not os.path.exists(ENTER_SETUP_FLAG):
         click.echo("Not entering wifi setup mode. %s not found" % ENTER_SETUP_FLAG)
         exit(0)
@@ -100,10 +100,11 @@ def enter_wifi_setup(device=DEFAULT_IFACE):
 
 
 @click.command(help='join a given wifi network (requires root privileges)')
+@click.option('--config', '-c', default='development.ini', help='app configuration file')
 @click.argument('ssid')
 @click.argument('password')
 @click.argument('device', default=DEFAULT_IFACE)
-def join_wifi(ssid, password, device=DEFAULT_IFACE):
+def join_wifi(config, ssid, password, device=DEFAULT_IFACE):
     run(['/usr/bin/supervisorctl', 'stop', 'scan_wifi'])
     run(['/usr/bin/supervisorctl', 'stop', 'dhcpd'])
     run(['ifdown', device])
@@ -128,6 +129,8 @@ def join_wifi(ssid, password, device=DEFAULT_IFACE):
 
     if success:
         # clean up after ourselves
+        app = get_app(abspath(config))
+        ENTER_SETUP_FLAG = app.registry.settings['fs_enter_setup_flag']
         if os.path.exists(ENTER_SETUP_FLAG):
             os.remove(ENTER_SETUP_FLAG)
         run(['/bin/systemctl', 'restart', 'avahi-daemon'])
