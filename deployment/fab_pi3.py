@@ -93,7 +93,7 @@ def rsync(*args, **kwargs):
 
 
 @task
-def upload_app_src():
+def sync_app_src():
     get_vars()
     with fab.lcd('../application'):
         env.instance.config['user'] = AV['build_user']
