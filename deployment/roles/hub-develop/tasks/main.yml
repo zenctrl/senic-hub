@@ -28,56 +28,6 @@
     groups: sudo
     append: yes
 
-- name: Allow 'sudo' group to have passwordless sudo
-  lineinfile:
-    dest: /etc/sudoers
-    state: present
-    regexp: '^%sudo'
-    line: '%sudo ALL=(ALL) NOPASSWD: ALL'
-    validate: visudo -cf %s
-
-- name: enable ssh access
-  become: true
-  authorized_key:
-    user: "{{build_user}}"
-    key: "{{build_user_key}}"
-  when: build_user_key is defined
-
-- name: install dependencies
-  apt:
-    name: "{{item}}"
-    state: installed
-  become: true
-  when: source_transport == 'rsync'
-  with_items:
-    - rsync
-
-- name: create hub sources destination
-  file:
-    dest: "/home/{{build_user}}/nuimo-hub-backend/application"
-    state: directory
-  become: true
-  become_user: "{{build_user}}"
-  tags: rsync
-  when: source_transport == 'rsync'
-
-- name: upload sources via rsync
-  synchronize:
-    src: ../../../../application
-    dest: "/home/{{build_user}}/nuimo-hub-backend/"
-    archive: true
-    delete: true
-    rsync_opts:
-    - "--exclude=.git"
-    - "--exclude=.tox"
-    - "--exclude=venv"
-    - "-z"
-    - "-e bin/ploy-ssh"
-  become: true
-  become_user: "{{build_user}}"
-  tags: rsync
-  when: source_transport == 'rsync'
-
 - name: configure shell
   become: true
   become_user: "{{item.name}}"
@@ -114,9 +64,59 @@
     - name: root
       path: /root
 
+- name: Allow 'sudo' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%sudo'
+    line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+    validate: visudo -cf %s
+
+- name: enable ssh access
+  become: true
+  authorized_key:
+    user: "{{build_user}}"
+    key: "{{build_user_key}}"
+  when: build_user_key is defined
+
 - include: vim.yml
   when: configure_vim
   tags: vim
+
+- name: install rsync
+  apt:
+    name: "{{item}}"
+    state: installed
+  become: true
+  when: source_transport == 'rsync'
+  with_items:
+    - rsync
+
+- name: create hub sources destination
+  file:
+    dest: "/home/{{build_user}}/nuimo-hub-backend/application"
+    state: directory
+  become: true
+  become_user: "{{build_user}}"
+  tags: rsync
+  when: source_transport == 'rsync'
+
+- name: upload sources via rsync
+  synchronize:
+    src: ../../../../application
+    dest: "/home/{{build_user}}/nuimo-hub-backend/"
+    archive: true
+    delete: true
+    rsync_opts:
+    - "--exclude=.git"
+    - "--exclude=.tox"
+    - "--exclude=venv"
+    - "-z"
+    - "-e bin/ploy-ssh"
+  become: true
+  become_user: "{{build_user}}"
+  tags: rsync
+  when: source_transport == 'rsync'
 
 - include: git.yml
   when: source_transport == 'git'
