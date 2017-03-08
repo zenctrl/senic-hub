@@ -39,6 +39,7 @@ def settings():
         'data_directory_path': '/tmp',
         'nuimo_mac_address_filepath': asset_path('nuimo_mac_address.txt'),
         'fs_config_ini': '/no/such/file.ini',
+        'fs_joined_wifi': asset_path('JOINED_WIFI'),
     }
 
 
