@@ -1,2 +1,3 @@
 ---
 source_transport: rsync
+configure_vim: false

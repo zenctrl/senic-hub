@@ -67,3 +67,7 @@
   become_user: "{{build_user}}"
   tags: rsync
   when: source_transport == 'rsync'
+
+- include: vim.yml
+  when: configure_vim
+  tags: vim
