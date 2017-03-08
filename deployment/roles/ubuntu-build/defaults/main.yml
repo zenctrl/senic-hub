@@ -1,5 +1,0 @@
----
-ploy_hostname: "{{_ploy_instance.id}}"
-run_user: nuimo
-build_user_fullname: Senic Employee of the Month
-build_user_email: noreply@senic.com
