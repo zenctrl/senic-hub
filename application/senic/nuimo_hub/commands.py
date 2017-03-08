@@ -96,8 +96,8 @@ def enter_wifi_setup(config, device=DEFAULT_IFACE):
             run(['/bin/systemctl', 'restart', 'avahi-daemon'])
             # signal that we no longer have joined a wifi
             JOINED_WIFI = app.registry.settings['fs_joined_wifi']
-            if os.path.exists(JOINED_WIFI ):
-                os.remove(JOINED_WIFI )
+            if os.path.exists(JOINED_WIFI):
+                os.remove(JOINED_WIFI)
             exit("Successfully entered wifi setup mode")
         click.echo("Retrying...")
     click.echo("Unable to enter wifi setup mode. Check supervisord log for details")
