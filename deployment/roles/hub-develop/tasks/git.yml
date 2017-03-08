@@ -1,0 +1,114 @@
+- name: install build dependencies
+  apt:
+    name: "{{item}}"
+    state: installed
+  become: true
+  with_items:
+    - git-core
+
+- name: enable github deploy access
+  become: true
+  become_user: "{{build_user}}"
+  file:
+    dest: "/home/{{build_user}}/.ssh"
+    mode: "0700"
+    owner: "{{build_user}}"
+    group: "{{build_user}}"
+    state: directory
+  when: source_transport == 'git'
+  tags: gitco
+
+- name: enable github deploy access
+  become: true
+  become_user: "{{build_user}}"
+  copy:
+    src: github_deploy_rsa
+    dest: "/home/{{build_user}}/.ssh/id_rsa"
+    mode: "0600"
+    owner: "{{build_user}}"
+    group: "{{build_user}}"
+  when: source_transport == 'git'
+  tags: gitco
+
+- name: configure git
+  become: true
+  become_user: "{{build_user}}"
+  copy:
+    dest: "/home/{{build_user}}/.gitconfig"
+    owner: "{{build_user}}"
+    mode: "0700"
+    content: |
+      [user]
+      name = {{build_user_fullname}}
+      email = {{build_user_email}}
+
+      [branch]
+      autosetupmerge = true
+      autosetuprebase = remote
+
+      [push]
+      default = current
+
+      [core]
+      quotepath = false
+      pager = "less -RciqMSj5"
+
+      [color]
+      diff = auto
+      branch = auto
+      status = auto
+
+      [alias]
+      m = merge --no-ff
+      st = status
+      ai = add -i
+      ap = add -p
+      d = diff
+      r = remote
+      dc = diff --cached
+      ci = commit -v
+      cia = commit -v -a
+      co = checkout
+      cp = cherry-pick
+      l = log
+      ll = log -p
+      lt = log trunk..
+      llt = log -p trunk..
+      lm = log master..
+      llm = log -p master..
+      b = branch
+      sm = submodule
+      reha = reset --hard
+      feta = fetch --all
+      lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+      lga = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative --branches --remotes
+      lol = log --graph --decorate --pretty=oneline --abbrev-commit
+      lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
+      pure = pull --rebase
+
+
+- name: checkout hub sources
+  git:
+    repo: "git@github.com:tomster/nuimo-hub-backend"
+    remote: tomster
+    dest: "/home/{{build_user}}/nuimo-hub-backend"
+    version: "wifi-onboarding"
+    accept_hostkey: true
+  become: true
+  become_user: "{{build_user}}"
+  tags:
+    - gitco
+    - gitup
+  when: source_transport == 'git'
+
+- name: bootstrap development checkout
+  become: true
+  become_user: "{{build_user}}"
+  command: make
+  args:
+    creates: "/home/{{build_user}}/nuimo-hub-backend/application/venv/bin/python"
+    chdir: "/home/{{build_user}}/nuimo-hub-backend/application/"
+  tags: gitco
+  when: source_transport == 'git'
+
+

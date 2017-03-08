@@ -33,56 +33,9 @@
     name: "{{item}}"
     state: installed
   become: true
+  when: source_transport == 'rsync'
   with_items:
     - rsync
-
-- name: enable github deploy access
-  become: true
-  become_user: "{{build_user}}"
-  file:
-    dest: "/home/{{build_user}}/.ssh"
-    mode: "0700"
-    owner: "{{build_user}}"
-    group: "{{build_user}}"
-    state: directory
-  when: source_transport == 'git'
-  tags: gitco
-
-- name: enable github deploy access
-  become: true
-  become_user: "{{build_user}}"
-  copy:
-    src: github_deploy_rsa
-    dest: "/home/{{build_user}}/.ssh/id_rsa"
-    mode: "0600"
-    owner: "{{build_user}}"
-    group: "{{build_user}}"
-  when: source_transport == 'git'
-  tags: gitco
-
-- name: checkout hub sources
-  git:
-    repo: "git@github.com:tomster/nuimo-hub-backend"
-    remote: tomster
-    dest: "/home/{{build_user}}/nuimo-hub-backend"
-    version: "wifi-onboarding"
-    accept_hostkey: true
-  become: true
-  become_user: "{{build_user}}"
-  tags:
-    - gitco
-    - gitup
-  when: source_transport == 'git'
-
-- name: bootstrap development checkout
-  become: true
-  become_user: "{{build_user}}"
-  command: make
-  args:
-    creates: "/home/{{build_user}}/nuimo-hub-backend/application/venv/bin/python"
-    chdir: "/home/{{build_user}}/nuimo-hub-backend/application/"
-  tags: gitco
-  when: source_transport == 'git'
 
 - name: create hub sources destination
   file:
@@ -96,3 +49,7 @@
 - include: vim.yml
   when: configure_vim
   tags: vim
+
+- include: git.yml
+  when: source_transport == 'git'
+  tags: git
