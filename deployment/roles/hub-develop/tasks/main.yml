@@ -61,6 +61,23 @@
   tags: rsync
   when: source_transport == 'rsync'
 
+- name: upload sources via rsync
+  synchronize:
+    src: ../../../../application
+    dest: "/home/{{build_user}}/nuimo-hub-backend/"
+    archive: true
+    delete: true
+    rsync_opts:
+    - "--exclude=.git"
+    - "--exclude=.tox"
+    - "--exclude=venv"
+    - "-z"
+    - "-e bin/ploy-ssh"
+  become: true
+  become_user: "{{build_user}}"
+  tags: rsync
+  when: source_transport == 'rsync'
+
 - name: configure shell
   become: true
   become_user: "{{item.name}}"
@@ -104,3 +121,4 @@
 - include: git.yml
   when: source_transport == 'git'
   tags: git
+
