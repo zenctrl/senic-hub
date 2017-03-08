@@ -3,7 +3,7 @@
   become: true
   file:
     dest: "{{deploy_location}}"
-    owner: "{{deploy_user}}"
+    owner: "{{build_user}}"
     group: "{{run_user}}"
     mode: "0755"
     state: directory
@@ -37,7 +37,7 @@
   become: true
   copy:
     dest: "{{deploy_location}}/requirements.txt"
-    owner: "{{deploy_user}}"
+    owner: "{{build_user}}"
     group: "{{run_user}}"
     mode: "0644"
     content: |
@@ -63,7 +63,7 @@
   become: true
   template:
     dest: "{{data_location}}/nuimo_app.cfg"
-    owner: "{{deploy_user}}"
+    owner: "{{build_user}}"
     group: "{{run_user}}"
     mode: "0644"
     src: nuimo_app.cfg

@@ -2,5 +2,3 @@
 python_interpreter: python3
 deploy_location: /srv/nuimo_app
 data_location: /srv/nuimo_app/data
-deploy_user: senic
-run_user: nuimo

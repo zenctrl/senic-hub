@@ -15,7 +15,7 @@
 - name: create deploy user
   become: true
   user:
-    name: "{{deploy_user}}"
+    name: "{{build_user}}"
     groups: "{{run_user}}"
     append: yes
     createhome: yes
@@ -25,7 +25,7 @@
   become: true
   file:
     dest: "{{deploy_location}}"
-    owner: "{{deploy_user}}"
+    owner: "{{build_user}}"
     group: "{{run_user}}"
     mode: "0755"
     state: directory
@@ -45,20 +45,20 @@
     chdir: "{{deploy_location}}"
     creates: "{{deploy_location}}/venv/bin/python"
   become: yes
-  become_user: "{{deploy_user}}"
+  become_user: "{{build_user}}"
 
 - name: Make sure pip + setuptools are uptodate
   command: "{{deploy_location}}/venv/bin/pip install -U pip setuptools"
   args:
     chdir: "{{deploy_location}}"
   become: yes
-  become_user: "{{deploy_user}}"
+  become_user: "{{build_user}}"
 
 - name: upload python requirements
   become: true
   copy:
     dest: "{{deploy_location}}/requirements.txt"
-    owner: "{{deploy_user}}"
+    owner: "{{build_user}}"
     group: "{{run_user}}"
     mode: "0644"
     content: |
@@ -86,13 +86,13 @@
     requirements: "{{deploy_location}}/requirements.txt"
     extra_args: "--pre --upgrade -i {{devpi_index_url}}"
   become: yes
-  become_user: "{{deploy_user}}"
+  become_user: "{{build_user}}"
   notify: restart nuimo_hub
   tags: update_backend
 
 - name: initialize cryptoyaml key
   become: true
-  become_user: "{{deploy_user}}"
+  become_user: "{{build_user}}"
   command: "{{deploy_location}}/venv/bin/cryptoyaml generate_key {{deploy_location}}/production.key"
   args:
     chdir: "{{deploy_location}}"
@@ -140,7 +140,7 @@
   template:
     src: production.ini
     dest: "{{deploy_location}}/production.ini"
-    owner: "{{deploy_user}}"
+    owner: "{{build_user}}"
     group: "{{run_user}}"
     mode: "0644"
   notify: restart nuimo_hub

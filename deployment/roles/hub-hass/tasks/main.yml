@@ -15,7 +15,7 @@
 - name: create deploy user
   become: true
   user:
-    name: "{{deploy_user}}"
+    name: "{{build_user}}"
     groups: "{{run_user}}"
     append: yes
     createhome: yes
@@ -25,7 +25,7 @@
   become: true
   file:
     dest: "{{deploy_location}}"
-    owner: "{{deploy_user}}"
+    owner: "{{build_user}}"
     group: "{{run_user}}"
     mode: "0755"
     state: directory
@@ -54,7 +54,7 @@
   become: true
   copy:
     dest: "{{deploy_location}}/requirements.txt"
-    owner: "{{deploy_user}}"
+    owner: "{{build_user}}"
     group: "{{run_user}}"
     mode: "0644"
     content: |
@@ -76,7 +76,7 @@
   become: true
   template:
     dest: "{{data_location}}/configuration.yaml"
-    owner: "{{deploy_user}}"
+    owner: "{{build_user}}"
     group: "{{run_user}}"
     mode: "0644"
     src: configuration.yaml
