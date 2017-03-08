@@ -1,0 +1,40 @@
+---
+- name: install dependencies
+  apt:
+    name: "{{item}}"
+    state: installed
+  become: true
+  with_items:
+    - vim-nox
+
+- name: configure vim
+  become: true
+  become_user: "{{build_user}}"
+  file:
+    dest: "/home/{{build_user}}/.vim/bundle"
+    owner: "{{build_user}}"
+    mode: "0700"
+    state: directory
+
+- name: configure vim
+  become: true
+  become_user: "{{build_user}}"
+  copy:
+    src: vimrc
+    dest: "/home/{{build_user}}/.vimrc"
+    owner: "{{build_user}}"
+    mode: "0700"
+
+- name: install vundle from git
+  become: true
+  become_user: "{{build_user}}"
+  git:
+    repo: https://github.com/VundleVim/Vundle.vim.git
+    dest: "/home/{{build_user}}/.vim/bundle/Vundle.vim"
+
+- name: bootstrap vundle
+  become: true
+  become_user: "{{build_user}}"
+  command: vim +PluginInstall +qall
+  args:
+    creates: "/home/{{build_user}}/.vim/bundle/nerdtree/LICENCE"

@@ -1,46 +1,145 @@
 ---
 # a role that sets up an environment for developing the hub on a ubuntu machine
-# it assumes the role `ubuntu-build` has been applied
-- name: enable github deploy access
+# it requires that the roles `hub-backend` and `hub-ubuntu` have been applied already
+- name: install development dependencies
+  apt:
+    name: "{{item}}"
+    state: installed
   become: true
-  become_user: "{{build_user}}"
-  file:
-    dest: "/home/{{build_user}}/.ssh"
-    mode: "0700"
-    owner: "{{build_user}}"
-    group: "{{build_user}}"
-    state: directory
-  tags: gitco
+  with_items:
+    - bash-completion
+    - build-essential
+    - htop
+    - python3-dev
+    - python3-flake8
+    - python3-pip
+    - python3-venv
+    - screen
 
-- name: enable github deploy access
+- name: create user
   become: true
-  become_user: "{{build_user}}"
+  user:
+    name: "{{build_user}}"
+    createhome: yes
+    shell: /bin/bash
+    # set password to '*' to unlock ssh access
+    password: $6$loHAn4IfYLEdMc$e0de/845DozoVAzG1rKx8eRqrBxRLnYJO746dqozpxYhxSgCfA7bI9p0KoDqNU8A0hot1zqJvMQNWM1IuJGnx1
+    update_password: always
+    groups: sudo
+    append: yes
+
+- name: configure shell
+  become: true
+  become_user: "{{item.name}}"
   copy:
-    src: github_deploy_rsa
-    dest: "/home/{{build_user}}/.ssh/id_rsa"
-    mode: "0600"
-    owner: "{{build_user}}"
-    group: "{{build_user}}"
-  tags: gitco
+    dest: "{{item.path}}/.bash_aliases"
+    owner: "{{item.name}}"
+    mode: "0700"
+    content: |
+      export EDITOR=vim
+      alias ll="ls -la"
+      set +o allexport
+      unset MANPATH
+      alias g="git"
+      export LC_ALL=C.UTF-8
+      export LANG=C.UTF-8
 
-- name: checkout hub sources
-  git:
-    repo: "git@github.com:tomster/nuimo-hub-backend"
-    remote: tomster
-    dest: "/home/{{build_user}}/nuimo-hub-backend"
-    version: "wifi-onboarding"
-    accept_hostkey: true
+      # prompt
+      function parse_git_branch {
+        ref=$(git-symbolic-ref HEAD 2> /dev/null) || return
+        echo "("${ref#refs/heads/}")"
+      }
+
+      export GIT_PS1_SHOWDIRTYSTATE=1
+      export GIT_PS1_SHOWBRANCHREMOTE=1
+      export GIT_PS1_SHOWUPSTREAM='auto'
+      PS1='# \[\e[0;33;33m\]\u@\H\[\033[0;32m\]`__git_ps1` \[\e[0;33;33m\]\w \n\[\e[0m\]# '
+      # Make it also work for the 'g' alias of the git command
+      complete -o bashdefault -o default -o nospace -F _git g 2>/dev/null \
+        || complete -o default -o nospace -F _git g
+
+  with_items:
+    - name: "{{build_user}}"
+      path: "/home/{{build_user}}"
+    - name: root
+      path: /root
+
+- name: Allow 'sudo' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%sudo'
+    line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+    validate: visudo -cf %s
+
+- name: enable ssh access
+  become: true
+  authorized_key:
+    user: "{{build_user}}"
+    key: "{{build_user_key}}"
+  when: build_user_key is defined
+
+- include: vim.yml
+  when: configure_vim
+  tags: vim
+
+- name: install rsync
+  apt:
+    name: "{{item}}"
+    state: installed
+  become: true
+  when: source_transport == 'rsync'
+  with_items:
+    - rsync
+
+- name: create hub sources destination
+  file:
+    dest: "/home/{{build_user}}/nuimo-hub-backend/application"
+    state: directory
   become: true
   become_user: "{{build_user}}"
-  tags:
-    - gitco
-    - gitup
+  tags: rsync
+  when: source_transport == 'rsync'
 
-- name: bootstrap development checkout
+- name: upload sources via rsync
+  synchronize:
+    src: ../../../../application
+    dest: "/home/{{build_user}}/nuimo-hub-backend/"
+    archive: true
+    delete: true
+    rsync_opts:
+    - "--exclude=.git"
+    - "--exclude=.tox"
+    - "--exclude=venv"
+    - "-z"
+    - "-e bin/ploy-ssh"
   become: true
   become_user: "{{build_user}}"
-  command: make
-  args:
-    creates: "/home/{{build_user}}/nuimo-hub-backend/application/venv/bin/python"
-    chdir: "/home/{{build_user}}/nuimo-hub-backend/application/"
-  tags: gitco
+  tags: rsync
+  when: source_transport == 'rsync'
+
+- include: git.yml
+  when: source_transport == 'git'
+  tags: git
+
+# at this state we now have a source directory on the host (via git checkout or rsync)
+
+- name: make sure the deployment version of the hub is not running
+  supervisorctl:
+    name: nuimo_hub
+    state: stopped
+  tags: spv
+
+- name: install source version into deployment venv
+  pip:
+    name: "-e /home/{{build_user}}/nuimo-hub-backend/application/"
+    virtualenv: "{{deploy_location}}/venv"
+    chdir: "{{deploy_location}}"
+  tags: spv
+
+- name: make sure the development version of the hub is now running
+  supervisorctl:
+    name: nuimo_hub
+    state: started
+  tags: spv
+
