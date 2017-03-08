@@ -103,7 +103,6 @@
 
 - name: initialize cryptoyaml settings
   become: true
-  become_user: "{{deploy_user}}"
   command: "{{deploy_location}}/venv/bin/cryptoyaml create {{deploy_location}}/production.yml.aes --keyfile {{deploy_location}}/production.key"
   args:
     chdir: "{{deploy_location}}"
