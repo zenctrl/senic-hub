@@ -3,6 +3,8 @@ import logging
 import os.path
 import re
 
+from enum import IntEnum
+
 from netdisco.discovery import NetworkDiscovery
 
 import requests
@@ -12,6 +14,14 @@ SUPPORTED_DEVICES = [
     "philips_hue",
     "sonos",
 ]
+
+
+class UnauthenticatedDeviceError(Exception):
+    message = "Device not authenticated..."
+
+
+class PhilipsHueBridgeError(IntEnum):
+    unauthorized = 1
 
 
 logger = logging.getLogger(__name__)
@@ -92,6 +102,9 @@ class PhilipsHueBridge:
 
         if "error" in data:
             logger.error("Response from Hue bridge %s: %s", self.bridge_url, data)
+            if data["error"].get("type") == PhilipsHueBridgeError.unauthorized:
+                raise UnauthenticatedDeviceError()
+
             return
 
         return data
@@ -107,22 +120,30 @@ class PhilipsHueBridge:
         file with the username in case of successful authentication.
 
         """
-        payload = json.dumps({"devicetype": self.app_name})
-        response = self._request(self.bridge_url, method="POST", payload=payload)
-        if response:
+        try:
+            payload = json.dumps({"devicetype": self.app_name})
+            response = self._request(self.bridge_url, method="POST", payload=payload)
+            if not response:
+                return
+
             self._username = response["success"]["username"]
 
             with open(self.state_file_path, "w") as f:
                 json.dump({"devicetype": self.app_name, "username": self._username}, f)
 
-    def is_authenticated(self):
-        if self.username is None:
-            return False
+        except UnauthenticatedDeviceError:
+            pass  # consume the exception
 
+    def is_authenticated(self):
         # Verify that we can still authenticate with the bridge using
         # the username that we have saved. We do this by getting the
         # bridge configuration.
-        return bool(self.get_state())
+        try:
+            self.get_state()
+        except UnauthenticatedDeviceError:
+            return False
+
+        return True
 
     @property
     def username(self):
@@ -138,5 +159,15 @@ class PhilipsHueBridge:
             return self._username
 
     def get_state(self):
+        if self.username is None:
+            raise UnauthenticatedDeviceError()
+
         url = "{}/{}".format(self.bridge_url, self.username)
+        return self._request(url)
+
+    def get_lights(self):
+        if self.username is None:
+            raise UnauthenticatedDeviceError()
+
+        url = "{}/{}/lights".format(self.bridge_url, self.username)
         return self._request(url)

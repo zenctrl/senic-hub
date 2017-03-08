@@ -9,6 +9,8 @@ from pytest import fixture
 
 import responses
 
+from senic.nuimo_hub.device_discovery import PhilipsHueBridgeError
+
 
 @fixture
 def url(route_url):
@@ -73,7 +75,8 @@ def no_state_file(state_file_path):
 
 @responses.activate
 def test_devices_authenticate_view_unauthorized(no_state_file, browser, auth_url):
-    responses.add(responses.POST, 'http://127.0.0.1/api', json=[{"error": ""}], status=200)
+    payload = [{"error": {"type": PhilipsHueBridgeError.unauthorized}}]
+    responses.add(responses.POST, 'http://127.0.0.1/api', json=payload, status=200)
     assert browser.post_json(auth_url, {}).json == {"id": 0, "authenticated": False}
 
 
@@ -106,8 +109,8 @@ def bad_auth_url(route_url):
     return route_url('devices_authenticate', device_id=23)
 
 
-def test_devices_authenticate_returns_400_if_bad_device(browser, bad_auth_url):
-    assert browser.post_json(bad_auth_url, {}, status=400)
+def test_devices_authenticate_returns_404_if_device_not_found(browser, bad_auth_url):
+    assert browser.post_json(bad_auth_url, {}, status=404)
 
 
 @fixture
@@ -121,6 +124,23 @@ def test_devices_authenticate_returns_400_when_device_doesnt_support_auth(browse
 
 @responses.activate
 def test_devices_authenticate_try_authenticate_when_username_has_expired(state_file, browser, auth_url):
-    responses.add(responses.GET, 'http://127.0.0.1/api/23', json=[{"error": {}}], status=200)
+    get_state_payload = [{"error": {"type": PhilipsHueBridgeError.unauthorized}}]
+    responses.add(responses.GET, 'http://127.0.0.1/api/23', json=get_state_payload, status=200)
     responses.add(responses.POST, 'http://127.0.0.1/api', json=[{"error": {}}], status=200)
     assert browser.post_json(auth_url, {}).json == {"id": 0, "authenticated": False}
+
+
+@fixture
+def details_url(route_url):
+    return route_url('devices_details', device_id=0)
+
+
+@responses.activate
+def test_devices_details_returns_list_of_lights(state_file, browser, details_url):
+    responses.add(responses.GET, 'http://127.0.0.1/api/23/lights', json={"0": {}}, status=200)
+    assert browser.get_json(details_url).json == {"0": {}}
+
+
+@responses.activate
+def test_devices_details_returns_400_if_not_authenticated(no_state_file, browser, details_url):
+    assert browser.get_json(details_url, status=400)
