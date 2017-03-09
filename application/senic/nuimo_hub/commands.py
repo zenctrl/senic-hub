@@ -10,6 +10,12 @@ from .subprocess_run import run
 import wifi
 from pyramid.paster import get_app
 
+import configparser
+import re
+
+import yaml
+import requests
+
 
 DEFAULT_IFACE = 'wlan0'
 IFACES_AVAILABLE = '/etc/network/interfaces.available/{}'
@@ -135,3 +141,105 @@ def join_wifi(ssid, password, device=DEFAULT_IFACE):
         with open(ENTER_SETUP_FLAG, 'w') as flag:
             flag.write('FAILED')
         exit(1)
+
+
+@click.command(help='create configuration files for nuimo app & hass and restart them')
+@click.option('--config', '-c', required=True, type=click.Path(exists=True), help='app configuration file')
+def create_configuration_files_and_restart_apps(config):
+    app = get_app(abspath(config))
+
+    # generate homeassistant config & restart supervisor app
+    with open(app.registry.settings['devices_path'], 'r') as f:
+        devices = json.load(f)
+
+    hass_config_file_path = app.registry.settings['hass_config_path']
+    with open(hass_config_file_path, 'w') as f:
+        yaml.dump(generate_hass_configuration(devices), f, default_flow_style=False)
+
+    hass_phue_config_file_path = app.registry.settings['hass_phue_config_path']
+    data_location = app.registry.settings['data_path']
+    with open(hass_phue_config_file_path, 'w') as f:
+        json.dump(generate_hass_phue_configuration(devices, data_location), f)
+
+    run(['/usr/bin/supervisorctl', 'restart', 'nuimo_hass'])
+
+    # generate nuimo app config & restart supervisor app
+    nuimo_controller_mac_address_file_path = app.registry.settings['nuimo_mac_address_filepath']
+    with open(nuimo_controller_mac_address_file_path, 'r') as f:
+        nuimo_controller_mac_address = f.readline().strip()
+
+    nuimo_app_config_file_path = app.registry.settings['nuimo_app_config_path']
+    bluetooth_adapter_name = app.registry.settings['bluetooth_adapter_name']
+    with open(nuimo_app_config_file_path, 'w') as f:
+        config = generate_nuimo_configuration(devices, nuimo_controller_mac_address, bluetooth_adapter_name)
+        config.write(f)
+
+    run(['/usr/bin/supervisorctl', 'restart', 'nuimo_app'])
+
+
+def generate_hass_configuration(devices):
+    hass_configuration = {
+        'api': '',
+        'websocket_api': '',
+    }
+
+    sonos_speakers = [x['ip'] for x in devices if x['type'] == 'sonos']
+    if sonos_speakers:
+        hass_configuration['media_player'] = [{
+            'platform': 'sonos',
+            'hosts': sonos_speakers,
+        }]
+
+    bridge_ips = [x['ip'] for x in devices if x['type'] == 'philips_hue']
+    if bridge_ips:
+        hass_configuration['light'] = [{'platform': 'hue', 'host': x} for x in bridge_ips]
+
+    return hass_configuration
+
+
+def generate_hass_phue_configuration(devices, data_location):
+    configuration = {}
+
+    bridge_ips = [x['ip'] for x in devices if x['type'] == 'philips_hue']
+    for ip in bridge_ips:
+        with open(os.path.join(data_location, ip), 'r') as f:
+            username = json.load(f)['username']
+
+        configuration[ip] = {'username': username}
+
+    return configuration
+
+
+def generate_nuimo_configuration(devices, nuimo_controller_mac_address, bluetooth_adapter_name):
+    config = configparser.ConfigParser()
+    config['DEFAULT'] = {
+        'ha_api_url': 'localhost:8123',
+        'logging_level': 'DEBUG',
+        'controller_mac_address': nuimo_controller_mac_address,
+        'bluetooth_adapter_name': bluetooth_adapter_name,
+    }
+    for index, device in enumerate(devices):
+        section_name = '{}-{}'.format(device['type'], index)
+        config[section_name] = {
+            'name': section_name,
+            'component': get_component_for_device(device),
+            'entities': get_entities_for_device(device),
+        }
+    return config
+
+
+def get_component_for_device(device):
+    return {
+        'philips_hue': 'PhilipsHue',
+        'sonos': 'Sonos',
+    }[device['type']]
+
+
+def get_entities_for_device(device):
+    # TODO figure out how to best implement this
+    if device['type'] == 'sonos':
+        response = requests.get('http://{}:1400/xml/device_description.xml'.format(device['ip']))
+        room_name = re.search('<roomName>(.*)</roomName>', response.text).group(1)
+        return 'media_player.{}'.format(room_name.replace(' ', '_'))
+    else:
+        return 'group.all_lights'

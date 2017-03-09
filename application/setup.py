@@ -83,5 +83,6 @@ setup(
         enter_wifi_setup = senic.nuimo_hub.commands:enter_wifi_setup
         join_wifi = senic.nuimo_hub.commands:join_wifi
         setup_nuimo = senic.nuimo_hub.commands:setup_nuimo
+        create_configurations = senic.nuimo_hub.commands:create_configuration_files_and_restart_apps
     """,
 )
