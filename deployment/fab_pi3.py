@@ -98,4 +98,12 @@ def sync_app_src():
     with fab.lcd('../application'):
         env.instance.config['user'] = AV['build_user']
         target = '/home/{build_user}/nuimo-hub-backend/application'.format(**AV)
-        rsync('-rlptD', "--exclude", ".*", "--exclude", "'venv'", '.', '{host_string}:%s' % target)
+        rsync('-rlptD', '--exclude', '.*', '--exclude', 'venv', '.', '{host_string}:%s' % target)
+
+@task
+def sync_frontend_src():
+    get_vars()
+    with fab.lcd('../frontend'):
+        env.instance.config['user'] = AV['build_user']
+        target = '/home/{build_user}/nuimo-hub-backend/frontend'.format(**AV)
+        rsync('-rlptD', '--exclude', '.*', '--exclude', 'node_modules', '.', '{host_string}:%s' % target)
