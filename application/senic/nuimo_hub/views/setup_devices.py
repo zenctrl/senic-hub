@@ -8,7 +8,7 @@ from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound
 from pyramid.response import FileResponse
 
 from ..config import path
-from ..device_discovery import PhilipsHueBridge, discover
+from ..device_discovery import PhilipsHueBridge, UnauthenticatedDeviceError, discover
 
 
 logger = logging.getLogger(__name__)
@@ -75,13 +75,8 @@ def devices_authenticate_view(request):
     logger.debug("Authenticating device with ID=%s", device_id)
 
     device_list_path = request.registry.settings['fs_device_list']
-    if not os.path.exists(device_list_path):
-        raise HTTPNotFound("Device discovery was not run...")
-
     device = get_device(device_list_path, device_id)
-    if device is None:
-        raise HTTPBadRequest("Device with id = {} not found...".format(device_id))
-    elif device["type"] != "philips_hue":
+    if device["type"] != "philips_hue":
         raise HTTPBadRequest("Device doesn't require authentication...")
 
     data_location = request.registry.settings.get("fs_data_location", "/tmp")
@@ -92,8 +87,39 @@ def devices_authenticate_view(request):
     return {"id": device_id, "authenticated": bridge.is_authenticated()}
 
 
+details_service = Service(
+    name='devices_details',
+    path=path('setup/devices/{device_id:\d+}'),
+    renderer='json',
+)
+
+
+@details_service.get()
+def devices_details_view(request):
+    device_id = int(request.matchdict["device_id"])
+    logger.debug("Getting details for device with ID=%s", device_id)
+
+    device_list_path = request.registry.settings['fs_device_list']
+    device = get_device(device_list_path, device_id)
+
+    data_location = request.registry.settings.get("fs_data_location", "/tmp")
+    bridge = PhilipsHueBridge(device["ip"], data_location)
+
+    try:
+        return bridge.get_lights()
+    except UnauthenticatedDeviceError as e:
+        raise HTTPBadRequest(e.message)
+
+
 def get_device(device_list_path, device_id):
+    if not os.path.exists(device_list_path):
+        raise HTTPNotFound("Device discovery was not run...")
+
     with open(device_list_path, "r") as f:
         devices = json.loads(f.read())
 
-    return next((x for x in devices if x["id"] == device_id), None)
+    device = next((x for x in devices if x["id"] == device_id), None)
+    if device is None:
+        raise HTTPNotFound("Device with id = {} not found...".format(device_id))
+
+    return device
