@@ -38,6 +38,7 @@ setup(
         'click',
         'colander',
         'cornice<2.0',
+        'nuimo>=0.2.3',
         'pyramid',
         'pyramid_tm',
         'pytz',
@@ -81,5 +82,6 @@ setup(
         scan_wifi = senic.nuimo_hub.commands:scan_wifi
         enter_wifi_setup = senic.nuimo_hub.commands:enter_wifi_setup
         join_wifi = senic.nuimo_hub.commands:join_wifi
+        setup_nuimo = senic.nuimo_hub.commands:setup_nuimo
     """,
 )

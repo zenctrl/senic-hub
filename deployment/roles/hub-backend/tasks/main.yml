@@ -39,6 +39,16 @@
     mode: "0750"
     state: directory
 
+- name: give {{run_user}} access to bluez dbus
+  become: true
+  template:
+    dest: "/etc/dbus-1/system.d/bluetooth.conf"
+    owner: root
+    group: root
+    mode: "0644"
+    src: bluetooth.conf
+  notify: restart dbus
+
 - name: init virtualenv in deployment location
   command: "{{python_interpreter}} -m venv venv"
   args:
@@ -46,6 +56,13 @@
     creates: "{{deploy_location}}/venv/bin/python"
   become: yes
   become_user: "{{build_user}}"
+
+- name: enable virtualenv to access the system packages
+  lineinfile:
+    dest: "{{deploy_location}}/venv/pyvenv.cfg"
+    regexp: '(include-system-site-packages = )(false)'
+    line: '\1true'
+    backrefs: yes
 
 - name: Make sure pip + setuptools are uptodate
   command: "{{deploy_location}}/venv/bin/pip install -U pip setuptools"

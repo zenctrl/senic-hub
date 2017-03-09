@@ -34,7 +34,7 @@ def get_networks(devices=[DEFAULT_IFACE]):
 
 
 @click.command(help='scan the wifi interfaces for networks (requires root privileges)')
-@click.option('--config', '-c', default='development.ini', help='app configuration file')
+@click.option('--config', '-c', default='development.ini', type=click.Path(exists=True), help='app configuration file')
 @click.option('--forever/--no-forever', default=False, help='scan forever (until interupted')
 @click.option('--waitsec', default=20, help='How many seconds to wait inbetween scans (only when forever')
 @click.argument('devices', nargs=-1)
