@@ -12,7 +12,7 @@ log = get_logger(__name__)
 
 
 default_settings = dict(
-    fs_wifi_networks='/tmp/wifi_networks.json',
+    wifi_networks_path='/tmp/wifi_networks.json',
     fs_enter_setup_flag='/var/local/WIFI_SETUP_REQUIRED',
 )
 

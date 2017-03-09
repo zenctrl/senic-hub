@@ -13,7 +13,7 @@ def test_get_scanned_wifi(browser, url):
 
 @pytest.fixture
 def no_such_wifi(settings):
-    settings['fs_wifi_networks'] = '/no/such/file'
+    settings['wifi_networks_path'] = '/no/such/file'
     return settings
 
 
