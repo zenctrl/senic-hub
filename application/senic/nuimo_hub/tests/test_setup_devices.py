@@ -58,7 +58,7 @@ def auth_url(route_url):
 
 @fixture
 def state_file_path(settings):
-    return os.path.join(settings["fs_data_location"], "127.0.0.1")
+    return os.path.join(settings["data_directory_path"], "127.0.0.1")
 
 
 @fixture

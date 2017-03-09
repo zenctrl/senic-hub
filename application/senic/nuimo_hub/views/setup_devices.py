@@ -79,7 +79,7 @@ def devices_authenticate_view(request):
     if device["type"] != "philips_hue":
         raise HTTPBadRequest("Device doesn't require authentication...")
 
-    data_location = request.registry.settings.get("fs_data_location", "/tmp")
+    data_location = request.registry.settings.get("data_directory_path", "/tmp")
     bridge = PhilipsHueBridge(device["ip"], data_location)
     if not bridge.is_authenticated():
         bridge.authenticate()
@@ -102,7 +102,7 @@ def devices_details_view(request):
     device_list_path = request.registry.settings['devices_path']
     device = get_device(device_list_path, device_id)
 
-    data_location = request.registry.settings.get("fs_data_location", "/tmp")
+    data_location = request.registry.settings.get("data_directory_path", "/tmp")
     bridge = PhilipsHueBridge(device["ip"], data_location)
 
     try:
