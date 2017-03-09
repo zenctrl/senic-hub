@@ -40,6 +40,6 @@ server.use(function (request, response, next) {
   }
 })
 server.use(jsonServer.router(__dirname + '/api.json'))
-server.listen(4000, function () {
+server.listen(6543, function () {
   console.log('Mock API server is running')
 })
