@@ -14,7 +14,7 @@ from pyramid.paster import get_app
 DEFAULT_IFACE = 'wlan0'
 IFACES_AVAILABLE = '/etc/network/interfaces.available/{}'
 IFACES_D = '/etc/network/interfaces.d/{}'
-ENTER_SETUP_FLAG = '/var/local/WIFI_SETUP_REQUIRED'
+ENTER_SETUP_FLAG = '/srv/nuimo_hub/data/WIFI_SETUP_REQUIRED'
 
 WPA_SUPPLICANT_FS = '/etc/wpa_supplicant/wpa_supplicant.conf'
 WPA_SUPPLICANT_CONF = '''ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
