@@ -24,13 +24,13 @@ def discover_url(route_url):
 
 @fixture
 def no_device_file(settings):
-    settings['fs_device_list'] = '/no/such/file'
+    settings['devices_path'] = '/no/such/file'
     return settings
 
 
 @fixture
 def tmp_device_file(settings):
-    settings['fs_device_list'] = mktemp()
+    settings['devices_path'] = mktemp()
     return settings
 
 

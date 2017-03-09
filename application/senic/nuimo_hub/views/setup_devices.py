@@ -35,7 +35,7 @@ def devices_list_view(request):
     Returns list of discovered devices/bridges.
 
     """
-    fs_path = request.registry.settings['fs_device_list']
+    fs_path = request.registry.settings['devices_path']
 
     if os.path.exists(fs_path):
         return FileResponse(fs_path, request)
@@ -52,7 +52,7 @@ def devices_discover_view(request):
     NOTE: Will block until device discovery is finished.
 
     """
-    device_list_file = request.registry.settings['fs_device_list']
+    device_list_file = request.registry.settings['devices_path']
 
     discovered_devices = discover()
     with open(device_list_file, 'w') as f:
@@ -74,7 +74,7 @@ def devices_authenticate_view(request):
     device_id = int(request.matchdict["device_id"])
     logger.debug("Authenticating device with ID=%s", device_id)
 
-    device_list_path = request.registry.settings['fs_device_list']
+    device_list_path = request.registry.settings['devices_path']
     device = get_device(device_list_path, device_id)
     if device["type"] != "philips_hue":
         raise HTTPBadRequest("Device doesn't require authentication...")
@@ -99,7 +99,7 @@ def devices_details_view(request):
     device_id = int(request.matchdict["device_id"])
     logger.debug("Getting details for device with ID=%s", device_id)
 
-    device_list_path = request.registry.settings['fs_device_list']
+    device_list_path = request.registry.settings['devices_path']
     device = get_device(device_list_path, device_id)
 
     data_location = request.registry.settings.get("fs_data_location", "/tmp")
