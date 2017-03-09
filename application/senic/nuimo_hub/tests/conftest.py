@@ -32,7 +32,7 @@ def settings():
         'debug': False,
         'fs_bin': asset_path('bin'),
         'wifi_networks_path': asset_path('wifi_networks.json'),
-        'fs_enter_setup_flag': asset_path('NUIMO_SETUP_REQUIRED'),
+        'wifi_setup_flag_path': asset_path('NUIMO_SETUP_REQUIRED'),
         'crypto_settings_datafile': asset_path('testing.yml.aes'),
         'crypto_settings_keyfile': asset_path('testing.key'),
         'fs_device_list': asset_path('device_list.json'),
