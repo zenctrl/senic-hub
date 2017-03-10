@@ -5,9 +5,6 @@ import { Link } from 'react-router'
 import './SetupDevices.css'
 
 class SetupDevices extends Component {
-  devicesPollInterval = 1000
-  devicesPollTimer = null
-
   constructor() {
     super()
     this.state = {
@@ -23,13 +20,13 @@ class SetupDevices extends Component {
           <table>
             <ReactCSSTransitionGroup component="tbody" transitionName="SetupDevices_Transition" transitionEnterTimeout={500}>
             {
-              this.state.devices.map((device, index) =>
-                <tr key={index}>
-                  <td>
-                    { device.label }
-                  </td>
-                </tr>
-              )
+                this.state.devices.map((device, index) =>
+                  <tr key={device.id}>
+                    <td>
+                      { device.type.replace('_', ' ') }
+                    </td>
+                  </tr>
+                )
             }
             </ReactCSSTransitionGroup>
           </table>
@@ -39,21 +36,17 @@ class SetupDevices extends Component {
   }
 
   componentDidMount() {
-    this.pollDevices()
+    this.discoverDevices()
   }
 
-  componentWillUnmount() {
-    clearTimeout(this.devicesPollTimer)
-  }
-
-  pollDevices() {
+  discoverDevices() {
     //TODO: Promise chain doesn't get cancelled when component unmounts
-    fetch('/-/setup/devices')
+      fetch('/-/setup/devices/discover', {method: 'POST'})
       //TODO: Write tests for all possible API call responses, server not available, etc.
       .then((response) => response.json())
       .then((devices) => {
         this.setState({ devices: devices })
-        this.devicesPollTimer = setTimeout(this.pollDevices.bind(this), this.devicesPollInterval)
+        this.discoverDevices()
       })
   }
 }
