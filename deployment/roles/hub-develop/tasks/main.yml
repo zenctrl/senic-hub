@@ -108,8 +108,9 @@
     archive: true
     delete: true
     rsync_opts:
-    - "--exclude=.git"
-    - "--exclude=.tox"
+    - "--exclude=.*"
+    - "--exclude=*.egg-info"
+    - "--exclude=__pycache__"
     - "--exclude=venv"
     - "-z"
     - "-e bin/ploy-ssh"

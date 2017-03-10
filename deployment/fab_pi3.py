@@ -98,7 +98,14 @@ def sync_app_src():
     with fab.lcd('../application'):
         env.instance.config['user'] = AV['build_user']
         target = '/home/{build_user}/nuimo-hub-backend/application'.format(**AV)
-        rsync('-rlptD', '--exclude', '.*', '--exclude', 'venv', '.', '{host_string}:%s' % target)
+        rsync(
+            '-rlptD',
+            '--exclude', '.*',
+            '--exclude', '*.egg-info',
+            '--exclude', '__pycache__',
+            '--exclude', 'venv',
+            '.',
+            '{host_string}:%s' % target)
 
 @task
 def sync_frontend_src():
