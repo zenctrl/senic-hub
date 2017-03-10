@@ -45,8 +45,13 @@ class SetupDevices extends Component {
       .then((response) => response.json())
       .then((devices) => {
         this.setState({ devices: devices })
+        //TODO: Repeatedly authenticate devices until it's successful
+        devices
+          .filter((device) => device.type === "philips_hue")
+          .forEach((hueBridge) => {fetch('/-/setup/devices/' + hueBridge.id + '/authenticate', {method: 'POST'})})
         //TODO: Run device discovery again as long as component is mounted
       })
+      .catch((error) => console.error(error))
   }
 }
 
