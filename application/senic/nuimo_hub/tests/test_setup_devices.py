@@ -24,13 +24,13 @@ def discover_url(route_url):
 
 @fixture
 def no_device_file(settings):
-    settings['fs_device_list'] = '/no/such/file'
+    settings['devices_path'] = '/no/such/file'
     return settings
 
 
 @fixture
 def tmp_device_file(settings):
-    settings['fs_device_list'] = mktemp()
+    settings['devices_path'] = mktemp()
     return settings
 
 
@@ -58,7 +58,7 @@ def auth_url(route_url):
 
 @fixture
 def state_file_path(settings):
-    return os.path.join(settings["fs_data_location"], "127.0.0.1")
+    return os.path.join(settings["data_directory_path"], "127.0.0.1")
 
 
 @fixture
