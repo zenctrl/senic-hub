@@ -105,15 +105,16 @@
   synchronize:
     src: ../../../../application
     dest: "/home/{{build_user}}/nuimo-hub-backend/"
-    archive: true
+    archive: false
     delete: true
     rsync_opts:
+    - "-rlptD"
     - "--exclude=.*"
     - "--exclude=*.egg-info"
     - "--exclude=__pycache__"
     - "--exclude=venv"
-    - "-z"
     - "-e bin/ploy-ssh"
+
   become: true
   become_user: "{{build_user}}"
   tags: rsync
