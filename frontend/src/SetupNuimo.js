@@ -49,7 +49,7 @@ class SetupNuimo extends Component {
       .then((response) => {
         let controllers = response.connectedControllers
         if (controllers.length > 0) {
-          this.setState({ nuimos: controllers[0] })
+          this.setState({ nuimos: controllers })
         }
         else {
           // Try again to bootstrap
