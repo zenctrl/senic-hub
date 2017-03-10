@@ -4,9 +4,6 @@ import { Link } from 'react-router';
 import './SetupNuimo.css'
 
 class SetupNuimo extends Component {
-  nuimoPollInterval = 1000
-  nuimoPollTimer = null
-
   constructor() {
     super()
     this.state = {
@@ -34,21 +31,36 @@ class SetupNuimo extends Component {
   }
 
   componentDidMount() {
-    this.pollNuimos()
+    this.bootstrapNuimos()
   }
 
-  componentWillUnmount() {
-    clearTimeout(this.nuimoPollTimer)
-  }
-
-  pollNuimos() {
+  bootstrapNuimos() {
     //TODO: Promise chain doesn't get cancelled when component unmounts
-    fetch('/-/setup/nuimo')
-      //TODO: Write tests for all possible API call responses, server not available, etc.
+    //TODO: Write tests for all possible API call responses, server not available, etc.
+    fetch('/-/setup/nuimo/bootstrap', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({})
+    })
       .then((response) => response.json())
-      .then((nuimos) => {
-        this.setState({ nuimos: nuimos })
-        this.nuimoPollTimer = setTimeout(this.pollNuimos.bind(this), this.nuimoPollInterval)
+      .then((response) => {
+        let controllers = response.connectedControllers
+        if (controllers.length > 0) {
+          this.setState({ nuimos: controllers })
+        }
+        else {
+          // Try again to bootstrap
+          this.bootstrapNuimos()
+        }
+      })
+      .catch((error) => {
+        console.error(error)
+        // Try again to bootstrap
+        //TODO: Only retry after a few seconds after an error occurred. Cancel timer if component unmounted.
+        this.bootstrapNuimos()
       })
   }
 }
