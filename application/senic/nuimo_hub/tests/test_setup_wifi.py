@@ -38,7 +38,7 @@ def test_join_wifi(browser, url, mocked_run, settings):
     mocked_run.assert_called_once_with(
         [
             'sudo',
-            '%s/join_wifi' % settings['fs_bin'],
+            '%s/join_wifi' % settings['bin_path'],
             'grandpausethisnetwork',
             'foobar',
         ]

@@ -30,7 +30,7 @@ def settings():
     return {
         'testing': True,
         'debug': False,
-        'fs_bin': asset_path('bin'),
+        'bin_path': asset_path('bin'),
         'wifi_networks_path': asset_path('wifi_networks.json'),
         'wifi_setup_flag_path': asset_path('NUIMO_SETUP_REQUIRED'),
         'crypto_settings_datafile': asset_path('testing.yml.aes'),
