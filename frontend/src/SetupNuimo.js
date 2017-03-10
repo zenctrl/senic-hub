@@ -37,7 +37,7 @@ class SetupNuimo extends Component {
   bootstrapNuimos() {
     //TODO: Promise chain doesn't get cancelled when component unmounts
     //TODO: Write tests for all possible API call responses, server not available, etc.
-    fetch('/-/setup/nuimos/bootstrap', {
+    fetch('/-/setup/nuimo/bootstrap', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
