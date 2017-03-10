@@ -13,7 +13,7 @@
     "react-addons-css-transition-group": "^15.4.2"
   },
   "scripts": {
-    "start": "concurrently --kill-others \"PORT=80 react-scripts start\" \"node mock-api/server.js\"",
+    "start": "concurrently --kill-others \"PORT=3000 react-scripts start\" \"node mock-api/server.js\"",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
