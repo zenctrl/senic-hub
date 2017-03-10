@@ -1,10 +1,14 @@
-import json
-import os
-from cornice.service import Service
 import colander
+import json
+import logging
+import os
 
+from cornice.service import Service
 from ..config import path
 from ..subprocess_run import run
+
+
+logger = logging.getLogger(__name__)
 
 
 class JoinWifiSchema(colander.MappingSchema):
@@ -31,9 +35,17 @@ def scan_wifi_networks(request):
 
 @wifi_setup.post(renderer='json', schema=JoinWifiSchema)
 def join_network(request):
+    ssid = request.validated['ssid']
+    password = request.validated['password']
+    logger.debug("Trying to connect to network '%s'", ssid)
+    # TODO: Can we spawn the process so that we can give a proper request response?
     run([
         'sudo',
         os.path.join(request.registry.settings['bin_path'], 'join_wifi'),
-        request.validated['ssid'],
-        request.validated['password'],
+        ssid,
+        password,
     ])
+    # TOOD: If we can still respond that probably means wifi wasn't joined,
+    #       or that we were already connected to the same Wi-Fi.
+    #       Study all possible case to return something helpful if possible.
+    return {'error': 'failed'}
