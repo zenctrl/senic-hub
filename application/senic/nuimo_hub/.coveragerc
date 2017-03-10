@@ -4,6 +4,7 @@ omit =
   senic/nuimo_hub/subprocess_run.py
   senic/nuimo_hub/testing.py
   senic/nuimo_hub/tests/*
+  senic/nuimo_hub/views/setup_config.py
 
 [report]
 fail_under = 100
