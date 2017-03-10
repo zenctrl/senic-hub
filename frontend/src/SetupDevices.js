@@ -16,20 +16,19 @@ class SetupDevices extends Component {
     return (
       <div className="SetupDevices">
         <p>We're now looking for your smart devices</p>
-
-          <table>
-            <ReactCSSTransitionGroup component="tbody" transitionName="SetupDevices_Transition" transitionEnterTimeout={500}>
-            {
-                this.state.devices.map((device, index) =>
-                  <tr key={device.id}>
-                    <td>
-                      { device.type.replace('_', ' ') }
-                    </td>
-                  </tr>
-                )
-            }
-            </ReactCSSTransitionGroup>
-          </table>
+        <table>
+          <ReactCSSTransitionGroup component="tbody" transitionName="SetupDevices_Transition" transitionEnterTimeout={500}>
+          {
+            this.state.devices.map((device, index) =>
+              <tr key={device.id}>
+                <td>
+                  { device.type.replace('_', ' ') }
+                </td>
+              </tr>
+            )
+          }
+          </ReactCSSTransitionGroup>
+        </table>
         <Link to="setup/completed">Continue</Link>
       </div>
     )
@@ -41,7 +40,7 @@ class SetupDevices extends Component {
 
   discoverDevices() {
     //TODO: Promise chain doesn't get cancelled when component unmounts
-      fetch('/-/setup/devices/discover', {method: 'POST'})
+    fetch('/-/setup/devices/discover', {method: 'POST'})
       //TODO: Write tests for all possible API call responses, server not available, etc.
       .then((response) => response.json())
       .then((devices) => {
