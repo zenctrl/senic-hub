@@ -82,7 +82,10 @@ def devices_authenticate_view(request):
     data_location = request.registry.settings.get("data_directory_path", "/tmp")
     bridge = PhilipsHueBridge(device["ip"], data_location)
     if not bridge.is_authenticated():
+        logger.debug("Trying to authenticate Philips Hue bridge %s", device["ip"])
         bridge.authenticate()
+
+    logger.debug("Philips Hue bridge %s authenticated: %s", device["ip"], bridge.is_authenticated())
 
     return {"id": device_id, "authenticated": bridge.is_authenticated()}
 
