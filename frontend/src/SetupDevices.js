@@ -45,7 +45,7 @@ class SetupDevices extends Component {
       .then((response) => response.json())
       .then((devices) => {
         this.setState({ devices: devices })
-        this.discoverDevices()
+        //TODO: Run device discovery again as long as component is mounted
       })
   }
 }
