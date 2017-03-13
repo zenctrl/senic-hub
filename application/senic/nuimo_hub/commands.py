@@ -75,7 +75,7 @@ def activate_adhoc(device=DEFAULT_IFACE):
 @click.argument('device', default=DEFAULT_IFACE)
 def enter_wifi_setup(config, device=DEFAULT_IFACE):
     app = get_app(abspath(config))
-    ENTER_SETUP_FLAG = app.registry.settings['fs_enter_setup_flag']
+    ENTER_SETUP_FLAG = app.registry.settings['wifi_setup_flag_path']
     if not os.path.exists(ENTER_SETUP_FLAG):
         click.echo("Not entering wifi setup mode. %s not found" % ENTER_SETUP_FLAG)
         exit(0)
@@ -95,7 +95,7 @@ def enter_wifi_setup(config, device=DEFAULT_IFACE):
         if success:
             run(['/bin/systemctl', 'restart', 'avahi-daemon'])
             # signal that we no longer have joined a wifi
-            JOINED_WIFI = app.registry.settings['fs_joined_wifi']
+            JOINED_WIFI = app.registry.settings['joined_wifi_path']
             if os.path.exists(JOINED_WIFI):
                 os.remove(JOINED_WIFI)
             exit("Successfully entered wifi setup mode")
@@ -134,9 +134,9 @@ def join_wifi(config, ssid, password, device=DEFAULT_IFACE):
     if success:
         # clean up after ourselves
         app = get_app(abspath(config))
-        with open(app.registry.settings['fs_joined_wifi'], 'w') as joined_wifi:
+        with open(app.registry.settings['joined_wifi_path'], 'w') as joined_wifi:
             joined_wifi.write(ssid)
-        ENTER_SETUP_FLAG = app.registry.settings['fs_enter_setup_flag']
+        ENTER_SETUP_FLAG = app.registry.settings['wifi_setup_flag_path']
         if os.path.exists(ENTER_SETUP_FLAG):
             os.remove(ENTER_SETUP_FLAG)
         run(['/bin/systemctl', 'restart', 'avahi-daemon'])
