@@ -109,6 +109,10 @@ def enter_wifi_setup(config, device=DEFAULT_IFACE):
 @click.argument('password')
 @click.argument('device', default=DEFAULT_IFACE)
 def join_wifi(config, ssid, password, device=DEFAULT_IFACE):
+    app = get_app(abspath(config))
+    # signal, that we've started to join:
+    with open(app.registry.settings['joined_wifi_path'], 'w') as joined_wifi:
+        joined_wifi.write(json.dumps(dict(ssid=ssid, status='connecting')))
     run(['/usr/bin/supervisorctl', 'stop', 'scan_wifi'])
     run(['/usr/bin/supervisorctl', 'stop', 'dhcpd'])
     run(['ifdown', device])
@@ -133,9 +137,8 @@ def join_wifi(config, ssid, password, device=DEFAULT_IFACE):
 
     if success:
         # clean up after ourselves
-        app = get_app(abspath(config))
         with open(app.registry.settings['joined_wifi_path'], 'w') as joined_wifi:
-            joined_wifi.write(ssid)
+            joined_wifi.write(json.dumps(dict(ssid=ssid, status='connected')))
         ENTER_SETUP_FLAG = app.registry.settings['wifi_setup_flag_path']
         if os.path.exists(ENTER_SETUP_FLAG):
             os.remove(ENTER_SETUP_FLAG)

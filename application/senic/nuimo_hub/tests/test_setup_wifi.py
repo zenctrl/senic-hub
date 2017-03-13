@@ -44,3 +44,28 @@ def test_join_wifi(browser, setup_url, mocked_run, settings):
             'foobar',
         ]
     )
+
+
+@pytest.fixture
+def connection_url(route_url):
+    return route_url('wifi_connection')
+
+
+def test_get_connected_wifi(browser, connection_url):
+    assert browser.get_json(connection_url).json == dict(
+        ssid='grandpausethisnetwork',
+        status='connected'
+    )
+
+
+@pytest.fixture
+def wifi_not_connected(settings):
+    settings['joined_wifi_path'] = '/no/such/file'
+    return settings
+
+
+def test_get_not_connected_wifi(wifi_not_connected, browser, connection_url):
+    assert browser.get_json(connection_url).json == dict(
+        ssid=None,
+        status='unavailable'
+    )
