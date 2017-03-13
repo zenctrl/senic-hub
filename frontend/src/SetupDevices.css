@@ -18,3 +18,7 @@
   transform: scale(1.0);
   transition: opacity 300ms ease-in, transform 300ms cubic-bezier(0.550, 1.650, 0.695, 0.850);
 }
+
+.SetupDevices tr {
+    text-transform: capitalize;
+}

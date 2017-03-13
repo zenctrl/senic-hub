@@ -28,7 +28,9 @@ connected_nuimos = Service(
 @nuimo_bootstrap.post()
 def bootstrap_nuimos(request):  # pragma: no cover,
     adapter_name = request.registry.settings.get('bluetooth_adapter_name', 'hci0')
-    mac_address = nuimo_setup.NuimoSetup(adapter_name=adapter_name).discover_and_connect_controller(timeout=60)
+    required_mac_address = request.registry.settings.get('nuimo_mac_address')
+    setup = nuimo_setup.NuimoSetup(adapter_name=adapter_name)
+    mac_address = setup.discover_and_connect_controller(required_mac_address=required_mac_address, timeout=60)
     logger.debug("Discovered and connected Nuimo: %s", mac_address)
     if mac_address:
         output_filepath = request.registry.settings['nuimo_mac_address_filepath']

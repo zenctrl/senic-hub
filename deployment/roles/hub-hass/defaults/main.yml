@@ -1,4 +1,4 @@
 ---
 python_interpreter: python3
-deploy_location: /srv/nuimo_hass
-data_location: /srv/nuimo_hass/data/
+hass_deploy_location: /srv/nuimo_hass
+hass_data_location: /srv/nuimo_hass/data/

@@ -13,6 +13,10 @@ class SetupCompletion extends Component {
       </div>
     );
   }
+
+  componentDidMount() {
+    fetch('/-/setup/config', {method: 'POST'})
+  }
 }
 
 export default SetupCompletion
