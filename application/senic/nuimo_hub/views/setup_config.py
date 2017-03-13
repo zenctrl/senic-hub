@@ -15,4 +15,3 @@ configuration_service = Service(
 @configuration_service.post()
 def configuration_create_view(request):
     create_configuration_files_and_restart_apps_(request.registry.settings)
-    return {}
