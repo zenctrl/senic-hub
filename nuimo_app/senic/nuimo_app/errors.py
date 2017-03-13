@@ -1,0 +1,2 @@
+class NuimoControllerConnectionError(Exception):
+    pass
