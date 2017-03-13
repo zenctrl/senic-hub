@@ -37,7 +37,7 @@ def settings():
         'crypto_settings_datafile': asset_path('testing.yml.aes'),
         'crypto_settings_keyfile': asset_path('testing.key'),
         'devices_path': asset_path('devices.json'),
-        'data_directory_path': '/tmp',
+        'data_path': '/tmp',
         'nuimo_mac_address_filepath': asset_path('nuimo_mac_address.txt'),
         'config_ini_path': '/no/such/file.ini',
         'joined_wifi_path': asset_path('joined_wifi.json'),

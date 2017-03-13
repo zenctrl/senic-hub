@@ -1,0 +1,19 @@
+[DEFAULT]
+ha_api_url = localhost:8123
+controller_mac_address = AA:BB:CC:DD:EE:FF
+logging_level = INFO
+
+[phue-kitchen]
+component = PhilipsHue
+name = Kitchen
+entities = light.k1, light.k2
+
+[phue-living-room]
+component = PhilipsHue
+name = Living room
+entities = group.livingroom
+
+[sonos-big-one]
+component = Sonos
+name = Sonos
+entities = media_player.big_one

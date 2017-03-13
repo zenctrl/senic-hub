@@ -159,29 +159,32 @@ def join_wifi(config, ssid, password, device=DEFAULT_IFACE):
 @click.option('--config', '-c', required=True, type=click.Path(exists=True), help='app configuration file')
 def create_configuration_files_and_restart_apps(config):
     app = get_app(abspath(config))
+    create_configuration_files_and_restart_apps_(app.registry.settings)
 
+
+def create_configuration_files_and_restart_apps_(settings):
     # generate homeassistant config & restart supervisor app
-    with open(app.registry.settings['devices_path'], 'r') as f:
+    with open(settings['devices_path'], 'r') as f:
         devices = json.load(f)
 
-    hass_config_file_path = app.registry.settings['hass_config_path']
+    hass_config_file_path = settings['hass_config_path']
     with open(hass_config_file_path, 'w') as f:
         yaml.dump(generate_hass_configuration(devices), f, default_flow_style=False)
 
-    hass_phue_config_file_path = app.registry.settings['hass_phue_config_path']
-    data_location = app.registry.settings['data_path']
+    hass_phue_config_file_path = settings['hass_phue_config_path']
+    data_location = settings['data_path']
     with open(hass_phue_config_file_path, 'w') as f:
         json.dump(generate_hass_phue_configuration(devices, data_location), f)
 
     run(['/usr/bin/supervisorctl', 'restart', 'nuimo_hass'])
 
     # generate nuimo app config & restart supervisor app
-    nuimo_controller_mac_address_file_path = app.registry.settings['nuimo_mac_address_filepath']
+    nuimo_controller_mac_address_file_path = settings['nuimo_mac_address_filepath']
     with open(nuimo_controller_mac_address_file_path, 'r') as f:
         nuimo_controller_mac_address = f.readline().strip()
 
-    nuimo_app_config_file_path = app.registry.settings['nuimo_app_config_path']
-    bluetooth_adapter_name = app.registry.settings['bluetooth_adapter_name']
+    nuimo_app_config_file_path = settings['nuimo_app_config_path']
+    bluetooth_adapter_name = settings['bluetooth_adapter_name']
     with open(nuimo_app_config_file_path, 'w') as f:
         config = generate_nuimo_configuration(devices, nuimo_controller_mac_address, bluetooth_adapter_name)
         config.write(f)
