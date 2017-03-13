@@ -32,14 +32,14 @@ def settings():
         'debug': False,
         'bin_path': asset_path('bin'),
         'wifi_networks_path': asset_path('wifi_networks.json'),
-        'wifi_setup_flag_path': asset_path('NUIMO_SETUP_REQUIRED'),
+        'wifi_setup_flag_path': asset_path('nuimo_setup_required'),
         'crypto_settings_datafile': asset_path('testing.yml.aes'),
         'crypto_settings_keyfile': asset_path('testing.key'),
         'devices_path': asset_path('devices.json'),
         'data_directory_path': '/tmp',
         'nuimo_mac_address_filepath': asset_path('nuimo_mac_address.txt'),
         'config_ini_path': '/no/such/file.ini',
-        'joined_wifi_path': asset_path('JOINED_WIFI'),
+        'joined_wifi_path': asset_path('joined_wifi.json'),
     }
 
 
