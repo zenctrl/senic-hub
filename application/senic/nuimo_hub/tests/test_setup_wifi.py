@@ -69,3 +69,28 @@ def test_get_not_connected_wifi(wifi_not_connected, browser, connection_url):
         ssid=None,
         status='unavailable'
     )
+
+
+@pytest.fixture
+def adhoc_url(route_url):
+    return route_url('wifi_adhoc')
+
+
+def test_get_adhoc_wifi(settings, browser, adhoc_url):
+    assert browser.get_json(adhoc_url).json == dict(
+        ssid=settings['wifi_adhoc_ssid'],
+        status='available'
+    )
+
+
+@pytest.fixture(scope='function')
+def no_wifi_setup_mode(settings):
+    settings['wifi_setup_flag_path'] = '/no/such/file'
+    return settings
+
+
+def test_get_no_adhoc_wifi(no_wifi_setup_mode, settings, browser, adhoc_url):
+    assert browser.get_json(adhoc_url).json == dict(
+        ssid=settings['wifi_adhoc_ssid'],
+        status='unavailable'
+    )

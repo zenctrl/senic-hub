@@ -68,3 +68,17 @@ def get_wifi_connection(request):
         return FileResponse(fs_path)
     else:
         return dict(ssid=None, status='unavailable')
+
+
+wifi_adhoc = Service(
+    name='wifi_adhoc',
+    path=path('setup/wifi/adhoc'),
+    renderer='json',
+    accept='application/json')
+
+
+@wifi_adhoc.get()
+def get_wifi_adhoc(request):
+    return dict(
+        ssid=request.registry.settings['wifi_adhoc_ssid'],
+        status=os.path.exists(request.registry.settings['wifi_setup_flag_path']) and 'available' or 'unavailable')

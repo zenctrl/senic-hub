@@ -33,6 +33,7 @@ def settings():
         'bin_path': asset_path('bin'),
         'wifi_networks_path': asset_path('wifi_networks.json'),
         'wifi_setup_flag_path': asset_path('nuimo_setup_required'),
+        'wifi_adhoc_ssid': 'Setup Nuimo',
         'crypto_settings_datafile': asset_path('testing.yml.aes'),
         'crypto_settings_keyfile': asset_path('testing.key'),
         'devices_path': asset_path('devices.json'),
