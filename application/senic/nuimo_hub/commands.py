@@ -75,9 +75,9 @@ def activate_adhoc(device=DEFAULT_IFACE):
 @click.argument('device', default=DEFAULT_IFACE)
 def enter_wifi_setup(config, device=DEFAULT_IFACE):
     app = get_app(abspath(config))
-    ENTER_SETUP_FLAG = app.registry.settings['wifi_setup_flag_path']
-    if not os.path.exists(ENTER_SETUP_FLAG):
-        click.echo("Not entering wifi setup mode. %s not found" % ENTER_SETUP_FLAG)
+    WIFI_SETUP_FLAG = app.registry.settings['wifi_setup_flag_path']
+    if not os.path.exists(WIFI_SETUP_FLAG):
+        click.echo("Not entering wifi setup mode. %s not found" % WIFI_SETUP_FLAG)
         exit(0)
     activate_adhoc(device)
     run(['/usr/bin/supervisorctl', 'start', 'scan_wifi'])
@@ -139,9 +139,9 @@ def join_wifi(config, ssid, password, device=DEFAULT_IFACE):
         # clean up after ourselves
         with open(app.registry.settings['joined_wifi_path'], 'w') as joined_wifi:
             joined_wifi.write(json.dumps(dict(ssid=ssid, status='connected')))
-        ENTER_SETUP_FLAG = app.registry.settings['wifi_setup_flag_path']
-        if os.path.exists(ENTER_SETUP_FLAG):
-            os.remove(ENTER_SETUP_FLAG)
+        WIFI_SETUP_FLAG = app.registry.settings['wifi_setup_flag_path']
+        if os.path.exists(WIFI_SETUP_FLAG):
+            os.remove(WIFI_SETUP_FLAG)
         run(['/bin/systemctl', 'restart', 'avahi-daemon'])
         click.echo("Success!")
         exit(0)
@@ -150,7 +150,7 @@ def join_wifi(config, ssid, password, device=DEFAULT_IFACE):
         # signal the setup mode is active because of
         # failed attempt (as opposed to not having tried
         # yet).
-        with open(ENTER_SETUP_FLAG, 'w') as flag:
+        with open(WIFI_SETUP_FLAG, 'w') as flag:
             flag.write('FAILED')
         exit(1)
 
