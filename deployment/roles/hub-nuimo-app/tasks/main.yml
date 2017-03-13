@@ -2,7 +2,7 @@
 - name: create deployment location
   become: true
   file:
-    dest: "{{deploy_location}}"
+    dest: "{{nuimoapp_deploy_location}}"
     owner: "{{build_user}}"
     group: "{{run_user}}"
     mode: "0755"
@@ -11,7 +11,7 @@
 - name: create data location
   become: true
   file:
-    dest: "{{data_location}}"
+    dest: "{{nuimoapp_data_location}}"
     owner: "{{run_user}}"
     group: "{{run_user}}"
     mode: "0750"
@@ -30,13 +30,13 @@
 - name: init virtualenv in deployment location
   command: "{{python_interpreter}} -m venv venv"
   args:
-    chdir: "{{deploy_location}}"
-    creates: "{{deploy_location}}/venv/bin/python"
+    chdir: "{{nuimoapp_deploy_location}}"
+    creates: "{{nuimoapp_deploy_location}}/venv/bin/python"
 
 - name: upload python requirements
   become: true
   copy:
-    dest: "{{deploy_location}}/requirements.txt"
+    dest: "{{nuimoapp_deploy_location}}/requirements.txt"
     owner: "{{build_user}}"
     group: "{{run_user}}"
     mode: "0644"
@@ -48,21 +48,21 @@
 
 - name: install application
   pip:
-    virtualenv: "{{deploy_location}}/venv/"
-    requirements: "{{deploy_location}}/requirements.txt"
+    virtualenv: "{{nuimoapp_deploy_location}}/venv/"
+    requirements: "{{nuimoapp_deploy_location}}/requirements.txt"
     extra_args: "--pre --upgrade -i {{devpi_index_url}}"
   notify: restart nuimo app
 
 - name: enable virtualenv to access the system packages
   lineinfile:
-    dest: "{{deploy_location}}/venv/pyvenv.cfg"
+    dest: "{{nuimoapp_deploy_location}}/venv/pyvenv.cfg"
     regexp: "include-system-site-packages = false"
     line: "include-system-site-packages = true"
 
 - name: configure nuimo_app
   become: true
   template:
-    dest: "{{data_location}}/nuimo_app.cfg"
+    dest: "{{nuimoapp_data_location}}/nuimo_app.cfg"
     owner: "{{build_user}}"
     group: "{{run_user}}"
     mode: "0644"

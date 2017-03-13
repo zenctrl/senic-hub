@@ -135,8 +135,8 @@
 - name: install source version into deployment venv
   pip:
     name: "-e /home/{{build_user}}/nuimo-hub-backend/application/"
-    virtualenv: "{{deploy_location}}/venv"
-    chdir: "{{deploy_location}}"
+    virtualenv: "{{backend_deploy_location}}/venv"
+    chdir: "{{backend_deploy_location}}"
   tags: spv
 
 - name: make sure the development version of the hub is now running
