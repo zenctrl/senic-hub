@@ -171,11 +171,6 @@ def create_configuration_files_and_restart_apps_(settings):
     with open(hass_config_file_path, 'w') as f:
         yaml.dump(generate_hass_configuration(devices), f, default_flow_style=False)
 
-    hass_phue_config_file_path = settings['hass_phue_config_path']
-    data_location = settings['data_path']
-    with open(hass_phue_config_file_path, 'w') as f:
-        json.dump(generate_hass_phue_configuration(devices, data_location), f)
-
     run(['/usr/bin/supervisorctl', 'restart', 'nuimo_hass'])
 
     # generate nuimo app config & restart supervisor app
@@ -210,19 +205,6 @@ def generate_hass_configuration(devices):
         hass_configuration['light'] = [{'platform': 'hue', 'host': x} for x in bridge_ips]
 
     return hass_configuration
-
-
-def generate_hass_phue_configuration(devices, data_location):
-    configuration = {}
-
-    bridge_ips = [x['ip'] for x in devices if x['type'] == 'philips_hue']
-    for ip in bridge_ips:
-        with open(os.path.join(data_location, ip), 'r') as f:
-            username = json.load(f)['username']
-
-        configuration[ip] = {'username': username}
-
-    return configuration
 
 
 def generate_nuimo_configuration(devices, nuimo_controller_mac_address, bluetooth_adapter_name):
