@@ -17,7 +17,7 @@ venv/bin/pserve venv/bin/py.test venv/bin/devpi: venv/bin/python$(python_version
 	@touch $@
 
 upload: setup.py venv/bin/py.test venv/bin/devpi
-	PATH=${PWD}/venv/bin:${PATH} venv/bin/devpi upload --no-vcs --with-docs --formats bdist_wheel
+	PATH=${PWD}/venv/bin:${PATH} venv/bin/devpi upload --no-vcs --with-docs --formats bdist_wheel,sdist
 
 docs:
 	$(MAKE) -C ../docs/
