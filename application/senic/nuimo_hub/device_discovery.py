@@ -3,6 +3,7 @@ import json
 import logging
 import re
 
+import xml.etree.ElementTree as ET
 from enum import IntEnum
 
 from netdisco.discovery import NetworkDiscovery
@@ -42,16 +43,14 @@ def discover(discovery_class=NetworkDiscovery):
     netdisco = discovery_class()
     netdisco.scan()
 
-    device_id = 0
     for device_type in netdisco.discover():
         if device_type not in SUPPORTED_DEVICES:
             continue
 
         for device_info in netdisco.get_info(device_type):
-            description = make_device_description(device_id, device_type, device_info)
-            if description:
-                devices.append(description)
-                device_id += 1
+            device_description = make_device_description(device_type, device_info)
+            if device_description:
+                devices.append(device_description)
 
     netdisco.stop()
     logger.info("Device discovery finished.")
@@ -59,24 +58,16 @@ def discover(discovery_class=NetworkDiscovery):
     return devices
 
 
-def make_device_description(device_id, device_type, device_info):
+def make_device_description(device_type, device_info):
     if device_type == "philips_hue":
-        device_ip = extract_philips_hue_bridge_ip(device_info)
+        bridge_ip = extract_philips_hue_bridge_ip(device_info)
+        device = PhilipsHueBridge(bridge_ip)
     elif device_type == "sonos":
-        device_ip = device_info
-    else:
-        device_ip = None
+        device = SonosSpeaker(device_info)
 
-    if device_ip:
-        logger.info("Discovered %s device with ip %s", device_type, device_ip)
+    logger.info("Discovered %s device with ip %s", device_type, device.device_description["ip"])
 
-        return {
-            "id": device_id,
-            "type": device_type,
-            "ip": device_ip,
-        }
-    else:
-        logger.warn("Failed to extract IP address for %s from device info %s", device_type, device_info)
+    return device.device_description
 
 
 def extract_philips_hue_bridge_ip(device_info):
@@ -103,11 +94,15 @@ class username_required:
 
 class PhilipsHueBridge:
     def __init__(self, ip_address, username=None):
-        self.bridge_url = "http://{}/api".format(ip_address)
-        self.username = username
+        self.ip_address = ip_address
+        self.bridge_url = "http://{}/api".format(self.ip_address)
         self.app_name = "senic hub#192.168.1.12"  # TODO get real IP of the hub
 
+        self.username = username
+
         self._http_session = requests.Session()
+
+        self.config = self.get_config()
 
     def _request(self, url, method="GET", payload=None, timeout=5):
         request = requests.Request(method, url, data=payload)
@@ -174,3 +169,57 @@ class PhilipsHueBridge:
     def get_lights(self):
         url = "{}/{}/lights".format(self.bridge_url, self.username)
         return self._request(url)
+
+    def get_config(self):
+        url = 'http://{}/description.xml'.format(self.ip_address)
+        response = requests.get(url)
+        if response.status_code != 200:
+            logger.debug("Response from Hue bridge %s: status_code: %s, body: %s", url, response.status_code, response.text)
+            raise UpstreamError(error_type=response.status_code)
+
+        xml = ET.fromstring(response.text)
+
+        device = xml.find('{urn:schemas-upnp-org:device-1-0}device')
+        serial_number = device.findtext('{urn:schemas-upnp-org:device-1-0}serialNumber')
+        name = device.findtext('{urn:schemas-upnp-org:device-1-0}friendlyName')
+
+        return {
+            "bridgeid": serial_number,
+            "name": name,
+        }
+
+    @property
+    def device_description(self):
+        return {
+            "id": self.config["bridgeid"].lower(),
+            "type": "philips_hue",
+            "ip": self.ip_address,
+            "name": self.config["name"],
+            "authenticationRequired": True,
+            "authenticated": self.is_authenticated(),
+            "ha_entity_id": "light.all_lights",
+        }
+
+
+class SonosSpeaker:
+    def __init__(self, speaker_ip):
+        self.ip_address = speaker_ip
+        response = requests.get('http://{}:1400/xml/device_description.xml'.format(self.ip_address))
+        self.xml = ET.fromstring(response.text)
+
+    @property
+    def device_description(self):
+        device = self.xml.find('{urn:schemas-upnp-org:device-1-0}device')
+        name = device.findtext('{urn:schemas-upnp-org:device-1-0}friendlyName')
+        room_name = device.findtext('{urn:schemas-upnp-org:device-1-0}roomName').replace(" ", "_").lower()
+        udn = device.findtext('{urn:schemas-upnp-org:device-1-0}UDN').split('_')[1].lower()
+
+        return {
+            "id": udn,
+            "type": "sonos",
+            "ip": self.ip_address,
+            "name": name,
+            "authenticationRequired": False,
+            "authenticated": False,
+            "ha_entity_id": "media_player.{}".format(room_name),
+        }
