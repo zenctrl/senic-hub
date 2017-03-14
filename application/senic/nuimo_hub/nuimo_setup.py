@@ -80,6 +80,7 @@ class NuimoSetup(nuimo.ControllerManagerListener, nuimo.ControllerListener):  # 
             logger.debug("%s discovered but ignored because we look for a specific one", controller.mac_address)
             return
         logger.debug("%s discovered, stopping discovery and trying to connect", controller.mac_address)
+        self._manager.stop_discovery()
         self._connect_timeout_timer = threading.Timer(20, self.connect_timed_out)
         self._connect_timeout_timer.start()
         self._controller = controller
@@ -92,7 +93,6 @@ class NuimoSetup(nuimo.ControllerManagerListener, nuimo.ControllerListener):  # 
         logger.debug("%s successfully connected, stopping now", self._controller.mac_address)
         if self._connect_timeout_timer:
             self._connect_timeout_timer.cancel()
-        self._manager.stop_discovery()
         self._manager.stop()
 
     def connect_failed(self, error):
