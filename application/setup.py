@@ -67,6 +67,7 @@ setup(
             'pytest-pep8',
             'python-dateutil',
             'repoze.sphinx.autointerface',
+            'responses',
             'setuptools-git',
             'Sphinx',
             'tox',

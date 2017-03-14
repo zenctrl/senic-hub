@@ -4,6 +4,8 @@ import logging
 import os
 
 from cornice.service import Service
+from pyramid.response import FileResponse
+
 from ..config import path
 from ..subprocess_run import run
 
@@ -42,6 +44,7 @@ def join_network(request):
     run([
         'sudo',
         os.path.join(request.registry.settings['bin_path'], 'join_wifi'),
+        '-c {config_ini_path}'.format(**request.registry.settings),
         ssid,
         password,
     ])
@@ -49,3 +52,33 @@ def join_network(request):
     #       or that we were already connected to the same Wi-Fi.
     #       Study all possible case to return something helpful if possible.
     return {'error': 'failed'}
+
+
+wifi_connection = Service(
+    name='wifi_connection',
+    path=path('setup/wifi/connection'),
+    renderer='json',
+    accept='application/json')
+
+
+@wifi_connection.get()
+def get_wifi_connection(request):
+    fs_path = request.registry.settings['joined_wifi_path']
+    if os.path.exists(fs_path):
+        return FileResponse(fs_path)
+    else:
+        return dict(ssid=None, status='unavailable')
+
+
+wifi_adhoc = Service(
+    name='wifi_adhoc',
+    path=path('setup/wifi/adhoc'),
+    renderer='json',
+    accept='application/json')
+
+
+@wifi_adhoc.get()
+def get_wifi_adhoc(request):
+    return dict(
+        ssid=request.registry.settings['wifi_adhoc_ssid'],
+        status=os.path.exists(request.registry.settings['wifi_setup_flag_path']) and 'available' or 'unavailable')

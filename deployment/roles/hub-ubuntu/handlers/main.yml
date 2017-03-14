@@ -21,9 +21,7 @@
     state: restarted
 
 - name: reload supervisord
-  service:
-    name: supervisor
-    state: restarted
+  raw: "supervisorctl reload"
 
 - name: restart nuimo_hub
   supervisorctl:
