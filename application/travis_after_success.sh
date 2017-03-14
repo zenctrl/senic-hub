@@ -2,7 +2,7 @@
 
 # "piggyback" on the existing tox environment
 DEVPI="$TRAVIS_BUILD_DIR/application/.tox/py35/bin/devpi"
-PIP="$TRAVIS_BUILD_DIR/application/.tox/py35/bin/pip"
+PIP="/home/travis/virtualenv/python3.5.2/bin/pip"
 
 if [ "$TRAVIS_BRANCH" = "master" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] ; then
     $PIP install senic.nuimo_hub[development]
