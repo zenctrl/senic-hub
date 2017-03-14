@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # "piggyback" on the existing tox environment
-DEVPI=./.tox/py35/bin/devpi
+DEVPI="$TRAVIS_BUILD_DIR/application/.tox/py35/bin/devpi"
 
 if [ "$TRAVIS_BRANCH" = "master" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] ; then
     $DEVPI use https://pypi.senic.com/$devpi_index
