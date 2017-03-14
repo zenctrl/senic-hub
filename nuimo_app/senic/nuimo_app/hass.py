@@ -16,7 +16,7 @@ class HAListener(Thread):
     Listens on events & state change notification through HASS WS interface.
 
     """
-    def __init__(self, url, ws_connection):
+    def __init__(self, url, ws_connection=None):
         super().__init__(daemon=True)
 
         self.request_id = 1

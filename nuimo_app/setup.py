@@ -40,7 +40,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "nuimo_app = %s.__main__:main".format(NAME),
+            "nuimo_app = {}.__main__:main".format(NAME),
         ],
     },
     classifiers=[
