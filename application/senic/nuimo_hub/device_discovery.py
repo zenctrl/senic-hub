@@ -1,6 +1,6 @@
+import functools
 import json
 import logging
-import os.path
 import re
 
 from enum import IntEnum
@@ -20,8 +20,15 @@ class UnauthenticatedDeviceError(Exception):
     message = "Device not authenticated..."
 
 
+class UpstreamError(Exception):
+    def __init__(self, error_type=None):
+        self.error_type = error_type
+        self.message = "Received error from the upstream device! Type: {}".format(self.error_type)
+
+
 class PhilipsHueBridgeError(IntEnum):
     unauthorized = 1
+    button_not_pressed = 101
 
 
 logger = logging.getLogger(__name__)
@@ -80,13 +87,26 @@ def extract_philips_hue_bridge_ip(device_info):
         return result.group(1)
 
 
+class username_required:
+    def __init__(self, method):
+        self.method = method
+
+    def __call__(self, instance, *args, **kwargs):
+        if instance.username is None:
+            raise UnauthenticatedDeviceError()
+
+        return self.method(instance, *args, **kwargs)
+
+    def __get__(self, instance, instancetype):
+        return functools.partial(self.__call__, instance)
+
+
 class PhilipsHueBridge:
-    def __init__(self, ip_address, data_location):
+    def __init__(self, ip_address, username=None):
         self.bridge_url = "http://{}/api".format(ip_address)
-        self.state_file_path = os.path.join(data_location, ip_address)
+        self.username = username
         self.app_name = "senic hub#192.168.1.12"  # TODO get real IP of the hub
 
-        self._username = None
         self._http_session = requests.Session()
 
     def _request(self, url, method="GET", payload=None, timeout=5):
@@ -102,10 +122,14 @@ class PhilipsHueBridge:
 
         if "error" in data:
             logger.error("Response from Hue bridge %s: %s", self.bridge_url, data)
-            if data["error"].get("type") == PhilipsHueBridgeError.unauthorized:
+            error_type = data["error"]["type"]
+            if error_type in [
+                    PhilipsHueBridgeError.unauthorized,
+                    PhilipsHueBridgeError.button_not_pressed,
+            ]:
                 raise UnauthenticatedDeviceError()
-
-            return
+            else:
+                raise UpstreamError(error_type=error_type)
 
         return data
 
@@ -123,16 +147,12 @@ class PhilipsHueBridge:
         try:
             payload = json.dumps({"devicetype": self.app_name})
             response = self._request(self.bridge_url, method="POST", payload=payload)
-            if not response:
-                return
-
-            self._username = response["success"]["username"]
-
-            with open(self.state_file_path, "w") as f:
-                json.dump({"devicetype": self.app_name, "username": self._username}, f)
-
+            if response:
+                self.username = response["success"]["username"]
         except UnauthenticatedDeviceError:
-            pass  # consume the exception
+            self.username = None
+
+        return self.username
 
     def is_authenticated(self):
         # Verify that we can still authenticate with the bridge using
@@ -145,29 +165,12 @@ class PhilipsHueBridge:
 
         return True
 
-    @property
-    def username(self):
-        if self._username:
-            return self._username
-
-        if os.path.exists(self.state_file_path):
-            with open(self.state_file_path, "r") as f:
-                data = json.load(f)
-
-            self._username = data.get("username")
-
-            return self._username
-
+    @username_required
     def get_state(self):
-        if self.username is None:
-            raise UnauthenticatedDeviceError()
-
         url = "{}/{}".format(self.bridge_url, self.username)
         return self._request(url)
 
+    @username_required
     def get_lights(self):
-        if self.username is None:
-            raise UnauthenticatedDeviceError()
-
         url = "{}/{}/lights".format(self.bridge_url, self.username)
         return self._request(url)

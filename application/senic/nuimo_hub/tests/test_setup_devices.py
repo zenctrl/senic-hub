@@ -57,31 +57,31 @@ def auth_url(route_url):
 
 
 @fixture
-def state_file_path(settings):
-    return os.path.join(settings["data_path"], "127.0.0.1")
+def phue_config_path(settings):
+    return os.path.join(settings["hass_phue_config_path"])
 
 
 @fixture
-def state_file(state_file_path):
-    with open(state_file_path, "w") as f:
-        json.dump({"devicetype": "", "username": 23}, f)
+def phue_config_file(phue_config_path):
+    with open(phue_config_path, "w") as f:
+        json.dump({"127.0.0.1": {"username": "23"}}, f)
 
 
 @fixture
-def no_state_file(state_file_path):
-    if os.path.exists(state_file_path):
-        os.unlink(state_file_path)
+def no_phue_config_file(phue_config_path):
+    if os.path.exists(phue_config_path):
+        os.unlink(phue_config_path)
 
 
 @responses.activate
-def test_devices_authenticate_view_unauthorized(no_state_file, browser, auth_url):
+def test_devices_authenticate_view_unauthorized(no_phue_config_file, browser, auth_url):
     payload = [{"error": {"type": PhilipsHueBridgeError.unauthorized}}]
     responses.add(responses.POST, 'http://127.0.0.1/api', json=payload, status=200)
     assert browser.post_json(auth_url, {}).json == {"id": 0, "authenticated": False}
 
 
 @responses.activate
-def test_devices_authenticate_view_returns_success(no_state_file, browser, auth_url):
+def test_devices_authenticate_view_returns_success(no_phue_config_file, browser, auth_url):
     payload = [{"success": {"username": "23"}}]
     responses.add(responses.POST, 'http://127.0.0.1/api', json=payload, status=200)
     responses.add(responses.GET, 'http://127.0.0.1/api/23', json={"a": 1}, status=200)
@@ -89,13 +89,13 @@ def test_devices_authenticate_view_returns_success(no_state_file, browser, auth_
 
 
 @responses.activate
-def test_devices_authenticate_view_returns_already_authenticated(state_file, browser, auth_url):
+def test_devices_authenticate_view_returns_already_authenticated(phue_config_file, browser, auth_url):
     responses.add(responses.GET, 'http://127.0.0.1/api/23', json={"a": 1}, status=200)
     assert browser.post_json(auth_url, {}).json == {"id": 0, "authenticated": True}
 
 
 @responses.activate
-def test_devices_authenticate_view_returns_false_if_bad_response_from_bridge(no_state_file, browser, auth_url):
+def test_devices_authenticate_view_returns_false_if_bad_response_from_bridge(no_phue_config_file, browser, auth_url):
     responses.add(responses.POST, 'http://127.0.0.1/api', json={}, status=404)
     assert browser.post_json(auth_url, {}).json == {"id": 0, "authenticated": False}
 
@@ -123,10 +123,11 @@ def test_devices_authenticate_returns_400_when_device_doesnt_support_auth(browse
 
 
 @responses.activate
-def test_devices_authenticate_try_authenticate_when_username_has_expired(state_file, browser, auth_url):
+def test_devices_authenticate_try_authenticate_when_username_has_expired(phue_config_file, browser, auth_url):
     get_state_payload = [{"error": {"type": PhilipsHueBridgeError.unauthorized}}]
     responses.add(responses.GET, 'http://127.0.0.1/api/23', json=get_state_payload, status=200)
-    responses.add(responses.POST, 'http://127.0.0.1/api', json=[{"error": {}}], status=200)
+    auth_payload = [{"error": {"type": PhilipsHueBridgeError.button_not_pressed}}]
+    responses.add(responses.POST, 'http://127.0.0.1/api', json=auth_payload, status=200)
     assert browser.post_json(auth_url, {}).json == {"id": 0, "authenticated": False}
 
 
@@ -136,11 +137,18 @@ def details_url(route_url):
 
 
 @responses.activate
-def test_devices_details_returns_list_of_lights(state_file, browser, details_url):
+def test_devices_details_returns_list_of_lights(phue_config_file, browser, details_url):
     responses.add(responses.GET, 'http://127.0.0.1/api/23/lights', json={"0": {}}, status=200)
     assert browser.get_json(details_url).json == {"0": {}}
 
 
 @responses.activate
-def test_devices_details_returns_400_if_not_authenticated(no_state_file, browser, details_url):
+def test_devices_details_returns_502_if_philips_hue_bridge_returns_error(phue_config_file, browser, details_url):
+    response_payload = {"error": {"type": 12345}}
+    responses.add(responses.GET, 'http://127.0.0.1/api/23/lights', json=response_payload, status=200)
+    assert browser.get_json(details_url, status=502)
+
+
+@responses.activate
+def test_devices_details_returns_400_if_not_authenticated(no_phue_config_file, browser, details_url):
     assert browser.get_json(details_url, status=400)

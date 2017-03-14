@@ -4,11 +4,11 @@ import os
 
 from cornice.service import Service
 
-from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound
+from pyramid.httpexceptions import HTTPBadGateway, HTTPBadRequest, HTTPNotFound
 from pyramid.response import FileResponse
 
 from ..config import path
-from ..device_discovery import PhilipsHueBridge, UnauthenticatedDeviceError, discover
+from ..device_discovery import PhilipsHueBridge, UnauthenticatedDeviceError, UpstreamError, discover
 
 
 logger = logging.getLogger(__name__)
@@ -71,6 +71,11 @@ authenticate_service = Service(
 
 @authenticate_service.post()
 def devices_authenticate_view(request):
+    """
+    NOTE: This view updates HASS configuration files. No locking is
+    performed here.
+
+    """
     device_id = int(request.matchdict["device_id"])
     logger.debug("Authenticating device with ID=%s", device_id)
 
@@ -79,15 +84,30 @@ def devices_authenticate_view(request):
     if device["type"] != "philips_hue":
         raise HTTPBadRequest("Device doesn't require authentication...")
 
-    data_location = request.registry.settings["data_path"]
-    bridge = PhilipsHueBridge(device["ip"], data_location)
+    config = read_json(request.registry.settings["hass_phue_config_path"], {})
+    username = (config.get(device["ip"]) or {}).get("username")
+    bridge = PhilipsHueBridge(device["ip"], username)
     if not bridge.is_authenticated():
-        logger.debug("Trying to authenticate Philips Hue bridge %s", device["ip"])
-        bridge.authenticate()
+        username = bridge.authenticate()
 
-    logger.debug("Philips Hue bridge %s authenticated: %s", device["ip"], bridge.is_authenticated())
+    if username:
+        config[device["ip"]] = {"username": username}
+    else:
+        config.pop(device["ip"], None)
 
-    return {"id": device_id, "authenticated": bridge.is_authenticated()}
+    # TODO might want to notify HASS to reload configuration
+    with open(request.registry.settings["hass_phue_config_path"], "w") as f:
+        json.dump(config, f)
+
+    return {"id": device_id, "authenticated": username is not None}
+
+
+def read_json(file_path, default=None):
+    try:
+        with open(file_path) as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return default
 
 
 details_service = Service(
@@ -105,13 +125,17 @@ def devices_details_view(request):
     device_list_path = request.registry.settings['devices_path']
     device = get_device(device_list_path, device_id)
 
-    data_location = request.registry.settings["data_path"]
-    bridge = PhilipsHueBridge(device["ip"], data_location)
+    config = read_json(request.registry.settings["hass_phue_config_path"], {})
+    username = (config.get(device["ip"]) or {}).get("username")
+    bridge = PhilipsHueBridge(device["ip"], username)
 
     try:
         return bridge.get_lights()
+    # TODO create a tween to handle exceptions for all views
     except UnauthenticatedDeviceError as e:
         raise HTTPBadRequest(e.message)
+    except UpstreamError as e:
+        raise HTTPBadGateway(e.message)
 
 
 def get_device(device_list_path, device_id):
