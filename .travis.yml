@@ -9,3 +9,5 @@ env:
 install: pip install tox-travis
 before_script: cd application
 script: tox
+after_success:
+  - ./travis_after_success.sh
