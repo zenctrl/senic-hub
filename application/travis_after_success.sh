@@ -6,7 +6,7 @@ PIP="/home/travis/virtualenv/python3.5.2/bin/pip"
 
 if [ "$TRAVIS_BRANCH" = "master" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] ; then
     $PIP install senic.nuimo_hub[development]
-    $DEVPI use https://pypi.senic.com/$devpi_index
+    $DEVPI use https://pypi.senic.com/${TRAVIS_REPO_SLUG%/*}/master
     $DEVPI login $devpi_user --password="$devpi_password"
     $DEVPI upload --no-vcs --with-docs --formats bdist_wheel
 else
