@@ -10,5 +10,5 @@ if [ "$TRAVIS_BRANCH" = "master" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] ; the
     $DEVPI login $devpi_user --password="$devpi_password"
     $DEVPI upload --no-vcs --with-docs --formats bdist_wheel
 else
-    echo "Not building for $TRAVIS_BRANCH"
+    echo "Not building for branch '$TRAVIS_BRANCH'"
 fi
