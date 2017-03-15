@@ -3,11 +3,11 @@ git:
 sudo: false
 language: python
 python:
-  - "3.5"
+- '3.5'
 env:
   global:
-    - LINUX_WITHOUT_DBUS=1
-    - devpi_user=travis
+  - LINUX_WITHOUT_DBUS=1
+  - devpi_user=travis
 install: pip install tox-travis
 before_script: cd application
 script: tox
