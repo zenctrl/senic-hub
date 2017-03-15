@@ -2,7 +2,7 @@
 ploy_hostname: "{{_ploy_instance.id}}"
 devpi_proto: https
 devpi_base_url: pypi.senic.com/
-devpi_index: senic/dev
+devpi_index: getsenic/master
 devpi_auth_user: deploy
 devpi_index_url: "{{devpi_proto}}://{{devpi_base_url}}{{devpi_index}}/+simple/"
 build_user: senic
