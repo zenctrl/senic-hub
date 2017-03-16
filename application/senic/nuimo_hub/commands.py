@@ -11,10 +11,8 @@ import wifi
 from pyramid.paster import get_app
 
 import configparser
-import re
 
 import yaml
-import requests
 
 
 DEFAULT_IFACE = 'wlan0'
@@ -220,7 +218,7 @@ def generate_nuimo_configuration(devices, nuimo_controller_mac_address, bluetoot
         config[section_name] = {
             'name': section_name,
             'component': get_component_for_device(device),
-            'entities': get_entities_for_device(device),
+            'entities': device["ha_entity_id"],
         }
     return config
 
@@ -230,13 +228,3 @@ def get_component_for_device(device):
         'philips_hue': 'PhilipsHue',
         'sonos': 'Sonos',
     }[device['type']]
-
-
-def get_entities_for_device(device):
-    # TODO figure out how to best implement this
-    if device['type'] == 'sonos':
-        response = requests.get('http://{}:1400/xml/device_description.xml'.format(device['ip']))
-        room_name = re.search('<roomName>(.*)</roomName>', response.text).group(1)
-        return 'media_player.{}'.format(room_name.replace(' ', '_'))
-    else:
-        return 'group.all_lights'

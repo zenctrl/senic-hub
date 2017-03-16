@@ -21,14 +21,6 @@ list_service = Service(
 )
 
 
-discover_service = Service(
-    name='devices_discover',
-    path=path('setup/devices/discover'),
-    renderer='json',
-    accept='application/json',
-)
-
-
 @list_service.get()
 def devices_list_view(request):
     """
@@ -41,6 +33,14 @@ def devices_list_view(request):
         return FileResponse(fs_path, request)
     else:
         return []
+
+
+discover_service = Service(
+    name='devices_discover',
+    path=path('setup/devices/discover'),
+    renderer='json',
+    accept='application/json',
+)
 
 
 @discover_service.post()
@@ -63,7 +63,7 @@ def devices_discover_view(request):
 
 authenticate_service = Service(
     name='devices_authenticate',
-    path=path('setup/devices/{device_id:\d+}/authenticate'),
+    path=path('setup/devices/{device_id:[a-z0-9]+}/authenticate'),
     renderer='json',
     accept='application/json',
 )
@@ -76,7 +76,7 @@ def devices_authenticate_view(request):
     performed here.
 
     """
-    device_id = int(request.matchdict["device_id"])
+    device_id = request.matchdict["device_id"]
     logger.debug("Authenticating device with ID=%s", device_id)
 
     device_list_path = request.registry.settings['devices_path']
@@ -112,14 +112,14 @@ def read_json(file_path, default=None):
 
 details_service = Service(
     name='devices_details',
-    path=path('setup/devices/{device_id:\d+}'),
+    path=path('setup/devices/{device_id:(?!discover)[a-z0-9]+}'),
     renderer='json',
 )
 
 
 @details_service.get()
 def devices_details_view(request):
-    device_id = int(request.matchdict["device_id"])
+    device_id = request.matchdict["device_id"]
     logger.debug("Getting details for device with ID=%s", device_id)
 
     device_list_path = request.registry.settings['devices_path']
@@ -127,9 +127,10 @@ def devices_details_view(request):
 
     config = read_json(request.registry.settings["hass_phue_config_path"], {})
     username = (config.get(device["ip"]) or {}).get("username")
-    bridge = PhilipsHueBridge(device["ip"], username)
 
     try:
+        bridge = PhilipsHueBridge(device["ip"], username)
+
         return bridge.get_lights()
     # TODO create a tween to handle exceptions for all views
     except UnauthenticatedDeviceError as e:

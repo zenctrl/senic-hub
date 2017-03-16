@@ -5,6 +5,9 @@ import { Link } from 'react-router'
 import './SetupDevices.css'
 
 class SetupDevices extends Component {
+  authPollInterval = 15000  // 15 seconds
+  authPollTimers = {}
+
   constructor() {
     super()
     this.state = {
@@ -19,10 +22,10 @@ class SetupDevices extends Component {
         <table>
           <ReactCSSTransitionGroup component="tbody" transitionName="SetupDevices_Transition" transitionEnterTimeout={500}>
           {
-            this.state.devices.map((device, index) =>
+            this.state.devices.map((device) =>
               <tr key={device.id}>
                 <td>
-                  { device.type.replace('_', ' ') }
+                  { device.name }
                 </td>
               </tr>
             )
@@ -38,6 +41,12 @@ class SetupDevices extends Component {
     this.discoverDevices()
   }
 
+  componentWillUnmount() {
+    Object
+      .keys(this.authPollTimers)
+      .forEach((deviceId) => clearTimeout(this.authPollTimers[deviceId]))
+  }
+
   discoverDevices() {
     //TODO: Promise chain doesn't get cancelled when component unmounts
     fetch('/-/setup/devices/discover', {method: 'POST'})
@@ -45,13 +54,29 @@ class SetupDevices extends Component {
       .then((response) => response.json())
       .then((devices) => {
         this.setState({ devices: devices })
-        //TODO: Repeatedly authenticate devices until it's successful
         devices
-          .filter((device) => device.type === "philips_hue")
-          .forEach((hueBridge) => {fetch('/-/setup/devices/' + hueBridge.id + '/authenticate', {method: 'POST'})})
+          .filter((device) => device.authenticationRequired)
+          .forEach((device) => this.authenticateDevice(device))
         //TODO: Run device discovery again as long as component is mounted
       })
       .catch((error) => console.error(error))
+  }
+
+  authenticateDevice(device) {
+    fetch('/-/setup/devices/' + device.id + '/authenticate', {method: 'POST'})
+      .then((response) => response.json())
+      .then((response) => {
+        if (!response.authenticated) {
+          let timer = setTimeout(this.authenticateDevice.bind(this, device), this.authPollInterval)
+          this.authPollTimers[device.id] = timer
+        }
+        else {
+          if (device.id in this.authPollTimers) {
+            clearTimeout(this.authPollTimers[device.id])
+            delete this.authPollTimers[device.id]
+          }
+        }
+      })
   }
 }
 

@@ -103,3 +103,26 @@ def browser(app, request):
 def dummy_url(browser):
     """ a url we can render during tests (points to a dummy page)"""
     return route_url('dummy_target')
+
+
+@fixture
+def philips_hue_bridge_description():
+    return """
+        <root xmlns="urn:schemas-upnp-org:device-1-0">
+          <device>
+            <friendlyName>Philips Hue bridge</friendlyName>
+            <serialNumber>ph1</serialNumber>
+          </device>
+        </root>"""
+
+
+@fixture
+def sonos_speaker_description():
+    return """
+        <root xmlns="urn:schemas-upnp-org:device-1-0">
+          <device>
+            <friendlyName>192.168.1.42 Foo Bar</friendlyName>
+            <UDN>uuid:RINCON_123</UDN>
+            <roomName>Foo Bar</roomName>
+          </device>
+        </root>"""
