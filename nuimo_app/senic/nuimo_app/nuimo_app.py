@@ -56,13 +56,13 @@ class NuimoApp(NuimoControllerListener):
         Gesture.BUTTON_RELEASE,
     ]
 
-    def __init__(self, mac_address, ha_api, ble_adapter_name):
+    def __init__(self, ha_api, mac_address, manager):
         super().__init__()
 
         self.components = []
         self.active_component = None
 
-        self.controller = Controller(adapter_name=ble_adapter_name, mac_address=mac_address)
+        self.controller = Controller(mac_address, manager)
         self.controller.listener = self
         self.controller.connect()
 
