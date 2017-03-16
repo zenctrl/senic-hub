@@ -128,7 +128,17 @@
   when: ploy_wlan0 is defined
   tags: wifi
 
-- name: configure supervisor
+- name: configure supervisor (enable RPC interface)
+  lineinfile:
+    dest: /etc/supervisor/supervisord.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: '^\[inet_http_server\]$', line: '[inet_http_server]' }
+    - { regexp: '^port=127.0.0.1:9001$', line: 'port=127.0.0.1:9001' }
+  notify: restart supervisor service
+
+- name: configure supervisor programs
   template:
     src: "{{item}}_supervisor.conf"
     dest: "/etc/supervisor/conf.d/{{item}}.conf"
@@ -137,6 +147,7 @@
   with_items:
     - scan_wifi
     - wifi_setup
+    - device_discovery
   notify: reload supervisord
   when: ploy_wlan0 is defined
   tags: wifi

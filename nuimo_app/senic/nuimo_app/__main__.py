@@ -2,8 +2,6 @@ import configparser
 import logging
 import sys
 
-from nuimo import ControllerManager
-
 from . import components, errors
 
 from .hass import HAListener
@@ -31,17 +29,17 @@ def main(config_file_path=DEFAULT_CONFIG_FILE_PATH):
 
     logger.info("Using configuration from: %s", config_file_path)
 
-    ble_adapter_name = config.get("ble_adapter_name", DEFAULT_BLE_ADAPTER_NAME)
-    manager = ControllerManager(ble_adapter_name)
+    controller_mac_address = config.get("controller_mac_address")
+    if not controller_mac_address:
+        logger.error("Nuimo controller MAC address not configured")
+        sys.exit(1)
 
     ha_url = config.get("ha_api_url", "localhost:8123")
     ha_api = HAListener("ws://{}".format(ha_url))
     ha_api.start()
 
-    nuimo_app = None
-    controller_mac_address = config.get("controller_mac_address")
-    if controller_mac_address:
-        nuimo_app = NuimoApp(ha_api, controller_mac_address, manager)
+    ble_adapter_name = config.get("ble_adapter_name", DEFAULT_BLE_ADAPTER_NAME)
+    nuimo_app = NuimoApp(ha_api, ble_adapter_name, controller_mac_address)
 
     for cid in component_config.sections():
         cfg = component_config[cid]
@@ -50,13 +48,11 @@ def main(config_file_path=DEFAULT_CONFIG_FILE_PATH):
         nuimo_app.register_component(component_class(cfg["name"], entities))
 
     try:
-        manager.run()
+        nuimo_app.run()
     except (KeyboardInterrupt, errors.NuimoControllerConnectionError):
         logger.debug("Stopping...")
-        manager.stop()
         ha_api.stop()
-        if nuimo_app:
-            nuimo_app.quit()
+        nuimo_app.stop()
 
 
 def read_config(config_file_path):

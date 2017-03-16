@@ -3,7 +3,7 @@ import logging
 from functools import partial
 from pprint import pformat
 
-from nuimo import (Controller, ControllerListener, Gesture)
+from nuimo import (Controller, ControllerListener, ControllerManager, Gesture)
 
 from .import errors, icons
 from .led import LEDMatrixConfig
@@ -56,13 +56,15 @@ class NuimoApp(NuimoControllerListener):
         Gesture.BUTTON_RELEASE,
     ]
 
-    def __init__(self, ha_api, mac_address, manager):
+    def __init__(self, ha_api, ble_adapter_name, mac_address):
         super().__init__()
 
         self.components = []
         self.active_component = None
 
-        self.controller = Controller(mac_address, manager)
+        self.manager = ControllerManager(ble_adapter_name)
+
+        self.controller = Controller(mac_address, self.manager)
         self.controller.listener = self
         self.controller.connect()
 
@@ -70,6 +72,12 @@ class NuimoApp(NuimoControllerListener):
         self.action_in_progress = None
 
         self.ha = ha_api
+
+    def run(self):
+        self.manager.run()
+
+    def stop(self):
+        self.manager.stop()
 
     def process_gesture_event(self, event):
         if event.gesture in self.GESTURES_TO_IGNORE:

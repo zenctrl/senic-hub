@@ -46,9 +46,9 @@ def test_device_list_contains_devices(browser, url):
 
 
 def test_devices_discover_view(tmp_device_file, browser, discover_url):
-    with patch('senic.nuimo_hub.views.setup_devices.discover') as discover_mock:
-        discover_mock.return_value = []
-        assert browser.post_json(discover_url, {}).json == []
+    with patch('senic.nuimo_hub.views.setup_devices.supervisor') as supervisor_mock:
+        browser.post_json(discover_url, {})
+        supervisor_mock.restart_program.assert_called_once_with('device_discovery')
 
 
 @fixture
