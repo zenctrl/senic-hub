@@ -90,7 +90,6 @@
     dest: /etc/supervisor/conf.d/nuimo_hass.conf
     mode: "0644"
   tags: update_hass
-  notify: reload supervisord
 
 - name: ensure supervisord is running
   service:
