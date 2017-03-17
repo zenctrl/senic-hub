@@ -5,6 +5,9 @@ import { Link } from 'react-router'
 import './SetupDevices.css'
 
 class SetupDevices extends Component {
+  devicesPollInterval = 5000  // 5 seconds
+  devicesPollTimer = null
+
   authPollInterval = 15000  // 15 seconds
   authPollTimers = {}
 
@@ -38,26 +41,31 @@ class SetupDevices extends Component {
   }
 
   componentDidMount() {
-    this.discoverDevices()
+    this.pollDevices()
   }
 
   componentWillUnmount() {
+    if (this.devicesPollTimer) {
+      clearTimeout(this.devicesPollTimer)
+    }
+
     Object
       .keys(this.authPollTimers)
       .forEach((deviceId) => clearTimeout(this.authPollTimers[deviceId]))
   }
 
-  discoverDevices() {
+  pollDevices() {
     //TODO: Promise chain doesn't get cancelled when component unmounts
-    fetch('/-/setup/devices/discover', {method: 'POST'})
+    fetch('/-/setup/devices')
       //TODO: Write tests for all possible API call responses, server not available, etc.
       .then((response) => response.json())
       .then((devices) => {
         this.setState({ devices: devices })
         devices
-          .filter((device) => device.authenticationRequired)
+          .filter((device) => device.authenticationRequired && !device.authenticated)
           .forEach((device) => this.authenticateDevice(device))
-        //TODO: Run device discovery again as long as component is mounted
+
+          this.devicesPollTimer = setTimeout(this.pollDevices.bind(this), this.devicesPollInterval)
       })
       .catch((error) => console.error(error))
   }

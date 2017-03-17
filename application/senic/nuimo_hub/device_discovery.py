@@ -2,8 +2,9 @@ import functools
 import json
 import logging
 import re
-
 import xml.etree.ElementTree as ET
+
+from copy import deepcopy
 from enum import IntEnum
 
 from netdisco.discovery import NetworkDiscovery
@@ -15,6 +16,9 @@ SUPPORTED_DEVICES = [
     "philips_hue",
     "sonos",
 ]
+
+
+DISCOVERY_TIMESTAMP_FIELD = "discovered"
 
 
 class UnauthenticatedDeviceError(Exception):
@@ -35,7 +39,41 @@ class PhilipsHueBridgeError(IntEnum):
 logger = logging.getLogger(__name__)
 
 
+def discover_and_update_devices(devices, now):
+    all_devices = []
+    known_devices = deepcopy(devices)
+
+    discovered_devices = discover()
+    for device in discovered_devices:
+        # make sure we get updates for devices we already had discovered before
+        existing_device = next((d for d in known_devices if d["id"] == device["id"]), None)
+        if existing_device:
+            # device already known, check if we should update any fields
+            if {k: v for k, v in existing_device.items() if k != DISCOVERY_TIMESTAMP_FIELD} == device:
+                # all fields match, use the already known device
+                continue
+            else:
+                # fields don't match, device will added as new
+                known_devices.remove(existing_device)
+
+        device[DISCOVERY_TIMESTAMP_FIELD] = str(now)
+        all_devices.append(device)
+
+    # add already known devices that were not found in this discovery
+    # run or it was found that they didn't have any updates
+    all_devices.extend(known_devices)
+
+    return sorted(all_devices, key=lambda d: d["id"])
+
+
 def discover(discovery_class=NetworkDiscovery):
+    """
+    Return a list of all discovered devices.
+
+    :param discovery_class: Allow overriding what class to use for
+    discovery. Used only in unit tests.
+
+    """
     logger.info("Starting device discovery...")
 
     devices = []
@@ -49,8 +87,8 @@ def discover(discovery_class=NetworkDiscovery):
 
         for device_info in netdisco.get_info(device_type):
             device_description = make_device_description(device_type, device_info)
-            if device_description:
-                devices.append(device_description)
+            logger.info("Discovered %s device with ip %s", device_type, device_description["ip"])
+            devices.append(device_description)
 
     netdisco.stop()
     logger.info("Device discovery finished.")
@@ -64,8 +102,6 @@ def make_device_description(device_type, device_info):
         device = PhilipsHueBridge(bridge_ip)
     elif device_type == "sonos":
         device = SonosSpeaker(device_info)
-
-    logger.info("Discovered %s device with ip %s", device_type, device.device_description["ip"])
 
     return device.device_description
 
@@ -174,7 +210,7 @@ class PhilipsHueBridge:
         url = 'http://{}/description.xml'.format(self.ip_address)
         response = requests.get(url)
         if response.status_code != 200:
-            logger.debug("Response from Hue bridge %s: status_code: %s, body: %s", url, response.status_code, response.text)
+            logger.warn("Response from Hue bridge %s: status_code: %s, body: %s", url, response.status_code, response.text)
             raise UpstreamError(error_type=response.status_code)
 
         xml = ET.fromstring(response.text)

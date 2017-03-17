@@ -1,18 +1,2 @@
-homeassistant:
-  name: {{hostname}}
-  latitude: 52.5155
-  longitude: 13.4062
-  elevation: 32
-  unit_system: metric
-  time_zone: Europe/Berlin
-
 api:
 websocket_api:
-
-media_player:
-  - platform: sonos
-    hosts: 192.168.1.42
-
-light:
-  platform: hue
-  host: 192.168.1.83

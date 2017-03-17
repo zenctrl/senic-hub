@@ -7,8 +7,10 @@ from cornice.service import Service
 from pyramid.httpexceptions import HTTPBadGateway, HTTPBadRequest, HTTPNotFound
 from pyramid.response import FileResponse
 
+from .. import supervisor
+
 from ..config import path
-from ..device_discovery import PhilipsHueBridge, UnauthenticatedDeviceError, UpstreamError, discover
+from ..device_discovery import PhilipsHueBridge, UnauthenticatedDeviceError, UpstreamError
 
 
 logger = logging.getLogger(__name__)
@@ -46,19 +48,12 @@ discover_service = Service(
 @discover_service.post()
 def devices_discover_view(request):
     """
-    Discovers devices, writes results to a file and returns them in
-    response.
-
-    NOTE: Will block until device discovery is finished.
+    Trigger device discovery daemon restart to force a new device
+    scan.
 
     """
-    device_list_file = request.registry.settings['devices_path']
-
-    discovered_devices = discover()
-    with open(device_list_file, 'w') as f:
-        json.dump(discovered_devices, f)
-
-    return discovered_devices
+    logger.info("Restarting device discovery daemon...")
+    supervisor.restart_program('device_discovery')
 
 
 authenticate_service = Service(

@@ -94,18 +94,8 @@ def rsync(*args, **kwargs):
 
 @task
 def sync_app_src():
-    get_vars()
-    with fab.lcd('../application'):
-        env.instance.config['user'] = AV['build_user']
-        target = '/home/{build_user}/nuimo-hub-backend/application'.format(**AV)
-        rsync(
-            '-rlptD',
-            '--exclude', '.*',
-            '--exclude', '*.egg-info',
-            '--exclude', '__pycache__',
-            '--exclude', 'venv',
-            '.',
-            '{host_string}:%s' % target)
+    sync_python_project('../application', 'nuimo-hub-backend/application')
+
 
 @task
 def sync_frontend_src():
@@ -114,3 +104,24 @@ def sync_frontend_src():
         env.instance.config['user'] = AV['build_user']
         target = '/home/{build_user}/nuimo-hub-backend/frontend'.format(**AV)
         rsync('-rlptD', '--exclude', '.*', '--exclude', 'node_modules', '.', '{host_string}:%s' % target)
+
+
+@task
+def sync_nuimo_app_src():
+    sync_python_project('../nuimo_app', 'nuimo-hub-backend/nuimo_app')
+
+
+def sync_python_project(local_dir, remote_dir):
+    get_vars()
+    with fab.lcd(local_dir):
+        env.instance.config['user'] = AV['build_user']
+        target = '/home/{build_user}/{remote_dir}'.format(remote_dir=remote_dir, **AV)
+        fab.sudo('mkdir -p {0}'.format(target), user=AV['build_user'])
+        rsync(
+            '-rlptD',
+            '--exclude', '.*',
+            '--exclude', '*.egg-info',
+            '--exclude', '__pycache__',
+            '--exclude', 'venv',
+            '.',
+            '{host_string}:%s' % target)

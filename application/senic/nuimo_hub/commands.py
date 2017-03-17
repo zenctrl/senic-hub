@@ -1,18 +1,26 @@
 import click
 import json
+import logging
 import os
+import signal
+import sys
 import time
 
 from os.path import abspath
 from subprocess import PIPE, TimeoutExpired
+from datetime import datetime, timedelta
 from .subprocess_run import run
 
 import wifi
-from pyramid.paster import get_app
+from pyramid.paster import get_app, setup_logging
 
 import configparser
 
 import yaml
+
+from . import supervisor
+
+from .device_discovery import discover_and_update_devices
 
 
 DEFAULT_IFACE = 'wlan0'
@@ -26,6 +34,10 @@ network={{
     psk="{password}"
 }}
 '''
+DEFAULT_SCAN_INTERVAL_SECONDS = 1 * 60  # 1 minute
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_networks(devices=[DEFAULT_IFACE]):
@@ -169,7 +181,7 @@ def create_configuration_files_and_restart_apps_(settings):
     with open(hass_config_file_path, 'w') as f:
         yaml.dump(generate_hass_configuration(devices), f, default_flow_style=False)
 
-    run(['/usr/bin/supervisorctl', 'restart', 'nuimo_hass'])
+    supervisor.restart_program('nuimo_hass')
 
     # generate nuimo app config & restart supervisor app
     nuimo_controller_mac_address_file_path = settings['nuimo_mac_address_filepath']
@@ -182,7 +194,7 @@ def create_configuration_files_and_restart_apps_(settings):
         config = generate_nuimo_configuration(devices, nuimo_controller_mac_address, bluetooth_adapter_name)
         config.write(f)
 
-    run(['/usr/bin/supervisorctl', 'restart', 'nuimo_app'])
+    supervisor.restart_program('nuimo_app')
 
 
 def generate_hass_configuration(devices):
@@ -228,3 +240,38 @@ def get_component_for_device(device):
         'philips_hue': 'PhilipsHue',
         'sonos': 'Sonos',
     }[device['type']]
+
+
+def sigint_handler(*args):
+    logger.info('Stopping...')
+    sys.exit(0)
+
+
+@click.command(help='scan for devices in local network and store their description in a file')
+@click.option('--config', '-c', required=True, type=click.Path(exists=True), help='app configuration file')
+def discover_devices(config):
+    app = get_app(abspath(config))
+    setup_logging(config)
+
+    devices_path = app.registry.settings['devices_path']
+    scan_interval_seconds = app.registry.settings.get(
+        'scan_interval_seconds', DEFAULT_SCAN_INTERVAL_SECONDS)
+
+    # install Ctrl+C handler
+    signal.signal(signal.SIGINT, sigint_handler)
+
+    if os.path.exists(devices_path):
+        with open(devices_path, 'r') as f:
+            devices = json.load(f)
+    else:
+        devices = []
+
+    while True:
+        now = datetime.utcnow()
+        devices = discover_and_update_devices(devices, now)
+        with open(devices_path, 'w') as f:
+            json.dump(devices, f)
+
+        next_scan = now + timedelta(seconds=scan_interval_seconds)
+        logging.info("Next device discovery run scheduled for %s", next_scan)
+        time.sleep(scan_interval_seconds)
