@@ -13,6 +13,7 @@ class NuimoSetup(nuimo.ControllerManagerListener, nuimo.ControllerListener):  # 
         self._manager.listener = self
         self._is_running = False  # Prevents from considering D-Bus events if we aren't running
         self._discovery_timeout_timer = None
+        self._connect_timeout_timer = None
         self._controller = None
         self._required_mac_address = None
 
