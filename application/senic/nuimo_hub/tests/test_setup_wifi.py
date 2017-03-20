@@ -30,8 +30,13 @@ def mocked_run(request):
         yield mocked_run
 
 
-def test_join_wifi(browser, setup_url, mocked_run, settings):
-    browser.post_json(setup_url, dict(
+@pytest.fixture
+def connection_url(route_url):
+    return route_url('wifi_connection')
+
+
+def test_join_wifi(browser, connection_url, mocked_run, settings):
+    browser.post_json(connection_url, dict(
         ssid='grandpausethisnetwork',
         password='foobar',
         device='wlan0')).json
@@ -44,11 +49,6 @@ def test_join_wifi(browser, setup_url, mocked_run, settings):
             'foobar',
         ]
     )
-
-
-@pytest.fixture
-def connection_url(route_url):
-    return route_url('wifi_connection')
 
 
 def test_get_connected_wifi(browser, connection_url):

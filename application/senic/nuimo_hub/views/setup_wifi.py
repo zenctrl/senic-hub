@@ -35,7 +35,14 @@ def scan_wifi_networks(request):
         return []
 
 
-@wifi_setup.post(renderer='json', schema=JoinWifiSchema)
+wifi_connection = Service(
+    name='wifi_connection',
+    path=path('setup/wifi/connection'),
+    renderer='json',
+    accept='application/json')
+
+
+@wifi_connection.post(renderer='json', schema=JoinWifiSchema)
 def join_network(request):
     ssid = request.validated['ssid']
     password = request.validated['password']
@@ -52,13 +59,6 @@ def join_network(request):
     #       or that we were already connected to the same Wi-Fi.
     #       Study all possible case to return something helpful if possible.
     return {'error': 'failed'}
-
-
-wifi_connection = Service(
-    name='wifi_connection',
-    path=path('setup/wifi/connection'),
-    renderer='json',
-    accept='application/json')
 
 
 @wifi_connection.get()
