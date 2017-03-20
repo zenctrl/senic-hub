@@ -256,6 +256,6 @@ class SonosSpeaker:
             "ip": self.ip_address,
             "name": name,
             "authenticationRequired": False,
-            "authenticated": False,
+            "authenticated": True,
             "ha_entity_id": "media_player.{}".format(room_name),
         }
