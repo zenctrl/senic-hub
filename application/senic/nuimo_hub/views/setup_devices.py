@@ -10,7 +10,7 @@ from pyramid.response import FileResponse
 from .. import supervisor
 
 from ..config import path
-from ..device_discovery import PhilipsHueBridge, UnauthenticatedDeviceError, UpstreamError
+from ..device_discovery import PhilipsHueBridge, UnauthenticatedDeviceError, UpstreamError, read_json
 
 
 logger = logging.getLogger(__name__)
@@ -95,14 +95,6 @@ def devices_authenticate_view(request):
         json.dump(config, f)
 
     return {"id": device_id, "authenticated": username is not None}
-
-
-def read_json(file_path, default=None):
-    try:
-        with open(file_path) as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return default
 
 
 details_service = Service(
