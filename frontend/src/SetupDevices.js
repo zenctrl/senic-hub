@@ -29,6 +29,7 @@ class SetupDevices extends Component {
               <tr key={device.id}>
                 <td>
                   { device.name }
+                  { device.authenticationRequired && (device.authenticated ? ' - Authenticated' : ' - Not Authenticated') }
                 </td>
               </tr>
             )
