@@ -8,9 +8,6 @@ class SetupDevices extends Component {
   devicesPollInterval = 5000  // 5 seconds
   devicesPollTimer = null
 
-  authPollInterval = 15000  // 15 seconds
-  authPollTimers = {}
-
   constructor() {
     super()
     this.state = {
@@ -49,10 +46,6 @@ class SetupDevices extends Component {
     if (this.devicesPollTimer) {
       clearTimeout(this.devicesPollTimer)
     }
-
-    Object
-      .keys(this.authPollTimers)
-      .forEach((deviceId) => clearTimeout(this.authPollTimers[deviceId]))
   }
 
   pollDevices() {
@@ -75,16 +68,9 @@ class SetupDevices extends Component {
     fetch('/-/setup/devices/' + device.id + '/authenticate', {method: 'POST'})
       .then((response) => response.json())
       .then((response) => {
-        if (!response.authenticated) {
-          let timer = setTimeout(this.authenticateDevice.bind(this, device), this.authPollInterval)
-          this.authPollTimers[device.id] = timer
-        }
-        else {
-          if (device.id in this.authPollTimers) {
-            clearTimeout(this.authPollTimers[device.id])
-            delete this.authPollTimers[device.id]
-          }
-        }
+        let i = this.state.devices.findIndex((d) => d.id == device.id)
+        this.state.devices[i].authenticated = response.authenticated
+        this.setState({ devices: this.state.devices })
       })
   }
 }
