@@ -1,1 +1,1 @@
-[{"id": "ph1", "type": "philips_hue", "ip": "127.0.0.1"}, {"id": "s1", "type": "sonos", "ip": "127.0.0.1"}]
+[{"id": "ph1", "type": "philips_hue", "ip": "127.0.0.1", "authenticationRequired": true}, {"id": "s1", "type": "sonos", "ip": "127.0.0.1", "authenticationRequired": false}]

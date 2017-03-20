@@ -76,7 +76,7 @@ def devices_authenticate_view(request):
 
     device_list_path = request.registry.settings['devices_path']
     device = get_device(device_list_path, device_id)
-    if device["type"] != "philips_hue":
+    if not device["authenticationRequired"]:
         raise HTTPBadRequest("Device doesn't require authentication...")
 
     config = read_json(request.registry.settings["hass_phue_config_path"], {})
