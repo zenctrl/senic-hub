@@ -1,0 +1,4 @@
+global-exclude *
+include setup.*
+graft *.egg-info
+graft distribution
