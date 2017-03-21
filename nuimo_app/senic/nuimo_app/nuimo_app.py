@@ -240,8 +240,6 @@ class NuimoApp(NuimoControllerListener):
         currently active component group.
 
         """
-        logger.debug("state_changed:")
-        logger.debug(pformat(state))
 
     def show_active_component(self):
         if self.active_component:
