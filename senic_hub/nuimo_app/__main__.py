@@ -2,10 +2,7 @@ import configparser
 import logging
 import sys
 
-from . import components, errors
-
-from .hass import HAListener
-from . import NuimoApp
+from . import NuimoApp, components, errors
 
 
 DEFAULT_BLE_ADAPTER_NAME = "hci0"
@@ -34,24 +31,15 @@ def main(config_file_path=DEFAULT_CONFIG_FILE_PATH):
         logger.error("Nuimo controller MAC address not configured")
         sys.exit(1)
 
-    ha_url = config.get("ha_api_url", "localhost:8123")
-    ha_api = HAListener("ws://{}".format(ha_url))
-    ha_api.start()
-
+    ha_api_url = config.get("ha_api_url", "localhost:8123")
     ble_adapter_name = config.get("ble_adapter_name", DEFAULT_BLE_ADAPTER_NAME)
-    nuimo_app = NuimoApp(ha_api, ble_adapter_name, controller_mac_address)
-
-    for cid in component_config.sections():
-        cfg = component_config[cid]
-        component_class = getattr(components, cfg["component"])
-        component = component_class(cfg["name"], cfg["entity_id"])
-        nuimo_app.register_component(component)
+    component_instances = get_component_instances(component_config)
+    nuimo_app = NuimoApp(ha_api_url, ble_adapter_name, controller_mac_address, component_instances)
 
     try:
         nuimo_app.run()
     except (KeyboardInterrupt, errors.NuimoControllerConnectionError):
         logger.debug("Stopping...")
-        ha_api.stop()
         nuimo_app.stop()
 
 
@@ -59,6 +47,18 @@ def read_config(config_file_path):
     config = configparser.ConfigParser()
     config.read(config_file_path)
     return config["DEFAULT"], config
+
+
+def get_component_instances(component_config):
+    instances = []
+
+    for cid in component_config.sections():
+        cfg = component_config[cid]
+        component_class = getattr(components, cfg["component"])
+        component = component_class(cfg["name"], cfg["entity_id"])
+        instances.append(component)
+
+    return instances
 
 
 if __name__ == "__main__":

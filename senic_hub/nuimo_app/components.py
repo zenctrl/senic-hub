@@ -27,7 +27,10 @@ class Component:
         logger.debug("state_changed:")
         logger.debug(pformat(state))
 
-        new_state = state["data"]["new_state"]
+        if "data" in state:
+            new_state = state["data"]["new_state"]
+        else:
+            new_state = state
 
         self.set_state(new_state)
 

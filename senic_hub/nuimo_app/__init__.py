@@ -5,7 +5,9 @@ from pprint import pformat
 
 from nuimo import (Controller, ControllerListener, ControllerManager, Gesture)
 
-from .import errors, icons
+from . import errors, icons
+
+from .hass import HAListener
 from .led import LEDMatrixConfig
 
 
@@ -21,11 +23,6 @@ class NuimoControllerListener(ControllerListener):
     def connect_succeeded(self):
         mac = self.controller.mac_address
         logger.info("Connected to Nuimo controller %s", mac)
-        if self.active_component:
-            self.show_active_component()
-        else:
-            if self.components:
-                self.set_active_component()
 
     def connect_failed(self, error):
         mac = self.controller.mac_address
@@ -57,10 +54,10 @@ class NuimoApp(NuimoControllerListener):
         Gesture.BUTTON_RELEASE,
     ]
 
-    def __init__(self, ha_api, ble_adapter_name, mac_address):
+    def __init__(self, ha_api_url, ble_adapter_name, mac_address, components):
         super().__init__()
 
-        self.components = []
+        self.components = components
         self.active_component = None
 
         self.manager = ControllerManager(ble_adapter_name)
@@ -72,13 +69,52 @@ class NuimoApp(NuimoControllerListener):
         self.rotation_value = 0
         self.action_in_progress = None
 
-        self.ha = ha_api
+        self.ha = HAListener(
+            "ws://{}".format(ha_api_url),
+            on_connect=self.ha_connected,
+            on_disconnect=self.ha_disconnected,
+        )
 
     def run(self):
+        self.ha.start()
         self.manager.run()
 
     def stop(self):
+        self.ha.stop()
         self.manager.stop()
+
+    def ha_connected(self):
+        self.controller.listener = self
+
+        for component in self.components:
+            self.initialize_component(component)
+
+    def ha_disconnected(self):
+        self.controller.listener = None
+
+    def initialize_component(self, component):
+        logger.debug("Initializing component: %s", component.name)
+
+        def set_state(state):
+            if not state:
+                # Couldn't retrieve state for the component. Most
+                # probably entity_id doesn't exist in Home Assistant.
+                return
+
+            component.set_state(state)
+            logger.debug("Setting state for component %s:", component.name)
+            logger.debug(pformat(state))
+
+            # register a state_changed callback that is called
+            # every time there's a state changed event for any of
+            # entities known by the component
+            self.ha.register_state_listener(component.entity_id, component.state_changed)
+
+            # set active component if it's not set already
+            if not self.active_component:
+                self.set_active_component()
+
+        self.ha.get_state(component.entity_id, [set_state])
 
     def process_gesture_event(self, event):
         if event.gesture in self.GESTURES_TO_IGNORE:
@@ -167,24 +203,6 @@ class NuimoApp(NuimoControllerListener):
 
         callback = partial(call_service_callback, action.entity_id)
         self.ha.call_service(action.domain, action.service, attributes, callback)
-
-    def register_component(self, component):
-        def set_state(state):
-            component.set_state(state)
-            self.components.append(component)
-            logger.debug("New component registered: %s initial state:", component.name)
-            logger.debug(pformat(state))
-
-            # register a state_changed callback that is called
-            # every time there's a state changed event for any of
-            # entities known by the component
-            self.ha.register_state_listener(component.entity_id, component.state_changed)
-
-            # show active component if we can
-            if not self.active_component and self.components:
-                self.set_active_component()
-
-        self.ha.get_state(component.entity_id, set_state)
 
     def get_prev_component(self):
         if not self.components:

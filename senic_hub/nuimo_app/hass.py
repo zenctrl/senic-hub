@@ -1,11 +1,12 @@
 import json
 import logging
+import time
 
 from collections import defaultdict
 from pprint import pformat
 from threading import Thread
 
-from websocket import create_connection
+from websocket import WebSocketConnectionClosedException, create_connection
 
 
 logger = logging.getLogger(__name__)
@@ -16,25 +17,62 @@ class HAListener(Thread):
     Listens on events & state change notification through HASS WS interface.
 
     """
-    def __init__(self, url, ws_connection=None):
+    def __init__(self, url, ws_connection=None, on_connect=None, on_disconnect=None):
         super().__init__(daemon=True)
 
         self.request_id = 1
         self.event_subscription_id = None
 
+        self.connection_state_listeners = {
+            "on_connect": on_connect,
+            "on_disconnect": on_disconnect,
+        }
+
+        self.url = url
         self.connection = ws_connection
-        if not self.connection:
-            self.connect(url)
 
         self.stopping = False
         self.response_callbacks = {}  # req_id: callback
 
         self.state_listeners = defaultdict(list)  # entity_id: [callback1, ...]
 
-    def connect(self, url):
-        self.connection = create_connection("{}/api/websocket".format(url))
-        result = json.loads(self.connection.recv())
+    def connect(self, reconnect=False, reconnect_timeout=5):
+        self.connection = None
+
+        if reconnect:
+            logger.warn("Home Assistant connection lost! Trying to reconnect...")
+
+            on_disconnect_listener = self.connection_state_listeners["on_disconnect"]
+            if on_disconnect_listener:
+                on_disconnect_listener()
+
+        while not self.connection:
+            try:
+                self.connection = create_connection("{}/api/websocket".format(self.url))
+            except (ConnectionRefusedError, ConnectionResetError):
+                logger.error("Failed to connect to Home Assistant! Retrying in %s seconds...", reconnect_timeout)
+                time.sleep(reconnect_timeout)
+
+        result = self.wait_for_message()
+        if not result:
+            return
+
         logger.info("Connected to Home Assistant %s", result["ha_version"])
+
+        self.subscribe_to_events()
+
+        on_connect_listener = self.connection_state_listeners["on_connect"]
+        if on_connect_listener:
+            on_connect_listener()
+
+    def wait_for_message(self):
+        try:
+            message = json.loads(self.connection.recv())
+        except (ConnectionResetError, WebSocketConnectionClosedException):
+            self.connect(reconnect=True)
+            return
+        else:
+            return message
 
     def prepare_request(self, request_type, **extra_args):
         data = {"id": self.request_id, "type": request_type}
@@ -48,10 +86,17 @@ class HAListener(Thread):
 
         logger.debug("Sending request:")
         logger.debug(pformat(request))
-        self.connection.send(json.dumps(request))
+
+        try:
+            self.connection.send(json.dumps(request))
+        except BrokenPipeError:
+            self.connect(reconnect=True)
+            return
 
         if not callback:
-            result = json.loads(self.connection.recv())
+            result = self.wait_for_message()
+            if not result:
+                return
 
             if not (result["id"] == request["id"] and
                     result["type"] == "result" and
@@ -74,11 +119,13 @@ class HAListener(Thread):
             raise ValueError("Error subscribing to HA Events")
 
     def run(self):
-        self.subscribe_to_events()
+        if not self.connection:
+            self.connect()
 
         while not self.stopping:
-            logger.debug("waiting for HA events...")
-            result = json.loads(self.connection.recv())
+            result = self.wait_for_message()
+            if not result:
+                continue
 
             if result["type"] == "event":
                 if (result["event"]["event_type"] == "state_changed" and
@@ -118,13 +165,14 @@ class HAListener(Thread):
 
         self.send_request(request, callback)
 
-    def get_state(self, entity_id, callback):
+    def get_state(self, entity_id, callbacks):
         request = self.prepare_request("get_states")
 
         def get_state_callback(response):
             state = self.find_entity_state(response["result"], entity_id)
             if state:
-                callback(state)
+                for callback in callbacks:
+                    callback(state)
             else:
                 logger.error("Can't determine state of %s", entity_id)
 
