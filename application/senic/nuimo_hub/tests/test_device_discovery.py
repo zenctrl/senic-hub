@@ -33,7 +33,7 @@ def test_make_device_description_philips(philips_hue_device_info, philips_hue_br
         "authenticated": False,
         "type": "philips_hue",
         "ip": "127.0.0.1",
-        "ha_entity_id": "light.all_lights",
+        "ha_entity_id": "light.senic_hub_demo",
     }
     assert make_device_description("philips_hue", philips_hue_device_info) == expected
 
@@ -80,7 +80,7 @@ def test_discover_philips_hue_device(philips_hue_bridge_description):
         "authenticated": False,
         "type": "philips_hue",
         "ip": "127.0.0.1",
-        "ha_entity_id": "light.all_lights",
+        "ha_entity_id": "light.senic_hub_demo",
     }
     assert discover(MockPhilipsDiscovery) == [expected]
 
