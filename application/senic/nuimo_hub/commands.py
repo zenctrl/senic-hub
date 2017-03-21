@@ -230,7 +230,7 @@ def generate_nuimo_configuration(devices, nuimo_controller_mac_address, bluetoot
         config[section_name] = {
             'name': section_name,
             'component': get_component_for_device(device),
-            'entities': device["ha_entity_id"],
+            'entity_id': device["ha_entity_id"],
         }
     return config
 

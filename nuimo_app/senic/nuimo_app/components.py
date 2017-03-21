@@ -29,14 +29,14 @@ class Component:
 
         new_state = state["data"]["new_state"]
 
-        self.set_state([new_state])
+        self.set_state(new_state)
 
     def make_action(self, service, led_matrix_config, **kw):
         """
         Helper that returns an Action object.
 
         """
-        return Action(self.DOMAIN, service, self.entity_ids, led_matrix_config, **kw)
+        return Action(self.DOMAIN, service, self.entity_id, led_matrix_config, **kw)
 
 
 class PhilipsHue(Component):
@@ -51,43 +51,33 @@ class PhilipsHue(Component):
         "off": icons.LIGHT_OFF,
     }
 
-    def __init__(self, name, entities):
+    def __init__(self, name, entity_id):
         self.name = name
 
-        self.entity_ids = tuple(entities)
+        self.entity_id = entity_id
 
-        self.state = {}  # entity_id: state
-        self.brightness = {}  # entity_id: brightness
-
-        # if any of the lights is off we assume all are off
-        self.is_light_on = None
+        self.state = None
+        self.brightness = None
 
         # seed random nr generator (used to get random color value)
         seed()
 
-    def set_state(self, states):
+    def set_state(self, state):
         """
         Set internal state from the HA state.
 
         """
-        for state in states:
-            entity_id = state["entity_id"]
+        self.state = state["state"]
+        self.brightness = state["attributes"].get("brightness", 0)
 
-            self.state[entity_id] = state["state"]
-            self.brightness[entity_id] = state["attributes"].get("brightness", 0)
-
-            logger.debug(
-                "%s state: %s brightness: %s", entity_id, self.state[entity_id],
-                self.brightness[entity_id])
-
-        self.is_light_on = all(x == "on" for x in self.state.values())
+        logger.debug("%s state: %s brightness: %s", self.entity_id, self.state, self.brightness)
 
     def button_press(self):
         """
         Toggle the state of all lights.
 
         """
-        if self.is_light_on:
+        if self.state == "on":
             new_state = "off"
         else:
             new_state = "on"
@@ -107,21 +97,18 @@ class PhilipsHue(Component):
         """
         delta = int(value / 1800 * self.MAX_BRIGHTNESS_VALUE)
 
-        for entity_id, brightness in self.brightness.items():
-            new_value = min([max([0, brightness + delta]), self.MAX_BRIGHTNESS_VALUE])
-            logger.debug("%s brightness current: %s delta: %s new: %s", entity_id,
-                         brightness, delta, new_value)
+        new_value = min([max([0, self.brightness + delta]), self.MAX_BRIGHTNESS_VALUE])
+        logger.debug("%s brightness current: %s delta: %s new: %s", self.entity_id,
+                     self.brightness, delta, new_value)
 
-            self.brightness[entity_id] = new_value
-
-        max_value = max(self.brightness.values())
+        self.brightness = new_value
 
         # turn off bulbs if brightness has reached 0
         args = dict(transition=0)
-        if max_value > 1:
+        if new_value > 1:
             service = "turn_on"
-            args["brightness"] = max_value
-            icon = icons.light_bar(self.MAX_BRIGHTNESS_VALUE, max_value)
+            args["brightness"] = new_value
+            icon = icons.light_bar(self.MAX_BRIGHTNESS_VALUE, new_value)
         else:
             service = "turn_off"
             icon = icons.POWER_OFF
@@ -151,38 +138,28 @@ class Sonos(Component):
         "paused": icons.PAUSE,
     }
 
-    def __init__(self, name, entities):
+    def __init__(self, name, entity_id):
         self.name = name
 
-        self.entity_ids = tuple(entities)
+        self.entity_id = entity_id
 
-        self.state = {}  # entity_id: state
-        self.volume = {}  # entity_id: volume
+        self.state = None
+        self.volume = None
 
-    def set_state(self, states):
+    def set_state(self, state):
         """
         Set internal state from the HA state.
 
         """
-        for state in states:
-            entity_id = state["entity_id"]
+        entity_id = state["entity_id"]
 
-            self.state[entity_id] = state["state"]
-            self.volume[entity_id] = state["attributes"].get("volume_level", 0)
+        self.state = state["state"]
+        self.volume = state["attributes"].get("volume_level", 0)
 
-            logger.debug(
-                "%s state %s volume: %s", entity_id, self.state[entity_id], self.volume[entity_id])
+        logger.debug("%s state %s volume: %s", entity_id, self.state, self.volume)
 
     def button_press(self):
-        """
-        Toggle the state of the Sonos speaker.
-
-        NOTE: only works with one speaker currently.
-
-        """
-        state = self.state[list(self.state.keys())[0]]
-
-        if state == "playing":
+        if self.state == "playing":
             service = "turn_off"
             new_state = "paused"
         else:
@@ -198,17 +175,12 @@ class Sonos(Component):
 
         Sonos volume level value is in the rang from 0.0 to 1.0
 
-        NOTE: only works with one speaker currently.
-
         """
-        entity_id = list(self.volume.keys())[0]
-        volume = self.volume[entity_id]
-
         delta = value / 1800
-        new_value = min([max([0, volume + delta]), self.MAX_VOLUME_VALUE])
-        logger.debug("volume %s current: %s delta: %s new: %s", entity_id, volume, delta, new_value)
+        new_value = min([max([0, self.volume + delta]), self.MAX_VOLUME_VALUE])
+        logger.debug("volume %s current: %s delta: %s new: %s", self.entity_id, self.volume, delta, new_value)
 
-        self.volume[entity_id] = new_value
+        self.volume = new_value
 
         icon = icons.light_bar(self.MAX_VOLUME_VALUE, new_value)
         led_cfg = LEDMatrixConfig(icon, fading=True, ignore_duplicates=True)
