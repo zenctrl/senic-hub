@@ -40,8 +40,8 @@ def test_device_list_is_empty_if_devices_file_doesnt_exist(no_device_file, brows
 
 def test_device_list_contains_devices(browser, url):
     assert browser.get_json(url).json == [
-        {"id": "ph1", "type": "philips_hue", "ip": "127.0.0.1"},
-        {"id": "s1", "type": "sonos", "ip": "127.0.0.1"},
+        {"id": "ph1", "type": "philips_hue", "ip": "127.0.0.1", "authenticationRequired": True, "authenticated": False},
+        {"id": "s1", "type": "sonos", "ip": "127.0.0.1", "authenticationRequired": False, "authenticated": True},
     ]
 
 

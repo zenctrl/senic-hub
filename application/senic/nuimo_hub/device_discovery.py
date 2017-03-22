@@ -11,6 +11,8 @@ from netdisco.discovery import NetworkDiscovery
 
 import requests
 
+from .config import default_settings
+
 
 SUPPORTED_DEVICES = [
     "philips_hue",
@@ -96,10 +98,22 @@ def discover(discovery_class=NetworkDiscovery):
     return devices
 
 
+def read_json(file_path, default=None):
+    try:
+        with open(file_path) as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return default
+
+
 def make_device_description(device_type, device_info):
     if device_type == "philips_hue":
         bridge_ip = extract_philips_hue_bridge_ip(device_info)
-        device = PhilipsHueBridge(bridge_ip)
+
+        config = read_json(default_settings["hass_phue_config_path"], {})
+        username = config.get(bridge_ip, {}).get("username")
+
+        device = PhilipsHueBridge(bridge_ip, username)
     elif device_type == "sonos":
         device = SonosSpeaker(device_info)
 
@@ -256,6 +270,6 @@ class SonosSpeaker:
             "ip": self.ip_address,
             "name": name,
             "authenticationRequired": False,
-            "authenticated": False,
+            "authenticated": True,
             "ha_entity_id": "media_player.{}".format(room_name),
         }

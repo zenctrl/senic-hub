@@ -46,7 +46,7 @@ def test_make_device_description_sonos(sonos_device_info, sonos_speaker_descript
         "type": "sonos",
         "ip": "192.168.1.42",
         "authenticationRequired": False,
-        "authenticated": False,
+        "authenticated": True,
         "name": "192.168.1.42 Foo Bar",
         "ha_entity_id": "media_player.foo_bar",
     }
