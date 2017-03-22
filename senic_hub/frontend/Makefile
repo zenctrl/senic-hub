@@ -6,7 +6,7 @@ build/index.html: package.json $(react) $(shell git ls-files src/ )
 	npm run build
 
 distribution/index.html: build/index.html
-	rm -r distribution
+	-rm -r distribution
 	mv build distribution
 
 $(react): package.json
