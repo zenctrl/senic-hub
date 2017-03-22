@@ -9,7 +9,7 @@ tests: venv/bin/py.test
 venv/bin/python$(python_version) venv/bin/pip venv/bin/pserve venv/bin/py.test venv/bin/devpi: 
 	tox -e develop --notest
 
-upload: setup.py venv/bin/py.test venv/bin/devpi frontend
+upload: setup.py venv/bin/devpi frontend
 	PATH=${PWD}/venv/bin:${PATH} venv/bin/devpi upload --no-vcs --with-docs --formats bdist_wheel,sdist
 
 frontend:
