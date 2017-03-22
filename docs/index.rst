@@ -1,13 +1,13 @@
 .. _index:
 
-************************
-:mod:`senic_hub.backend`
-************************
+***************
+:mod:`senic_hub
+***************
 
 :Author: Senic GmbH
 :Version: |version|
 
-.. module:: senic_hub.backend
+.. module:: senic_hub
 
 Overview
 ========
