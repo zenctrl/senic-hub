@@ -103,7 +103,6 @@
     requirements: "{{backend_deploy_location}}/requirements.txt"
     extra_args: "--pre --upgrade -i {{devpi_index_url}}"
   become: yes
-  become_user: "{{build_user}}"
   notify: restart senic_hub
   tags: update_backend
 
