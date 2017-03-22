@@ -7,7 +7,7 @@ name = 'senic_hub'
 
 def find_data(top):
     for dirpath, _, files in walk(top):
-        base = dirpath.replace(top, '../../../frontend', 1)
+        base = dirpath.replace(top, '/srv/senic_hub/frontend', 1)
         yield base, [path.join(dirpath, name) for name in files]
 
 
