@@ -114,7 +114,7 @@ def make_device_description(device_type, device_info):
         username = config.get(bridge_ip, {}).get("username")
 
         device = PhilipsHueBridge(bridge_ip, username)
-    elif device_type == "sonos":
+    else:
         device = SonosSpeaker(device_info)
 
     return device.device_description

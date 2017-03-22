@@ -15,12 +15,21 @@ def philips_hue_device_info():
 
 
 @fixture
+def philips_hue_device_info_with_hostname():
+    return ("", "http://localhost:80")
+
+
+@fixture
 def sonos_device_info():
     return "192.168.1.42"
 
 
-def test_extract_philips_hue_bridge_ip(philips_hue_device_info):
+def test_extract_philips_hue_bridge_ip_succeeds(philips_hue_device_info):
     assert extract_philips_hue_bridge_ip(philips_hue_device_info) == "127.0.0.1"
+
+
+def test_extract_philips_hue_bridge_ip_fails(philips_hue_device_info_with_hostname):
+    assert extract_philips_hue_bridge_ip(philips_hue_device_info_with_hostname) is None
 
 
 @responses.activate
