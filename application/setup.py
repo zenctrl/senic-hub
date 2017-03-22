@@ -1,7 +1,14 @@
 from setuptools import setup
+from os import path, walk
 
 
 name = 'senic_hub'
+
+
+def find_data(top):
+    for dirpath, _, files in walk(top):
+        base = dirpath.replace(top, '../../../frontend', 1)
+        yield base, [path.join(dirpath, name) for name in files]
 
 
 setup(
@@ -23,6 +30,7 @@ setup(
     ],
     packages=[name],
     include_package_data=True,
+    data_files=sorted(find_data('senic_hub/frontend/distribution')),
     package_dir={name: 'senic_hub'},
     package_data={
         name: [
