@@ -1,4 +1,5 @@
 [run]
+branch = True
 omit =
   senic_hub/backend/commands.py
   senic_hub/backend/subprocess_run.py
