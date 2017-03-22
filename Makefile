@@ -16,7 +16,7 @@ frontend:
 	$(MAKE) -C senic_hub/frontend
 
 docs:
-	$(MAKE) -C ../docs/
+	$(MAKE) -C docs/
 
 clean:
 	git clean -fXd
