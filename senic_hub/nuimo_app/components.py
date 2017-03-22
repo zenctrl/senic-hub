@@ -97,19 +97,19 @@ class PhilipsHue(Component):
         """
         delta = int(value / 1800 * self.MAX_BRIGHTNESS_VALUE)
 
-        new_value = min([max([0, self.brightness + delta]), self.MAX_BRIGHTNESS_VALUE])
+        new_value = min(max(self.brightness + delta, 0), self.MAX_BRIGHTNESS_VALUE)
         logger.debug("%s brightness current: %s delta: %s new: %s", self.entity_id,
                      self.brightness, delta, new_value)
 
         self.brightness = new_value
 
-        # turn off bulbs if brightness has reached 0
         args = dict(transition=0)
-        if new_value > 1:
+        if new_value:
             service = "turn_on"
             args["brightness"] = new_value
             icon = icons.light_bar(self.MAX_BRIGHTNESS_VALUE, new_value)
         else:
+            # turn off bulbs if brightness has reached 0
             service = "turn_off"
             icon = icons.POWER_OFF
 
@@ -118,8 +118,7 @@ class PhilipsHue(Component):
 
     def swipe_left(self):
         led_cfg = LEDMatrixConfig(icons.LETTER_W)
-        brightness = max(self.brightness.values())
-        return self.make_action("turn_on", led_cfg, rgb_color=COLOR_WHITE_RGB, brightness=brightness)
+        return self.make_action("turn_on", led_cfg, rgb_color=COLOR_WHITE_RGB, brightness=self.brightness)
 
     def swipe_right(self):
         led_cfg = LEDMatrixConfig(icons.SHUFFLE)
@@ -177,7 +176,7 @@ class Sonos(Component):
 
         """
         delta = value / 1800
-        new_value = min([max([0, self.volume + delta]), self.MAX_VOLUME_VALUE])
+        new_value = min(max(self.volume + delta, 0), self.MAX_VOLUME_VALUE)
         logger.debug("volume %s current: %s delta: %s new: %s", self.entity_id, self.volume, delta, new_value)
 
         self.volume = new_value
