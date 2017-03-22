@@ -7,3 +7,6 @@ __pycache__
 .Python
 lib/
 /.tox/
+/build/
+/dist/
+/docs/htdocs/
