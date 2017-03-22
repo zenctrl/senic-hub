@@ -72,14 +72,14 @@ def testing():
 @fixture(scope='session')
 def views():
     """ Returns the `views` module. """
-    from senic.nuimo_hub import views
+    from senic_hub.backend import views
     return views
 
 
 @fixture
 def app(config):
     """ Returns WSGI application wrapped in WebTest's testing interface. """
-    from senic.nuimo_hub.config import configure
+    from senic_hub.backend.config import configure
     return configure({'__file__': 'testing.ini'}, **config.registry.settings).make_wsgi_app()
 
 

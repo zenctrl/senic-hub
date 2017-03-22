@@ -1,5 +1,5 @@
 include .coveragerc
-recursive-include senic/nuimo_hub/tests *
-recursive-include senic/nuimo_hub/views *
+recursive-include senic_hub/backend/tests *
+recursive-include senic_hub/backend/views *
 global-exclude __pycache__
 global-exclude *.py[co]

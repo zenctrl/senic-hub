@@ -2,7 +2,7 @@ from setuptools import setup
 from os import path, walk
 
 
-name = 'senic.nuimo_hub_frontend'
+name = 'senic_hub.backend_frontend'
 
 
 def find_data(top):

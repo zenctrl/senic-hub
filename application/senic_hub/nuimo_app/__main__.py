@@ -5,7 +5,7 @@ import sys
 from . import components, errors
 
 from .hass import HAListener
-from .nuimo_app import NuimoApp
+from . import NuimoApp
 
 
 DEFAULT_BLE_ADAPTER_NAME = "hci0"

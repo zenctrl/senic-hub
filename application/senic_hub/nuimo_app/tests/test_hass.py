@@ -1,7 +1,7 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from senic.nuimo_app.hass import HAListener
+from senic_hub.nuimo_app.hass import HAListener
 
 
 class TestHAListener(TestCase):

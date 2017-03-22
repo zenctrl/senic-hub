@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from senic.nuimo_app import icons
+from senic_hub.nuimo_app import icons
 
 
 LIGHT_BULB1 = \

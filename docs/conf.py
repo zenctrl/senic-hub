@@ -20,4 +20,4 @@ autodoc_member_order = 'bysource'
 # general substitutions
 project = 'Nuimo Hub'
 copyright = '2016'
-version = release = get_distribution('senic.nuimo_hub').version
+version = release = get_distribution('senic_hub.backend').version

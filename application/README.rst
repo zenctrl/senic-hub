@@ -43,4 +43,4 @@ Run local instance
 
 To run a local instance of the backend, type `pserve development.ini --reload`.
 You can then access the backend at `http://127.0.0.1:6543/-/`.
-The `senic.nuimo_hub` package has been installed in development mode into the virtualenv, so any changes you make to the sources in side the `senic` folder will reflect into the running instance.
+The `senic_hub.backend` package has been installed in development mode into the virtualenv, so any changes you make to the sources in side the `senic` folder will reflect into the running instance.

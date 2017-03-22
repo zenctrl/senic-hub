@@ -1,5 +1,5 @@
 /.eggs/
 /.cache/
 /venv/
-/senic.nuimo_hub.egg-info/
+/senic_hub.backend.egg-info/
 __pycache__

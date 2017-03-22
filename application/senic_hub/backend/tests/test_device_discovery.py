@@ -5,7 +5,7 @@ from pytest import fixture
 
 import responses
 
-from senic.nuimo_hub.device_discovery import (DISCOVERY_TIMESTAMP_FIELD, discover, discover_and_update_devices,
+from senic_hub.backend.device_discovery import (DISCOVERY_TIMESTAMP_FIELD, discover, discover_and_update_devices,
                                               extract_philips_hue_bridge_ip, make_device_description)
 
 
@@ -104,7 +104,7 @@ def test_discover_devices_for_the_first_time_return_all_devices():
         "name": "second",
         DISCOVERY_TIMESTAMP_FIELD: str(now),
     }]
-    with patch("senic.nuimo_hub.device_discovery.discover") as discover_mock:
+    with patch("senic_hub.backend.device_discovery.discover") as discover_mock:
         discover_mock.return_value = discovered_devices
         assert discover_and_update_devices(devices, now) == expected
 
@@ -132,7 +132,7 @@ def test_discover_devices_includes_new_device_discovered():
         "name": "second",
         DISCOVERY_TIMESTAMP_FIELD: str(now),
     }]
-    with patch("senic.nuimo_hub.device_discovery.discover") as discover_mock:
+    with patch("senic_hub.backend.device_discovery.discover") as discover_mock:
         discover_mock.return_value = discovered_devices
         assert discover_and_update_devices(devices, now) == expected
 
@@ -160,7 +160,7 @@ def test_discover_devices_update_device_with_updated_fields():
         "name": "second",
         DISCOVERY_TIMESTAMP_FIELD: str(now),
     }]
-    with patch("senic.nuimo_hub.device_discovery.discover") as discover_mock:
+    with patch("senic_hub.backend.device_discovery.discover") as discover_mock:
         discover_mock.return_value = discovered_devices
         assert discover_and_update_devices(devices, now) == expected
 
@@ -181,6 +181,6 @@ def test_discover_devices_device_that_wasnt_discovered_again_is_not_removed_from
         "name": "first",
     }]
     expected = devices
-    with patch("senic.nuimo_hub.device_discovery.discover") as discover_mock:
+    with patch("senic_hub.backend.device_discovery.discover") as discover_mock:
         discover_mock.return_value = discovered_devices
         assert discover_and_update_devices(devices, now) == expected

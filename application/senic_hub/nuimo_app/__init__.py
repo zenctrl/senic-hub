@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class NuimoControllerListener(ControllerListener):
+
     def started_connecting(self):
         mac = self.controller.mac_address
         logger.info("Connecting to Nuimo controller %s...", mac)
@@ -191,7 +192,7 @@ class NuimoApp(NuimoControllerListener):
 
         if self.active_component:
             index = self.components.index(self.active_component)
-            return self.components[index-1]
+            return self.components[index - 1]
         else:
             return self.components[0]
 
@@ -202,7 +203,7 @@ class NuimoApp(NuimoControllerListener):
         if self.active_component:
             index = self.components.index(self.active_component)
             try:
-                return self.components[index+1]
+                return self.components[index + 1]
             except IndexError:
                 return self.components[0]
         else:
