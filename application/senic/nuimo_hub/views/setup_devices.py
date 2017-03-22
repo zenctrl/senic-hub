@@ -10,7 +10,7 @@ from pyramid.response import FileResponse
 from .. import supervisor
 
 from ..config import path
-from ..device_discovery import PhilipsHueBridge, UnauthenticatedDeviceError, UpstreamError
+from ..device_discovery import PhilipsHueBridge, UnauthenticatedDeviceError, UpstreamError, read_json
 
 
 logger = logging.getLogger(__name__)
@@ -76,11 +76,11 @@ def devices_authenticate_view(request):
 
     device_list_path = request.registry.settings['devices_path']
     device = get_device(device_list_path, device_id)
-    if device["type"] != "philips_hue":
+    if not device["authenticationRequired"]:
         raise HTTPBadRequest("Device doesn't require authentication...")
 
     config = read_json(request.registry.settings["hass_phue_config_path"], {})
-    username = (config.get(device["ip"]) or {}).get("username")
+    username = config.get(device["ip"], {}).get("username")
     bridge = PhilipsHueBridge(device["ip"], username)
     if not bridge.is_authenticated():
         username = bridge.authenticate()
@@ -90,19 +90,16 @@ def devices_authenticate_view(request):
     else:
         config.pop(device["ip"], None)
 
+    authenticated = username is not None
+    device["authenticated"] = authenticated
+
     # TODO might want to notify HASS to reload configuration
     with open(request.registry.settings["hass_phue_config_path"], "w") as f:
         json.dump(config, f)
 
-    return {"id": device_id, "authenticated": username is not None}
+    update_device(device_list_path, device)
 
-
-def read_json(file_path, default=None):
-    try:
-        with open(file_path) as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return default
+    return {"id": device_id, "authenticated": authenticated}
 
 
 details_service = Service(
@@ -121,7 +118,7 @@ def devices_details_view(request):
     device = get_device(device_list_path, device_id)
 
     config = read_json(request.registry.settings["hass_phue_config_path"], {})
-    username = (config.get(device["ip"]) or {}).get("username")
+    username = config.get(device["ip"], {}).get("username")
 
     try:
         bridge = PhilipsHueBridge(device["ip"], username)
@@ -146,3 +143,14 @@ def get_device(device_list_path, device_id):
         raise HTTPNotFound("Device with id = {} not found...".format(device_id))
 
     return device
+
+
+def update_device(device_list_path, device):
+    with open(device_list_path, "r") as f:
+        devices = json.loads(f.read())
+
+    device_index = next((i for (i, d) in enumerate(devices) if d["id"] == device["id"]), None)
+
+    devices[device_index] = device
+    with open(device_list_path, "w") as f:
+        json.dump(devices, f)
