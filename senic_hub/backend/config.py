@@ -7,13 +7,13 @@ def get_logger(name):
     return logging.getLogger('senic_hub.backend.%s' % name)
 
 
-project_name = 'nuimo_hub'
+project_name = 'senic_hub'
 log = get_logger(__name__)
 
 
 default_settings = dict(
     wifi_networks_path='/tmp/wifi_networks.json',
-    wifi_setup_flag_path='/srv/nuimo_hub/data/WIFI_SETUP_REQUIRED',
+    wifi_setup_flag_path='/srv/senic_hub/data/WIFI_SETUP_REQUIRED',
     hass_phue_config_path='/srv/nuimo_hass/data/phue.conf',
 )
 

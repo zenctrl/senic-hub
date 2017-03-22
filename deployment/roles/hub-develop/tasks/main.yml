@@ -128,7 +128,7 @@
 
 - name: make sure the deployment version of the hub is not running
   supervisorctl:
-    name: nuimo_hub
+    name: senic_hub
     state: stopped
   tags: spv
 
@@ -141,7 +141,7 @@
 
 - name: make sure the development version of the hub is now running
   supervisorctl:
-    name: nuimo_hub
+    name: senic_hub
     state: started
   tags: spv
 

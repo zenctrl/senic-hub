@@ -95,7 +95,7 @@
       WebOb==1.7.0rc2
       zope.deprecation==4.2.0
       zope.interface==4.3.3
-      senic.nuimo-hub
+      senic_hub
 
 - name: install application
   pip:
@@ -104,7 +104,7 @@
     extra_args: "--pre --upgrade -i {{devpi_index_url}}"
   become: yes
   become_user: "{{build_user}}"
-  notify: restart nuimo_hub
+  notify: restart senic_hub
   tags: update_backend
 
 - name: initialize cryptoyaml key
@@ -148,7 +148,7 @@
   become: yes
   template:
     src: supervisor.conf
-    dest: /etc/supervisor/conf.d/nuimo_hub.conf
+    dest: /etc/supervisor/conf.d/senic_hub.conf
     mode: "0644"
   notify: reload supervisord
 
@@ -160,7 +160,7 @@
     owner: "{{build_user}}"
     group: "{{run_user}}"
     mode: "0644"
-  notify: restart nuimo_hub
+  notify: restart senic_hub
 
 - name: ensure supervisord is running
   service:

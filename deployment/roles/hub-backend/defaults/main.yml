@@ -1,4 +1,4 @@
 ---
 python_interpreter: python3
-backend_deploy_location: /srv/nuimo_hub
-backend_data_location: /srv/nuimo_hub/data
+backend_deploy_location: /srv/senic_hub
+backend_data_location: /srv/senic_hub/data
