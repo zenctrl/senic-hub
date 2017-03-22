@@ -1,13 +1,13 @@
 .. _index:
 
-**********************
-:mod:`senic.nuimo_hub`
-**********************
+***************
+:mod:`senic_hub
+***************
 
 :Author: Senic GmbH
 :Version: |version|
 
-.. module:: senic.nuimo_hub
+.. module:: senic_hub
 
 Overview
 ========

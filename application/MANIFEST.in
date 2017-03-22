@@ -1,5 +1,9 @@
-include .coveragerc
-recursive-include senic/nuimo_hub/tests *
-recursive-include senic/nuimo_hub/views *
-global-exclude __pycache__
-global-exclude *.py[co]
+include senic_hub/.coveragerc
+recursive-include senic_hub/backend *
+recursive-include senic_hub/nuimo_app *
+global-exclude __pycache__ *.pyc .gitignore
+include setup.*
+graft *.egg-info
+graft PKG-INFO
+recursive-exclude senic_hub/frontend *
+graft senic_hub/frontend/distribution

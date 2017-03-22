@@ -1,7 +1,7 @@
 swagger: '2.0'
 info:
   version: "1.0.0"
-  title: senic.nuimo_hub API
+  title: senic_hub.backend API
 basePath: /-
 produces:
   - application/json

@@ -9,7 +9,7 @@ from pytest import fixture
 
 import responses
 
-from senic.nuimo_hub.device_discovery import PhilipsHueBridgeError
+from senic_hub.backend.device_discovery import PhilipsHueBridgeError
 
 
 @fixture
@@ -46,7 +46,7 @@ def test_device_list_contains_devices(browser, url):
 
 
 def test_devices_discover_view(tmp_device_file, browser, discover_url):
-    with patch('senic.nuimo_hub.views.setup_devices.supervisor') as supervisor_mock:
+    with patch('senic_hub.backend.views.setup_devices.supervisor') as supervisor_mock:
         browser.post_json(discover_url, {})
         supervisor_mock.restart_program.assert_called_once_with('device_discovery')
 

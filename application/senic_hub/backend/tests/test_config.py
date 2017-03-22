@@ -1,5 +1,5 @@
 import os
-from senic.nuimo_hub.config import crypto_settings
+from senic_hub.backend.config import crypto_settings
 
 
 def test_settings_without_secret_creates_key(tmpdir):

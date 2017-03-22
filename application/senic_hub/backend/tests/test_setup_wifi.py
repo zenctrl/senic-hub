@@ -25,7 +25,7 @@ def test_get_scanned_wifi_empty(no_such_wifi, browser, setup_url):
 def mocked_run(request):
     """don't run actual external commands during these tests
     """
-    with patch('senic.nuimo_hub.views.setup_wifi.run')\
+    with patch('senic_hub.backend.views.setup_wifi.run')\
             as mocked_run:
         yield mocked_run
 

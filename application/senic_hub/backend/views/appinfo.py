@@ -17,7 +17,7 @@ app_info = Service(
 @app_info.get()
 def get_app_info(request):
     result = dict(
-        version=get_distribution('senic.nuimo_hub').version,
+        version=get_distribution('senic_hub').version,
         bin_path=request.registry.settings['bin_path']
     )
     return result

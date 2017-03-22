@@ -4,7 +4,7 @@ from pyramid.config import Configurator
 
 
 def get_logger(name):
-    return logging.getLogger('senic.nuimo_hub.%s' % name)
+    return logging.getLogger('senic_hub.backend.%s' % name)
 
 
 project_name = 'nuimo_hub'

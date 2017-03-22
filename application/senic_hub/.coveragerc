@@ -1,0 +1,13 @@
+[run]
+omit =
+  senic_hub/backend/commands.py
+  senic_hub/backend/subprocess_run.py
+  senic_hub/backend/supervisor.py
+  senic_hub/backend/testing.py
+  senic_hub/backend/tests/*
+  senic_hub/backend/views/setup_config.py
+  senic_hub/nuimo_app/*
+  senic_hub/frontend/*
+
+[report]
+fail_under = 100

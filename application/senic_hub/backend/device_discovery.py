@@ -247,7 +247,7 @@ class PhilipsHueBridge:
             "name": self.config["name"],
             "authenticationRequired": True,
             "authenticated": self.is_authenticated(),
-            "ha_entity_id": "light.all_lights",
+            "ha_entity_id": "light.senic_hub_demo",
         }
 
 

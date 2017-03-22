@@ -140,7 +140,7 @@ def light_bar(max_value, value):
     dots = list(" " * 81)
     num_dots = int(value / max_value * 9)
     while num_dots > 0:
-        dots[81 - ((num_dots-1) * 9 + 5)] = "*"
+        dots[81 - ((num_dots - 1) * 9 + 5)] = "*"
         num_dots -= 1
 
     return "".join(dots)
