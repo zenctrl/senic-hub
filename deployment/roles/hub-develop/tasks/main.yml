@@ -94,7 +94,7 @@
 
 - name: create hub sources destination
   file:
-    dest: "/home/{{build_user}}/nuimo-hub-backend/application"
+    dest: "/home/{{build_user}}/nuimo-hub-backend/"
     state: directory
   become: true
   become_user: "{{build_user}}"
@@ -103,7 +103,7 @@
 
 - name: upload sources via rsync
   synchronize:
-    src: ../../../../application
+    src: ../../../../
     dest: "/home/{{build_user}}/nuimo-hub-backend/"
     archive: false
     delete: true
@@ -134,7 +134,7 @@
 
 - name: install source version into deployment venv
   pip:
-    name: "-e /home/{{build_user}}/nuimo-hub-backend/application/"
+    name: "-e /home/{{build_user}}/nuimo-hub-backend/"
     virtualenv: "{{backend_deploy_location}}/venv"
     chdir: "{{backend_deploy_location}}"
   tags: spv
