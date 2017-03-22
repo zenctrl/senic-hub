@@ -6,3 +6,7 @@ __pycache__
 *.log
 .Python
 lib/
+/.tox/
+/build/
+/dist/
+/docs/htdocs/

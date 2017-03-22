@@ -91,7 +91,7 @@
     repo: "git@github.com:tomster/nuimo-hub-backend"
     remote: tomster
     dest: "/home/{{build_user}}/nuimo-hub-backend"
-    version: "wifi-onboarding"
+    version: "deploy-monolith"
     accept_hostkey: true
   become: true
   become_user: "{{build_user}}"

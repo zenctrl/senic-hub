@@ -94,7 +94,7 @@
 
 - name: create hub sources destination
   file:
-    dest: "/home/{{build_user}}/nuimo-hub-backend/application"
+    dest: "/home/{{build_user}}/nuimo-hub-backend/"
     state: directory
   become: true
   become_user: "{{build_user}}"
@@ -103,7 +103,7 @@
 
 - name: upload sources via rsync
   synchronize:
-    src: ../../../../application
+    src: ../../../../
     dest: "/home/{{build_user}}/nuimo-hub-backend/"
     archive: false
     delete: true
@@ -128,20 +128,20 @@
 
 - name: make sure the deployment version of the hub is not running
   supervisorctl:
-    name: nuimo_hub
+    name: senic_hub
     state: stopped
   tags: spv
 
 - name: install source version into deployment venv
   pip:
-    name: "-e /home/{{build_user}}/nuimo-hub-backend/application/"
+    name: "-e /home/{{build_user}}/nuimo-hub-backend/"
     virtualenv: "{{backend_deploy_location}}/venv"
     chdir: "{{backend_deploy_location}}"
   tags: spv
 
 - name: make sure the development version of the hub is now running
   supervisorctl:
-    name: nuimo_hub
+    name: senic_hub
     state: started
   tags: spv
 

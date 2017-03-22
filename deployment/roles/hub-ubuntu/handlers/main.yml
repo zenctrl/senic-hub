@@ -28,7 +28,7 @@
     name: supervisor
     state: restarted
 
-- name: restart nuimo_hub
+- name: restart senic_hub
   supervisorctl:
-    name: nuimo_hub
+    name: senic_hub
     state: restarted

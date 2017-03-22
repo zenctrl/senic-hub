@@ -78,8 +78,8 @@
 
 - name: configure frontend website
   template:
-    src: nuimo_hub.conf
-    dest: /etc/lighttpd/conf-available/nuimo_hub.conf
+    src: senic_hub.conf
+    dest: /etc/lighttpd/conf-available/senic_hub.conf
     owner: root
     group: root
     mode: "0644"
@@ -88,8 +88,8 @@
 
 - name: enable frontend website
   file:  
-    src: /etc/lighttpd/conf-available/nuimo_hub.conf
-    dest: /etc/lighttpd/conf-enabled/nuimo_hub.conf
+    src: /etc/lighttpd/conf-available/senic_hub.conf
+    dest: /etc/lighttpd/conf-enabled/senic_hub.conf
     owner: root
     group: root
     mode: "0755"
