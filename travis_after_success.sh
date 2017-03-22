@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # "piggyback" on the existing tox environment
-PATH="$TRAVIS_BUILD_DIR/application/.tox/py35/bin/:$PATH"
+PATH="$TRAVIS_BUILD_DIR/.tox/py35/bin/:$PATH"
 REPO_OWNER="${TRAVIS_REPO_SLUG%/*}"
 
 
