@@ -44,8 +44,8 @@ def main(config_file_path=DEFAULT_CONFIG_FILE_PATH):
     for cid in component_config.sections():
         cfg = component_config[cid]
         component_class = getattr(components, cfg["component"])
-        entities = split_entities(cfg["entities"])
-        nuimo_app.register_component(component_class(cfg["name"], entities))
+        component = component_class(cfg["name"], cfg["entity_id"])
+        nuimo_app.register_component(component)
 
     try:
         nuimo_app.run()
@@ -59,10 +59,6 @@ def read_config(config_file_path):
     config = configparser.ConfigParser()
     config.read(config_file_path)
     return config["DEFAULT"], config
-
-
-def split_entities(s):
-    return [x.strip() for x in s.split(",")]
 
 
 if __name__ == "__main__":

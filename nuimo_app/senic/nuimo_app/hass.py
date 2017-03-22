@@ -29,7 +29,7 @@ class HAListener(Thread):
         self.stopping = False
         self.response_callbacks = {}  # req_id: callback
 
-        self.state_listeners = defaultdict(list)  # {entity_id1, ...}: [callback, ...]
+        self.state_listeners = defaultdict(list)  # entity_id: [callback1, ...]
 
     def connect(self, url):
         self.connection = create_connection("{}/api/websocket".format(url))
@@ -86,7 +86,7 @@ class HAListener(Thread):
                     self.process_event(result["event"])
 
             elif result["type"] == "result":
-                if self.process_callbacks(result):
+                if self.process_response_callbacks(result):
                     continue
                 else:
                     logger.debug("Got result w/o callback: %s", result)
@@ -96,20 +96,17 @@ class HAListener(Thread):
     def process_event(self, payload):
         entity_id = payload["data"]["entity_id"]
 
-        listeners_to_notify = [x for x in self.state_listeners if entity_id in x]
+        callbacks = self.state_listeners.get(entity_id, [])
+        for callback in callbacks:
+            callback(payload)
 
-        for listener in listeners_to_notify:
-            callbacks = self.state_listeners[listener]
-            for callback in callbacks:
-                callback(payload)
+    def register_state_listener(self, entity_id, callback):
+        self.state_listeners[entity_id].append(callback)
 
-    def register_state_listener(self, entity_ids, callback):
-        self.state_listeners[entity_ids].append(callback)
+    def unregister_state_listener(self, entity_id):
+        self.state_listeners.pop(entity_id, None)
 
-    def unregister_state_listener(self, entity_ids):
-        self.state_listeners.pop(entity_ids, None)
-
-    def process_callbacks(self, result):
+    def process_response_callbacks(self, result):
         callback = self.response_callbacks.pop(result["id"])
         if callback:
             callback(result)
@@ -121,19 +118,15 @@ class HAListener(Thread):
 
         self.send_request(request, callback)
 
-    def get_state(self, entity_ids, callback):
+    def get_state(self, entity_id, callback):
         request = self.prepare_request("get_states")
 
         def get_state_callback(response):
-            entity_states = []
-            for entity_id in entity_ids:
-                state = self.find_entity_state(response["result"], entity_id)
-                if not state:
-                    logger.error("Can't determine state of %s", entity_id)
-                else:
-                    entity_states.append(state)
-
-            callback(entity_states)
+            state = self.find_entity_state(response["result"], entity_id)
+            if state:
+                callback(state)
+            else:
+                logger.error("Can't determine state of %s", entity_id)
 
         self.send_request(request, get_state_callback)
 

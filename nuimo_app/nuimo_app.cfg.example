@@ -6,14 +6,14 @@ logging_level = INFO
 [phue-kitchen]
 component = PhilipsHue
 name = Kitchen
-entities = light.k1, light.k2
+entity_id = light.kitchen_group
 
 [phue-living-room]
 component = PhilipsHue
 name = Living room
-entities = group.livingroom
+entity_id = group.livingroom_group
 
 [sonos-big-one]
 component = Sonos
 name = Sonos
-entities = media_player.big_one
+entity_id = media_player.big_one

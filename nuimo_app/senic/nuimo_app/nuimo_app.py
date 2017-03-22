@@ -152,26 +152,20 @@ class NuimoApp(NuimoControllerListener):
             logger.debug("service_call response for %s:", entity_id)
             logger.debug(pformat(response))
 
-            status = response["success"]
-            action.entity_updated(entity_id, status)
+            if response["success"]:
+                matrix_config = action.led_matrix_config
+            else:
+                matrix_config = LEDMatrixConfig(icons.ERROR)
 
-            # check if action has been already applied to all entities
-            if action.is_complete():
-                if action.is_successful():
-                    matrix_config = action.led_matrix_config
-                else:
-                    matrix_config = LEDMatrixConfig(icons.ERROR)
+            self.update_led_matrix(matrix_config)
 
-                self.update_led_matrix(matrix_config)
+            self.action_in_progress = None
 
-                self.action_in_progress = None
+        attributes = {"entity_id": action.entity_id}
+        attributes.update(action.extra_args)
 
-        for entity_id in action.entity_ids:
-            attributes = {"entity_id": entity_id}
-            attributes.update(action.extra_args)
-
-            callback = partial(call_service_callback, entity_id)
-            self.ha.call_service(action.domain, action.service, attributes, callback)
+        callback = partial(call_service_callback, action.entity_id)
+        self.ha.call_service(action.domain, action.service, attributes, callback)
 
     def register_component(self, component):
         def set_state(state):
@@ -183,13 +177,13 @@ class NuimoApp(NuimoControllerListener):
             # register a state_changed callback that is called
             # every time there's a state changed event for any of
             # entities known by the component
-            self.ha.register_state_listener(component.entity_ids, component.state_changed)
+            self.ha.register_state_listener(component.entity_id, component.state_changed)
 
             # show active component if we can
             if not self.active_component and self.components:
                 self.set_active_component()
 
-        self.ha.get_state(component.entity_ids, set_state)
+        self.ha.get_state(component.entity_id, set_state)
 
     def get_prev_component(self):
         if not self.components:
@@ -226,10 +220,10 @@ class NuimoApp(NuimoControllerListener):
             logger.debug("active component: %s", active_component.name)
 
             if self.active_component:
-                self.ha.unregister_state_listener(self.active_component.entity_ids)
+                self.ha.unregister_state_listener(self.active_component.entity_id)
 
             self.active_component = active_component
-            self.ha.register_state_listener(self.active_component.entity_ids, self.state_changed)
+            self.ha.register_state_listener(self.active_component.entity_id, self.state_changed)
 
             if self.controller.is_connected():
                 self.show_active_component()
@@ -240,8 +234,6 @@ class NuimoApp(NuimoControllerListener):
         currently active component group.
 
         """
-        logger.debug("state_changed:")
-        logger.debug(pformat(state))
 
     def show_active_component(self):
         if self.active_component:
