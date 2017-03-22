@@ -41,7 +41,7 @@ def settings():
         'nuimo_mac_address_filepath': asset_path('nuimo_mac_address.txt'),
         'config_ini_path': '/no/such/file.ini',
         'joined_wifi_path': asset_path('joined_wifi.json'),
-        'hass_phue_config_path': asset_path('phue.conf'),
+        'homeassistant_data_path': asset_path(),
     }
 
 
