@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-import './SetupWifiPassword.css'
+import './SetupWifiConnection.css'
 
-class SetupWifiPassword extends Component {
+class SetupWifiConnection extends Component {
   constructor(props) {
     super(props);
     this.state = { password: '' };
@@ -9,7 +9,7 @@ class SetupWifiPassword extends Component {
 
   render() {
     return (
-      <div className='SetupWifiPassword'>
+      <div className='SetupWifiConnection'>
         <div>Please enter the password for { this.props.params.ssid }</div>
         <input type="password" value={this.state.password} onChange={this.onPasswordChange.bind(this)} />
         <a href="#" onClick={this.submitPassword.bind(this)}>Continue</a>
@@ -44,4 +44,4 @@ class SetupWifiPassword extends Component {
   }
 }
 
-export default SetupWifiPassword
+export default SetupWifiConnection

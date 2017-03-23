@@ -1,14 +1,14 @@
 import React, { Component } from 'react'
 import { Router, Route, Redirect, hashHistory } from 'react-router'
 import './App.css'
-import Setup              from './Setup'
-import SetupWelcome       from './SetupWelcome'
-import SetupWifiPassword  from './SetupWifiPassword'
-import SetupWifiSelection from './SetupWifiSelection'
-import SetupNuimo         from './SetupNuimo'
-import SetupDevices       from './SetupDevices'
-import SetupCompletion    from './SetupCompletion'
-import SetupTutorialVideo from './SetupTutorialVideo'
+import Setup               from './Setup'
+import SetupWelcome        from './SetupWelcome'
+import SetupWifiSelection  from './SetupWifiSelection'
+import SetupWifiConnection from './SetupWifiConnection'
+import SetupNuimo          from './SetupNuimo'
+import SetupDevices        from './SetupDevices'
+import SetupCompletion     from './SetupCompletion'
+import SetupTutorialVideo  from './SetupTutorialVideo'
 
 class App extends Component {
   render() {
@@ -19,9 +19,10 @@ class App extends Component {
           <Redirect from="/" to="/setup/welcome" />
           <Redirect from="/setup" to="/setup/welcome" />
           <Route path='setup' component={Setup}>
+            <Redirect from="wifi" to="wifi/select" />
             <Route path='welcome' component={SetupWelcome} />
-            <Route path='wifi' component={SetupWifiSelection} />
-            <Route path='wifi/:ssid' component={SetupWifiPassword} />
+            <Route path='wifi/select' component={SetupWifiSelection} />
+            <Route path='wifi/connect/:ssid' component={SetupWifiConnection} />
             <Route path='nuimo' component={SetupNuimo} />
             <Route path='devices' component={SetupDevices} />
             <Route path='completed' component={SetupCompletion} />
