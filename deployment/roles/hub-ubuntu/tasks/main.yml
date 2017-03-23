@@ -60,10 +60,11 @@
 - name: ensure document root
   file:
     dest: "{{frontend_document_root}}"
-    owner: root
-    group: root
+    owner: "{{build_user}}"
+    group: "{{run_user}}"
     mode: "0755"
     state: directory
+  become: yes
   tags: www
 
 - name: configure lighttpd
@@ -87,7 +88,7 @@
   tags: www
 
 - name: enable frontend website
-  file:  
+  file:
     src: /etc/lighttpd/conf-available/senic_hub.conf
     dest: /etc/lighttpd/conf-enabled/senic_hub.conf
     owner: root
