@@ -4,7 +4,9 @@ import logging
 import os
 
 from cornice.service import Service
+from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.response import FileResponse
+from subprocess import CalledProcessError
 
 from ..config import path
 from ..subprocess_run import run
@@ -48,17 +50,25 @@ def join_network(request):
     password = request.validated['password']
     logger.debug("Trying to connect to network '%s'", ssid)
     # TODO: Can we spawn the process so that we can give a proper request response?
-    run([
-        'sudo',
-        os.path.join(request.registry.settings['bin_path'], 'join_wifi'),
-        '-c', request.registry.settings['config_ini_path'],
-        ssid,
-        password,
-    ])
-    # TOOD: If we can still respond that probably means wifi wasn't joined,
-    #       or that we were already connected to the same Wi-Fi.
-    #       Study all possible case to return something helpful if possible.
-    return {'error': 'failed'}
+    try:
+        run([
+            'sudo',
+            os.path.join(request.registry.settings['bin_path'], 'join_wifi'),
+            '-c', request.registry.settings['config_ini_path'],
+            ssid,
+            password,
+        ],
+        check=True)
+    except CalledProcessError:
+        run([
+            'sudo',
+            os.path.join(request.registry.settings['bin_path'], 'enter_wifi_setup'),
+            '-c', request.registry.settings['config_ini_path']
+        ])
+        # TOOD: If we can still respond that probably means wifi wasn't joined,
+        #       or that we were already connected to the same Wi-Fi.
+        #       Study all possible case to return something helpful if possible.
+        raise HTTPBadRequest()
 
 
 @wifi_connection.get()
