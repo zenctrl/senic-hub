@@ -1,3 +1,4 @@
 ---
 source_transport: rsync
 configure_vim: false
+backend_deploy_location: /srv/senic_hub
