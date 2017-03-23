@@ -1,4 +1,5 @@
-import React, { Component } from 'react';
+import React, { Component } from 'react'
+import { Link } from 'react-router'
 import './SetupWifiConnection.css'
 
 let log = console.log
@@ -71,6 +72,7 @@ class SetupWifiConnection extends Component {
           return (
             <div className='SetupWifiConnection'>
               <div>Your Senic Hub is now connected to your home Wi-Fi</div>
+              <Link to="setup/nuimo">Continue</Link>
             </div>
           )
         default:
