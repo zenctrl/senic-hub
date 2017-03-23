@@ -21,7 +21,8 @@ class SetupWifiConnection extends Component {
       activity: Activity.ENTER_WIFI_PASSWORD,
       error: null,
       ssid: props.params.ssid,
-      password: ''
+      password: '',
+      waitingForHubToJoinStartDate: null
     };
   }
 
@@ -97,6 +98,14 @@ class SetupWifiConnection extends Component {
         break
       case Activity.WAITING_FOR_HUB_TO_JOIN_HOME_WIFI:
         // This is when we expect the user to be still connected to the adhoc
+        if (this.state.activity != Activity.WAITING_FOR_HUB_TO_JOIN_HOME_WIFI) {
+          this.state.waitingForHubToJoinStartDate = new Date()
+        }
+        else if ((new Date()).getTime() - this.state.waitingForHubToJoinStartDate.getTime() > 10000) {
+          this.setActivity(Activity.LOOKING_FOR_HUB_IN_HOME_WIFI)
+          break
+        }
+        // intentionally fall-through to next case
       case Activity.LOOKING_FOR_HUB_IN_HOME_WIFI:
         // This is when we want the user to connect her machine back to the home wifi
         getWifiConnection(1000)
@@ -106,7 +115,7 @@ class SetupWifiConnection extends Component {
               console.log('SSID OK, status=' + connection.status)
               switch (connection.status) {
                 case 'connected':  this.setActivity(Activity.HUB_IS_CONNECTED_TO_HOME_WIFI); break
-                case 'connecting': this.setActivity(Activity.WAITING_FOR_HUB_TO_JOIN_HOME_WIFI); break
+                case 'connecting': this.setActivity(activity); break
                 default:           this.setActivity(Activity.HUB_FAILED_TO_JOIN_HOME_WIFI, 'unknown reason'); break
               }
             }
@@ -114,16 +123,7 @@ class SetupWifiConnection extends Component {
               this.setActivity(Activity.HUB_FAILED_TO_JOIN_HOME_WIFI, 'unknown reason')
             }
           })
-          //TODO: On timeout, ask user to connect to her home Wi-Fi
-          .catch((error) => {
-            if (false /* If we're trying since 10 seconds to get an answer from the hub, ask user to re-connect her machine  */) {
-              this.setActivity(Activity.LOOKING_FOR_HUB_IN_HOME_WIFI)
-            }
-            else {
-              //TODO: Handle error as `SyntaxError`: wifi connection file is read while it's written. Should be avoided by backend!
-              console.error('getting /wifi/connection failed:', error)
-            }
-          })
+          .catch((error) => this.setActivity(activity) /* try again */)
         break
       case Activity.HUB_FAILED_TO_JOIN_HOME_WIFI:
         break
