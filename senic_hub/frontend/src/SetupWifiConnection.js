@@ -1,27 +1,53 @@
 import React, { Component } from 'react';
 import './SetupWifiConnection.css'
 
+let Activity = {
+  ENTER_WIFI_PASSWORD: 'ENTER_WIFI_PASSWORD',
+  HUB_IS_JOINING_HOME_WIFI: 'HUB_IS_JOINING_HOME_WIFI'
+}
+
 class SetupWifiConnection extends Component {
   constructor(props) {
     super(props);
-    this.state = { password: '' };
+    this.state = {
+      activity: Activity.ENTER_WIFI_PASSWORD,
+      ssid: props.params.ssid,
+      password: ''
+    };
   }
 
   render() {
-    return (
-      <div className='SetupWifiConnection'>
-        <div>Please enter the password for { this.props.params.ssid }</div>
-        <input type="password" value={this.state.password} onChange={this.onPasswordChange.bind(this)} />
-        <a href="#" onClick={this.submitPassword.bind(this)}>Continue</a>
-      </div>
-    )
+    return (() => {
+      switch (this.state.activity) {
+        case Activity.ENTER_WIFI_PASSWORD:
+          return (
+            <div className='SetupWifiConnection'>
+              <div>Please enter the password for { this.state.ssid }</div>
+              <input type="password" value={this.state.password} onChange={this.onPasswordChange.bind(this)} />
+              <a href="#" onClick={this.joinHomeWifi.bind(this)}>Continue</a>
+            </div>
+          )
+        case Activity.HUB_IS_JOINING_HOME_WIFI:
+          return (
+            <div className='SetupWifiConnection'>
+              <div>Senic Hub is now joining your WiFi network </div>
+            </div>
+          )
+        default:
+          return (
+            <div className='SetupWifiConnection'>
+              <div>TODO: Provide support to user for this unexpected state!</div>
+            </div>
+          )
+        }
+      })()
   }
 
   onPasswordChange(event) {
     this.setState({password: event.target.value})
   }
 
-  submitPassword(event) {
+  joinHomeWifi(event) {
     let postBody = {
       'ssid':     this.props.params.ssid,
       'password': this.state.password,
