@@ -112,6 +112,7 @@
     - "--exclude=.*"
     - "--exclude=*.egg-info"
     - "--exclude=__pycache__"
+    - "--exclude=node_modules"
     - "--exclude=venv"
     - "-e bin/ploy-ssh"
 
