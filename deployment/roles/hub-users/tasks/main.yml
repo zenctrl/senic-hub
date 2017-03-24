@@ -1,0 +1,22 @@
+---
+- name: create application group
+  become: true
+  group:
+    name: "{{run_user}}"
+
+- name: create application user
+  become: true
+  user:
+    name: "{{run_user}}"
+    group: "{{run_user}}"
+    createhome: yes
+    shell: /bin/sh
+
+- name: create deploy user
+  become: true
+  user:
+    name: "{{build_user}}"
+    groups: "{{run_user}}"
+    append: yes
+    createhome: yes
+    shell: /bin/sh
