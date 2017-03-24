@@ -95,8 +95,8 @@ def rsync(*args, **kwargs):
 @task
 def sync_src():
     get_vars()
-    with fab.lcd('../senic_hub'):
-        destination = '/home/%s/nuimo-hub-backend/senic_hub' % AV['build_user']
+    with fab.lcd('..'):
+        destination = '/home/%s/nuimo-hub-backend' % AV['build_user']
         fab.sudo('mkdir -p %s' % destination, user=AV['build_user'])
         rsync(
             '-rlptvD',
