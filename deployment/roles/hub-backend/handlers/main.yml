@@ -11,3 +11,8 @@
   service:
     name: dbus
     state: restarted
+
+- name: restart wifi_setup
+  supervisorctl:
+    name: wifi_setup
+    state: restarted
