@@ -23,7 +23,7 @@ class SetupWifiSelection extends Component {
         <div className="SetupWifiSelection_Ssids">
         {
           this.state.ssids.map((name) =>
-            <Link key={name} to={'/setup/wifi/' + name}>
+            <Link key={name} to={'/setup/wifi/connect/' + name}>
               <span className="SetupWifiSelection_WifiIcon"></span>
               <span>{ name }</span>
             </Link>

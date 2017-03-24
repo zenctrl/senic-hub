@@ -146,11 +146,12 @@ def join_wifi(config, ssid, password, device=DEFAULT_IFACE):
     except TimeoutExpired:
         success = False
 
+    WIFI_SETUP_FLAG_PATH = app.registry.settings['wifi_setup_flag_path']
+
     if success:
         # clean up after ourselves
         with open(app.registry.settings['joined_wifi_path'], 'w') as joined_wifi:
             joined_wifi.write(json.dumps(dict(ssid=ssid, status='connected')))
-        WIFI_SETUP_FLAG_PATH = app.registry.settings['wifi_setup_flag_path']
         if os.path.exists(WIFI_SETUP_FLAG_PATH):
             os.remove(WIFI_SETUP_FLAG_PATH)
         run(['/bin/systemctl', 'restart', 'avahi-daemon'])

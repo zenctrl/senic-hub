@@ -1,5 +1,6 @@
 import pytest
-from mock import patch
+from subprocess import CalledProcessError
+from unittest.mock import patch
 
 
 @pytest.fixture
@@ -25,8 +26,7 @@ def test_get_scanned_wifi_empty(no_such_wifi, browser, setup_url):
 def mocked_run(request):
     """don't run actual external commands during these tests
     """
-    with patch('senic_hub.backend.views.setup_wifi.run')\
-            as mocked_run:
+    with patch('senic_hub.backend.views.setup_wifi.run') as mocked_run:
         yield mocked_run
 
 
@@ -35,7 +35,7 @@ def connection_url(route_url):
     return route_url('wifi_connection')
 
 
-def test_join_wifi(browser, connection_url, mocked_run, settings):
+def test_join_wifi_succeeds_with_correct_credentials(browser, connection_url, mocked_run, settings):
     browser.post_json(connection_url, dict(
         ssid='grandpausethisnetwork',
         password='foobar',
@@ -47,6 +47,32 @@ def test_join_wifi(browser, connection_url, mocked_run, settings):
             '-c', settings['config_ini_path'],
             'grandpausethisnetwork',
             'foobar',
+        ],
+        check=True
+    )
+
+
+def test_join_wifi_enters_setup_again_if_join_fails(browser, connection_url, mocked_run, settings):
+    mocked_run.side_effect = [CalledProcessError(1, ""), None]
+    browser.post_json(connection_url, dict(
+        ssid='grandpausethisnetwork',
+        password='grandpa-forgot-correct-password',
+        device='wlan0'), status=400)
+    mocked_run.assert_any_call(
+        [
+            'sudo',
+            '%s/join_wifi' % settings['bin_path'],
+            '-c', settings['config_ini_path'],
+            'grandpausethisnetwork',
+            'grandpa-forgot-correct-password',
+        ],
+        check=True
+    )
+    mocked_run.assert_any_call(
+        [
+            'sudo',
+            '%s/enter_wifi_setup' % settings['bin_path'],
+            '-c', settings['config_ini_path'],
         ]
     )
 
