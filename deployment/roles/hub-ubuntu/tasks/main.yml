@@ -149,6 +149,7 @@
     - scan_wifi
     - wifi_setup
     - device_discovery
+    - nuimo_app
   notify: reload supervisord
   when: ploy_wlan0 is defined
   tags: wifi
