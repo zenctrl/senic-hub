@@ -66,7 +66,7 @@ def join_network(request):
         ])
         # TOOD: If we can still respond that probably means wifi wasn't joined,
         #       or that we were already connected to the same Wi-Fi.
-        #       Study all possible case to return something helpful if possible.
+        #       Study all possible cases to return something helpful if possible.
         raise HTTPBadRequest()
 
 
