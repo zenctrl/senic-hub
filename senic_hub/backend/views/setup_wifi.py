@@ -56,9 +56,8 @@ def join_network(request):
             os.path.join(request.registry.settings['bin_path'], 'join_wifi'),
             '-c', request.registry.settings['config_ini_path'],
             ssid,
-            password,
-        ],
-        check=True)
+            password
+        ], check=True)
     except CalledProcessError:
         run([
             'sudo',
