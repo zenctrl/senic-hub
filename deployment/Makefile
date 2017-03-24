@@ -21,7 +21,7 @@ download-nanopi: downloads/Armbian_5.25_Nanopiair_Ubuntu_xenial_default_3.4.113.
 downloads/Armbian_5.25_Nanopiair_Ubuntu_xenial_default_3.4.113.7z:
 	wget -P downloads/ https://dl.armbian.com/nanopiair/archive/Armbian_5.25_Nanopiair_Ubuntu_xenial_default_3.4.113.7z
 
-raspbian_lite_image = raspbian_lite-2017-01-10/2017-01-11-raspbian-jessie-lite.zip
+raspbian_lite_image = raspbian_lite-2017-03-03/2017-03-02-raspbian-jessie-lite.zip
 download-pi3: downloads/$(notdir $(raspbian_lite_image))
 downloads/$(notdir $(raspbian_lite_image)):
 	wget -P downloads/ http://director.downloads.raspberrypi.org/raspbian_lite/images/$(raspbian_lite_image)
