@@ -149,7 +149,7 @@ def update_device(device_list_path, device):
     with open(device_list_path, "r") as f:
         devices = json.loads(f.read())
 
-    device_index = next((i for (i, d) in enumerate(devices) if d["id"] == device["id"]), None)
+    device_index = [i for (i, d) in enumerate(devices) if d["id"] == device["id"]].pop()
 
     devices[device_index] = device
     with open(device_list_path, "w") as f:
