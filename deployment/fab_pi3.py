@@ -104,6 +104,10 @@ def sync_src():
             '--exclude', '*.egg-info',
             '--exclude', '__pycache__',
             '--exclude', 'node_modules',
-            '--exclude', 'venv',
+            '--exclude', '/build',
+            '--exclude', '/deployment',
+            '--exclude', '/dist',
+            '--exclude', '/docs',
+            '--exclude', '/venv',
             '.',
             '{host_string}:%s' % destination)

@@ -153,3 +153,21 @@
     state: running
     enabled: true
 
+- name: make sure we enter wifi setup mode when we boot
+  file:
+    path: "{{backend_data_location}}/wifi_setup_required"
+    owner: "{{ run_user }}"
+    group: "{{ run_user }}"
+    state: touch
+  when: enter_wifi_setup_mode is defined and enter_wifi_setup_mode
+  notify: restart wifi_setup
+
+# TODO move to this develop role
+- name: use specific nuimo
+  copy:
+    dest: "{{backend_data_location}}/nuimo_mac_address.txt"
+    content: "{{ nuimo_mac_address }}"
+    owner: "{{ run_user }}"
+    group: "{{ run_user }}"
+  when: nuimo_mac_address is defined
+  notify: restart senic_hub

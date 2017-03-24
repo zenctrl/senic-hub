@@ -1,4 +1,0 @@
----
-python_interpreter: python3
-nuimoapp_deploy_location: /srv/nuimo_app
-nuimoapp_data_location: /srv/nuimo_app/data

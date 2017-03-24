@@ -56,7 +56,7 @@
     dest: "{{hass_data_location}}/configuration.yaml"
     owner: "{{build_user}}"
     group: "{{run_user}}"
-    mode: "0644"
+    mode: "0664"
     src: configuration.yaml
   notify: restart nuimo_hass
   tags: update_hass
