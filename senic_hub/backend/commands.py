@@ -25,7 +25,6 @@ from . import supervisor
 from .device_discovery import PhilipsHueBridgeApiClient, discover_devices, read_json
 
 
-DEFAULT_IFACE = 'wlan0'
 IFACES_AVAILABLE = '/etc/network/interfaces.available/{}'
 IFACES_D = '/etc/network/interfaces.d/{}'
 WPA_SUPPLICANT_FS = '/etc/wpa_supplicant/wpa_supplicant.conf'
@@ -42,7 +41,7 @@ DEFAULT_SCAN_INTERVAL_SECONDS = 1 * 60  # 1 minute
 logger = logging.getLogger(__name__)
 
 
-def get_networks(devices=[DEFAULT_IFACE]):
+def get_networks(devices):
     networks = dict()
     for device in devices:
         networks.update({c.ssid: dict(device=device, cell=c) for c in wifi.Cell.all(device)})
@@ -53,13 +52,11 @@ def get_networks(devices=[DEFAULT_IFACE]):
 @click.option('--config', '-c', required=True, type=click.Path(exists=True), help='app configuration file')
 @click.option('--forever/--no-forever', default=False, help='scan forever (until interupted')
 @click.option('--waitsec', default=20, help='How many seconds to wait inbetween scans (only when forever')
-@click.argument('devices', nargs=-1)
-def scan_wifi(config, devices, forever=False, waitsec=20):
-    if devices == ():
-        devices = [DEFAULT_IFACE]
+def scan_wifi(config, forever=False, waitsec=20):
     while True:
         click.echo("Scanning for wifi networks")
-        networks = get_networks(devices=devices)
+        device = 'wlan0'  # TODO: Read from config file
+        networks = get_networks(devices=[device])
         json_networks = {n['cell'].ssid: dict(device=n['device']) for n in networks.values()}
         app = get_app(abspath(config))
         with open(app.registry.settings['wifi_networks_path'], 'w') as wifi_file:
@@ -69,7 +66,7 @@ def scan_wifi(config, devices, forever=False, waitsec=20):
         time.sleep(waitsec)
 
 
-def activate_adhoc(device=DEFAULT_IFACE):
+def activate_adhoc(device):
     run(['ifdown', device])
     try:
         os.remove(IFACES_D.format(device))
@@ -83,11 +80,11 @@ def activate_adhoc(device=DEFAULT_IFACE):
     run(['ifup', device])
 
 
-@click.command(help='Activate the wifi-onboarding setup')
-@click.option('--config', '-c', required=True, type=click.Path(exists=True), help='app configuration file')
-@click.argument('device', default=DEFAULT_IFACE)
-def enter_wifi_setup(config, device=DEFAULT_IFACE):
+@click.command(help="Activate the wifi-onboarding setup")
+@click.option('--config', '-c', required=True, type=click.Path(exists=True), help="app configuration file")
+def enter_wifi_setup(config):
     app = get_app(abspath(config))
+    device = 'wlan0'  # TODO: Read from config file
     WIFI_SETUP_FLAG_PATH = app.registry.settings['wifi_setup_flag_path']
     if not os.path.exists(WIFI_SETUP_FLAG_PATH):
         click.echo("Not entering wifi setup mode. %s not found" % WIFI_SETUP_FLAG_PATH)
@@ -116,13 +113,13 @@ def enter_wifi_setup(config, device=DEFAULT_IFACE):
     click.echo("Unable to enter wifi setup mode. Check supervisord log for details")
 
 
-@click.command(help='join a given wifi network (requires root privileges)')
-@click.option('--config', '-c', required=True, type=click.Path(exists=True), help='app configuration file')
+@click.command(help="join a given wifi network (requires root privileges)")
+@click.option('--config', '-c', required=True, type=click.Path(exists=True), help="app configuration file")
 @click.argument('ssid')
 @click.argument('password')
-@click.argument('device', default=DEFAULT_IFACE)
-def join_wifi(config, ssid, password, device=DEFAULT_IFACE):
+def join_wifi(config, ssid, password):
     app = get_app(abspath(config))
+    device = 'wlan0'  # TODO: Read from config
     # signal, that we've started to join:
     with open(app.registry.settings['joined_wifi_path'], 'w') as joined_wifi:
         joined_wifi.write(json.dumps(dict(ssid=ssid, status='connecting')))
