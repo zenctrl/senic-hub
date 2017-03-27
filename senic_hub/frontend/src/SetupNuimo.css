@@ -85,7 +85,7 @@
 
 @keyframes SetupNuimo_Success_Fill {
   100% {
-    box-shadow: inset 0px 0px 0px 30px $color--green;
+    box-shadow: inset 0px 0px 0px 30px green;
   }
 }
 
