@@ -4,6 +4,8 @@
 PATH="$TRAVIS_BUILD_DIR/.tox/py35/bin/:$PATH"
 REPO_OWNER="${TRAVIS_REPO_SLUG%/*}"
 
+echo `git describe --tags`
+echo `git tag`
 
 # build and publish for
 if  [ "$TRAVIS_PULL_REQUEST" = "false" ] ; then
