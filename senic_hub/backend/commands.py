@@ -229,19 +229,17 @@ def generate_nuimo_configuration(devices, nuimo_controller_mac_address, bluetoot
     }
     for index, device in enumerate(devices):
         section_name = '{}-{}'.format(device['type'], index)
+        component = {
+            'philips_hue': 'PhilipsHue',
+            'sonos': 'Sonos',
+        }[device['type']]
+
         config[section_name] = {
             'name': section_name,
-            'component': get_component_for_device(device),
+            'component': component,
             'entity_id': device["ha_entity_id"],
         }
     return config
-
-
-def get_component_for_device(device):
-    return {
-        'philips_hue': 'PhilipsHue',
-        'sonos': 'Sonos',
-    }[device['type']]
 
 
 def sigint_handler(*args):
