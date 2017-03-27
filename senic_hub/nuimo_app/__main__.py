@@ -5,14 +5,18 @@ import sys
 from . import NuimoApp, components, errors
 
 
+# TODO: Read from main ini file
 DEFAULT_BLE_ADAPTER_NAME = "hci0"
-DEFAULT_CONFIG_FILE_PATH = "/srv/nuimo_app/data/nuimo_app.cfg"
+# TODO: Read path to `nuimo_app.cfg` from main ini file
+DEFAULT_CONFIG_FILE_PATH = "/srv/senic_hub/data/nuimo_app.cfg"
+# TODO: Read value from main ini file
 DEFAULT_LOGGING_LEVEL = "WARNING"
 
 
 logger = logging.getLogger(__name__)
 
 
+# TODO: Remove default argument so this app needs to be called with a path to an ini file
 def main(config_file_path=DEFAULT_CONFIG_FILE_PATH):
     if len(sys.argv) > 1:
         config_file_path = sys.argv[-1]
