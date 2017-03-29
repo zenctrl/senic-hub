@@ -3,6 +3,8 @@ import logging
 import os
 import os.path
 
+from tempfile import mkstemp
+
 from cornice.service import Service
 
 from pyramid.httpexceptions import HTTPBadGateway, HTTPBadRequest, HTTPNotFound
@@ -100,7 +102,7 @@ def devices_authenticate_view(request):
     with open(phue_bridge_config, "w") as f:
         json.dump(config, f)
 
-    update_device(device_list_path, device)
+    update_device(device, request.registry.settings)
 
     return {"id": device_id, "authenticated": authenticated}
 
@@ -150,12 +152,16 @@ def get_device(device_list_path, device_id):
     return device
 
 
-def update_device(device_list_path, device):
-    with open(device_list_path, "r") as f:
+def update_device(device, settings):
+    devices_path = settings["devices_path"]
+    with open(devices_path, "r") as f:
         devices = json.loads(f.read())
 
     device_index = [i for (i, d) in enumerate(devices) if d["id"] == device["id"]].pop()
 
     devices[device_index] = device
-    with open(device_list_path, "w") as f:
+
+    fd, filename = mkstemp(dir=settings['homeassistant_data_path'])
+    with open(fd, "w") as f:
         json.dump(devices, f)
+    os.rename(filename, devices_path)

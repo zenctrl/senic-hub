@@ -9,6 +9,8 @@ import time
 from os.path import abspath
 from subprocess import PIPE, TimeoutExpired
 from datetime import datetime, timedelta
+from tempfile import mkstemp
+
 from .subprocess_run import run
 
 import wifi
@@ -285,8 +287,10 @@ def device_discovery(config):
         add_authentication_status(devices, app.registry.settings)
         add_homeassistant_entity_ids(devices)
 
-        with open(devices_path, 'w') as f:
+        fd, filename = mkstemp(dir=app.registry.settings['homeassistant_data_path'])
+        with open(fd, "w") as f:
             json.dump(devices, f)
+        os.rename(filename, devices_path)
 
         next_scan = now + timedelta(seconds=scan_interval_seconds)
         logging.info("Next device discovery run scheduled for %s", next_scan)
