@@ -58,7 +58,7 @@ def auth_url(route_url):
 
 @fixture
 def phue_config_path(settings):
-    return os.path.join(settings["hass_phue_config_path"])
+    return os.path.join(settings["homeassistant_data_path"], "ph1.conf")
 
 
 @fixture
@@ -124,8 +124,8 @@ def no_auth_url(route_url):
     return route_url('devices_authenticate', device_id="s1")
 
 
-def test_devices_authenticate_returns_400_when_device_doesnt_support_auth(browser, no_auth_url):
-    assert browser.post_json(no_auth_url, {}, status=400)
+def test_devices_authenticate_returns_authenticated_when_device_doesnt_need_auth(browser, no_auth_url):
+    assert browser.post_json(no_auth_url, {}).json == {"authenticated": True, "id": "s1"}
 
 
 @responses.activate
@@ -158,13 +158,6 @@ def test_devices_details_returns_502_if_philips_hue_bridge_returns_error(
     response_payload = {"error": {"type": 12345}}
     responses.add(responses.GET, 'http://127.0.0.1/api/23/lights', json=response_payload, status=200)
     responses.add(responses.GET, 'http://127.0.0.1/description.xml', body=philips_hue_bridge_description, status=200)
-    assert browser.get_json(details_url, status=502)
-
-
-@responses.activate
-def test_devices_details_returns_502_if_philips_hue_bridge_returns_error_when_getting_description(
-        phue_config_file, browser, details_url, philips_hue_bridge_description):
-    responses.add(responses.GET, 'http://127.0.0.1/description.xml', status=404)
     assert browser.get_json(details_url, status=502)
 
 

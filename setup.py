@@ -76,7 +76,7 @@ setup(
         join_wifi = senic_hub.backend.commands:join_wifi
         setup_nuimo = senic_hub.backend.commands:setup_nuimo
         create_configurations = senic_hub.backend.commands:create_configuration_files_and_restart_apps
-        device_discovery = senic_hub.backend.commands:discover_devices
+        device_discovery = senic_hub.backend.commands:device_discovery
         nuimo_app = senic_hub.nuimo_app.__main__:main
     """,
 )

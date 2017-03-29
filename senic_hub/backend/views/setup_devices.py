@@ -1,6 +1,9 @@
 import json
 import logging
 import os
+import os.path
+
+from tempfile import mkstemp
 
 from cornice.service import Service
 
@@ -10,7 +13,7 @@ from pyramid.response import FileResponse
 from .. import supervisor
 
 from ..config import path
-from ..device_discovery import PhilipsHueBridge, UnauthenticatedDeviceError, UpstreamError, read_json
+from ..device_discovery import PhilipsHueBridgeApiClient, UnauthenticatedDeviceError, UpstreamError, read_json
 
 
 logger = logging.getLogger(__name__)
@@ -77,11 +80,14 @@ def devices_authenticate_view(request):
     device_list_path = request.registry.settings['devices_path']
     device = get_device(device_list_path, device_id)
     if not device["authenticationRequired"]:
-        raise HTTPBadRequest("Device doesn't require authentication...")
+        return {"id": device_id, "authenticated": True}
 
-    config = read_json(request.registry.settings["hass_phue_config_path"], {})
+    homeassistant_data_path = request.registry.settings["homeassistant_data_path"]
+    phue_bridge_config = os.path.join(homeassistant_data_path, '{}.conf'.format(device["id"]))
+    config = read_json(phue_bridge_config, {})
     username = config.get(device["ip"], {}).get("username")
-    bridge = PhilipsHueBridge(device["ip"], username)
+
+    bridge = PhilipsHueBridgeApiClient(device["ip"], username)
     if not bridge.is_authenticated():
         username = bridge.authenticate()
 
@@ -93,11 +99,10 @@ def devices_authenticate_view(request):
     authenticated = username is not None
     device["authenticated"] = authenticated
 
-    # TODO might want to notify HASS to reload configuration
-    with open(request.registry.settings["hass_phue_config_path"], "w") as f:
+    with open(phue_bridge_config, "w") as f:
         json.dump(config, f)
 
-    update_device(device_list_path, device)
+    update_device(device, request.registry.settings)
 
     return {"id": device_id, "authenticated": authenticated}
 
@@ -117,11 +122,13 @@ def devices_details_view(request):
     device_list_path = request.registry.settings['devices_path']
     device = get_device(device_list_path, device_id)
 
-    config = read_json(request.registry.settings["hass_phue_config_path"], {})
+    homeassistant_data_path = request.registry.settings["homeassistant_data_path"]
+    phue_bridge_config = os.path.join(homeassistant_data_path, '{}.conf'.format(device["id"]))
+    config = read_json(phue_bridge_config, {})
     username = config.get(device["ip"], {}).get("username")
 
     try:
-        bridge = PhilipsHueBridge(device["ip"], username)
+        bridge = PhilipsHueBridgeApiClient(device["ip"], username)
 
         return bridge.get_lights()
     # TODO create a tween to handle exceptions for all views
@@ -145,12 +152,16 @@ def get_device(device_list_path, device_id):
     return device
 
 
-def update_device(device_list_path, device):
-    with open(device_list_path, "r") as f:
+def update_device(device, settings):
+    devices_path = settings["devices_path"]
+    with open(devices_path, "r") as f:
         devices = json.loads(f.read())
 
     device_index = [i for (i, d) in enumerate(devices) if d["id"] == device["id"]].pop()
 
     devices[device_index] = device
-    with open(device_list_path, "w") as f:
+
+    fd, filename = mkstemp(dir=settings['homeassistant_data_path'])
+    with open(fd, "w") as f:
         json.dump(devices, f)
+    os.rename(filename, devices_path)
