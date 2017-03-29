@@ -109,7 +109,6 @@ def activate_adhoc(device):
         os.remove(IFACES_D.format(device))
     except FileNotFoundError:
         pass
-    # new symlink
     os.symlink(
         IFACES_AVAILABLE.format('interfaces_wlan_adhoc'),
         IFACES_D.format(device)
@@ -127,17 +126,15 @@ def join_wifi(config, ssid, password):
     # signal, that we've started to join:
     with open(app.registry.settings['joined_wifi_path'], 'w') as joined_wifi:
         joined_wifi.write(json.dumps(dict(ssid=ssid, status='connecting')))
-    # TODO: We should only stop scanning when joining has completed
-    run(['/usr/bin/supervisorctl', 'stop', 'scan_wifi'])
-    # TODO: We don't need to stop dhcpd if wlan_adhoc != wlan_infra
-    run(['/usr/bin/supervisorctl', 'stop', 'dhcpd'])
-    # TODO: We don't need to bring down and remove the file wlan_adhoc != wlan_infra
+    # Stop wifi scanner and DHCP daemon only if same wlan device is used for adhoc and infrastructure network
+    if device == app.registry.settings['wlan_adhoc']:
+        run(['/usr/bin/supervisorctl', 'stop', 'scan_wifi'])
+        run(['/usr/bin/supervisorctl', 'stop', 'dhcpd'])
     run(['ifdown', device])
     try:
         os.remove(IFACES_D.format(device))
     except FileNotFoundError:
         pass
-    # new symlink
     os.symlink(
         IFACES_AVAILABLE.format('interfaces_wlan_infra'),
         IFACES_D.format(device)
@@ -155,7 +152,6 @@ def join_wifi(config, ssid, password):
     WIFI_SETUP_FLAG_PATH = app.registry.settings['wifi_setup_flag_path']
 
     if success:
-        # clean up after ourselves
         with open(app.registry.settings['joined_wifi_path'], 'w') as joined_wifi:
             joined_wifi.write(json.dumps(dict(ssid=ssid, status='connected')))
         if os.path.exists(WIFI_SETUP_FLAG_PATH):
