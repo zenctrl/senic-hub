@@ -143,8 +143,7 @@ def join_wifi(config, ssid, password):
         wpaconf.write(WPA_SUPPLICANT_CONF.format(**locals()))
     try:
         run(['ifup', device], timeout=30)
-        # check, if we were successful:
-        status = run(['wpa_cli', 'status'], stdout=PIPE)
+        status = run(['wpa_cli', '-i', device, 'status'], stdout=PIPE)
         success = 'wpa_state=COMPLETED' in status.stdout.decode()
     except TimeoutExpired:
         success = False
