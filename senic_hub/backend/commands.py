@@ -66,6 +66,42 @@ def scan_wifi(config, forever=False, waitsec=20):
         time.sleep(waitsec)
 
 
+@click.command(help="Activate the wifi-onboarding setup")
+@click.option('--config', '-c', required=True, type=click.Path(exists=True), help="app configuration file")
+def enter_wifi_setup(config):
+    app = get_app(abspath(config))
+    device = 'wlan0'  # TODO: Read from config file
+    WIFI_SETUP_FLAG_PATH = app.registry.settings['wifi_setup_flag_path']
+    if not os.path.exists(WIFI_SETUP_FLAG_PATH):
+        click.echo("Not entering wifi setup mode. %s not found" % WIFI_SETUP_FLAG_PATH)
+        exit(0)
+    click.echo("Entering wifi setup mode")
+    # signal that we no longer have joined a wifi
+    JOINED_WIFI_PATH = app.registry.settings['joined_wifi_path']
+    if os.path.exists(JOINED_WIFI_PATH):
+        os.remove(JOINED_WIFI_PATH)
+    # Activating ad-hoc network can fail, we try it 3 times
+    retries = 3
+    while retries > 0:
+        click.echo("Trying to create ad-hoc network (%s attempts left)" % retries)
+        activate_adhoc(device)
+        run(['/usr/bin/supervisorctl', 'start', 'dhcpd'])
+        dhcpd_status = run(
+            ['/usr/bin/supervisorctl', 'status', 'dhcpd'],
+            stdout=PIPE)
+        dhcpd_is_running = 'RUNNING' in dhcpd_status.stdout.decode()
+        if dhcpd_is_running:
+            click.echo("Ad-hoc network successfully created")
+            click.echo("Start scanning nearby wifi networks")
+            run(['/usr/bin/supervisorctl', 'start', 'scan_wifi'])
+            click.echo("Restart avahi daemon")
+            run(['/bin/systemctl', 'restart', 'avahi-daemon'])
+            exit("Wifi setup mode successfully entered")
+        click.echo("Creating ad-hoc network failed")
+        retries -= 1
+    click.echo("Unable to create ad-hoc network. Check supervisord log for details")
+
+
 def activate_adhoc(device):
     run(['ifdown', device])
     try:
@@ -78,39 +114,6 @@ def activate_adhoc(device):
         IFACES_D.format(device)
     )
     run(['ifup', device])
-
-
-@click.command(help="Activate the wifi-onboarding setup")
-@click.option('--config', '-c', required=True, type=click.Path(exists=True), help="app configuration file")
-def enter_wifi_setup(config):
-    app = get_app(abspath(config))
-    device = 'wlan0'  # TODO: Read from config file
-    WIFI_SETUP_FLAG_PATH = app.registry.settings['wifi_setup_flag_path']
-    if not os.path.exists(WIFI_SETUP_FLAG_PATH):
-        click.echo("Not entering wifi setup mode. %s not found" % WIFI_SETUP_FLAG_PATH)
-        exit(0)
-    activate_adhoc(device)
-    run(['/usr/bin/supervisorctl', 'start', 'scan_wifi'])
-    click.echo("Entering wifi setup mode")
-    retries = 3
-    success = False
-    while retries > 0:
-        activate_adhoc(device)
-        run(['/usr/bin/supervisorctl', 'start', 'dhcpd'])
-        dhcpd_status = run(
-            ['/usr/bin/supervisorctl', 'status', 'dhcpd'],
-            stdout=PIPE)
-        retries -= 1
-        success = 'RUNNING' in dhcpd_status.stdout.decode()
-        if success:
-            run(['/bin/systemctl', 'restart', 'avahi-daemon'])
-            # signal that we no longer have joined a wifi
-            JOINED_WIFI = app.registry.settings['joined_wifi_path']
-            if os.path.exists(JOINED_WIFI):
-                os.remove(JOINED_WIFI)
-            exit("Successfully entered wifi setup mode")
-        click.echo("Retrying...")
-    click.echo("Unable to enter wifi setup mode. Check supervisord log for details")
 
 
 @click.command(help="join a given wifi network (requires root privileges)")
@@ -132,6 +135,7 @@ def join_wifi(config, ssid, password):
         pass
     # new symlink
     os.symlink(
+        #TODO: Rename file to
         IFACES_AVAILABLE.format('interfaces_dhcp_wifi'),
         IFACES_D.format(device)
     )
@@ -161,6 +165,7 @@ def join_wifi(config, ssid, password):
         # signal the setup mode is active because of
         # failed attempt (as opposed to not having tried
         # yet).
+        # TODO: Don't write into this file. Write 'failed' into 'joined_wifi_path' instead
         with open(WIFI_SETUP_FLAG_PATH, 'w') as flag:
             flag.write('FAILED')
         exit(1)
