@@ -137,7 +137,7 @@
     mode: "0644"
   notify: reload supervisord
 
-- name: configure wsgi
+- name: create configuration file
   become: yes
   template:
     src: production.ini
