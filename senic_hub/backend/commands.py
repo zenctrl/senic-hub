@@ -43,8 +43,11 @@ logger = logging.getLogger(__name__)
 
 def get_networks(devices):
     networks = dict()
-    for device in devices:
-        networks.update({c.ssid: dict(device=device, cell=c) for c in wifi.Cell.all(device)})
+    try:
+        for device in devices:
+            networks.update({c.ssid: dict(device=device, cell=c) for c in wifi.Cell.all(device)})
+    except wifi.exceptions.InterfaceError as e:
+        click.echo("Scanning wifi networks failed: %s" % e)
     return networks
 
 
