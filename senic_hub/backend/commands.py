@@ -41,14 +41,12 @@ DEFAULT_SCAN_INTERVAL_SECONDS = 1 * 60  # 1 minute
 logger = logging.getLogger(__name__)
 
 
-def get_networks(devices):
-    networks = dict()
+def get_networks(device):
     try:
-        for device in devices:
-            networks.update({c.ssid: dict(device=device, cell=c) for c in wifi.Cell.all(device)})
+        return [c.ssid for c in wifi.Cell.all(device) if c.ssid]
     except wifi.exceptions.InterfaceError as e:
         click.echo("Scanning wifi networks failed: %s" % e)
-    return networks
+        return []
 
 
 @click.command(help='scan the wifi interfaces for networks (requires root privileges)')
@@ -59,11 +57,10 @@ def scan_wifi(config, forever=False, waitsec=20):
     while True:
         click.echo("Scanning for wifi networks")
         device = 'wlan0'  # TODO: Read from config file
-        networks = get_networks(devices=[device])
-        json_networks = {n['cell'].ssid: dict(device=n['device']) for n in networks.values()}
+        networks = get_networks(device=device)
         app = get_app(abspath(config))
         with open(app.registry.settings['wifi_networks_path'], 'w') as wifi_file:
-            json.dump(json_networks, wifi_file, indent=2)
+            json.dump({'ssids': networks}, wifi_file, indent=2)
             wifi_file.write('\n')
         if not forever:
             exit(0)

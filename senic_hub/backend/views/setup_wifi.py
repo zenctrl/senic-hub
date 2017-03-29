@@ -31,8 +31,7 @@ wifi_setup = Service(
 def scan_wifi_networks(request):
     fs_path = request.registry.settings['wifi_networks_path']
     if os.path.exists(fs_path):
-        networks = json.load(open(fs_path))
-        return list(networks.keys())
+        return json.load(open(fs_path))
     else:
         return []
 
