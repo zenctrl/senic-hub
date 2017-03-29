@@ -63,7 +63,8 @@ def scan_wifi(config, forever=False, waitsec=20):
         json_networks = {n['cell'].ssid: dict(device=n['device']) for n in networks.values()}
         app = get_app(abspath(config))
         with open(app.registry.settings['wifi_networks_path'], 'w') as wifi_file:
-            json.dump(json_networks, wifi_file)
+            json.dump(json_networks, wifi_file, indent=2)
+            wifi_file.write('\n')
         if not forever:
             exit(0)
         time.sleep(waitsec)
