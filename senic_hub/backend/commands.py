@@ -54,11 +54,12 @@ def get_networks(device):
 @click.option('--forever/--no-forever', default=False, help='scan forever (until interupted')
 @click.option('--waitsec', default=20, help='How many seconds to wait inbetween scans (only when forever')
 def scan_wifi(config, forever=False, waitsec=20):
+    app = get_app(abspath(config))
+    device = app.registry.settings['wlan_infra']
+    run(['ifup', device])
     while True:
         click.echo("Scanning for wifi networks")
-        device = 'wlan0'  # TODO: Read from config file
         networks = get_networks(device=device)
-        app = get_app(abspath(config))
         with open(app.registry.settings['wifi_networks_path'], 'w') as wifi_file:
             json.dump({'ssids': networks}, wifi_file, indent=2)
             wifi_file.write('\n')
@@ -71,7 +72,6 @@ def scan_wifi(config, forever=False, waitsec=20):
 @click.option('--config', '-c', required=True, type=click.Path(exists=True), help="app configuration file")
 def enter_wifi_setup(config):
     app = get_app(abspath(config))
-    device = 'wlan0'  # TODO: Read from config file
     WIFI_SETUP_FLAG_PATH = app.registry.settings['wifi_setup_flag_path']
     if not os.path.exists(WIFI_SETUP_FLAG_PATH):
         click.echo("Not entering wifi setup mode. %s not found" % WIFI_SETUP_FLAG_PATH)
@@ -81,8 +81,8 @@ def enter_wifi_setup(config):
     JOINED_WIFI_PATH = app.registry.settings['joined_wifi_path']
     if os.path.exists(JOINED_WIFI_PATH):
         os.remove(JOINED_WIFI_PATH)
-    # Activating ad-hoc network can fail, we try it 3 times
-    retries = 3
+    device = app.registry.settings['wlan_adhoc']
+    retries = 3 # Activating ad-hoc network can fail, we try it 3 times
     while retries > 0:
         click.echo("Trying to create ad-hoc network (%s attempts left)" % retries)
         activate_adhoc(device)
@@ -123,12 +123,15 @@ def activate_adhoc(device):
 @click.argument('password')
 def join_wifi(config, ssid, password):
     app = get_app(abspath(config))
-    device = 'wlan0'  # TODO: Read from config
+    device = app.registry.settings['wlan_infra']
     # signal, that we've started to join:
     with open(app.registry.settings['joined_wifi_path'], 'w') as joined_wifi:
         joined_wifi.write(json.dumps(dict(ssid=ssid, status='connecting')))
+    # TODO: We should only stop scanning when joining has completed
     run(['/usr/bin/supervisorctl', 'stop', 'scan_wifi'])
+    # TODO: We don't need to stop dhcpd if wlan_adhoc != wlan_infra
     run(['/usr/bin/supervisorctl', 'stop', 'dhcpd'])
+    # TODO: We don't need to bring down and remove the file wlan_adhoc != wlan_infra
     run(['ifdown', device])
     try:
         os.remove(IFACES_D.format(device))
