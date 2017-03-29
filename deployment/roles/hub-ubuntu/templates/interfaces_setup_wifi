@@ -1,4 +1,4 @@
-iface {{ploy_wlan1}} inet static
+iface {{ploy_wlan_adhoc}} inet static
   address 10.0.23.23
   netmask 255.255.255.0
   wireless-channel {{ploy_adhoc_channel}}
