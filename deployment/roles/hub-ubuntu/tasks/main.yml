@@ -46,10 +46,10 @@
   with_items:
     - src: interfaces
       dest: interfaces
-    - src: interfaces_dhcp_wifi
-      dest: interfaces.available/interfaces_dhcp_wifi
-    - src: interfaces_setup_wifi
-      dest: interfaces.available/interfaces_setup_wifi
+    - src: interfaces_wlan_adhoc
+      dest: interfaces.available/interfaces_wlan_adhoc
+    - src: interfaces_wlan_infra
+      dest: interfaces.available/interfaces_wlan_infra
   notify:
     - restart wlan_adhoc
     - restart wlan_infra

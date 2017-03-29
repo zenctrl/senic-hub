@@ -111,7 +111,7 @@ def activate_adhoc(device):
         pass
     # new symlink
     os.symlink(
-        IFACES_AVAILABLE.format('interfaces_setup_wifi'),
+        IFACES_AVAILABLE.format('interfaces_wlan_adhoc'),
         IFACES_D.format(device)
     )
     run(['ifup', device])
@@ -139,8 +139,7 @@ def join_wifi(config, ssid, password):
         pass
     # new symlink
     os.symlink(
-        #TODO: Rename file to
-        IFACES_AVAILABLE.format('interfaces_dhcp_wifi'),
+        IFACES_AVAILABLE.format('interfaces_wlan_infra'),
         IFACES_D.format(device)
     )
     with open(WPA_SUPPLICANT_FS, 'w') as wpaconf:
