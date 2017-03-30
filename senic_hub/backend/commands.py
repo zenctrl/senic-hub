@@ -163,9 +163,13 @@ def join_wifi(config, ssid, password):
     else:
         click.echo("Failed to join network '%s'" % ssid)
         if device == app.registry.settings['wlan_adhoc']:
-            # TODO: Bring dhcpd back up (check `enter_wifi_setup`)
-            # TODO: Start wifi scanning again
-            pass
+            # As one wlan adapter is shared for adhoc and infrastructure, bring up adhoc again
+            click.echo("Bringing back ad-hoc network for wifi setup...")
+            run([
+                'sudo',
+                os.path.join(app.registry.settings['bin_path'], 'enter_wifi_setup'),
+                '-c', app.registry.settings['config_ini_path']
+            ], stdout=PIPE)
         # signal the setup mode is active because of
         # failed attempt (as opposed to not having tried
         # yet).

@@ -60,16 +60,6 @@ def join_network(request):
         logger.info("Joining network '%s' succeeded" % ssid)
     except CalledProcessError as e:
         logger.error("Failed to join network '%s'" % ssid)
-        # TODO: The following logic should be done by `join_wifi` itself in failure case
-        #       See TODO messages over there.
-        run([
-            'sudo',
-            os.path.join(request.registry.settings['bin_path'], 'enter_wifi_setup'),
-            '-c', request.registry.settings['config_ini_path']
-        ], stdout=PIPE)
-        # TOOD: If we can still respond that probably means wifi wasn't joined,
-        #       or that we were already connected to the same Wi-Fi.
-        #       Study all possible cases to return something helpful if possible.
         raise HTTPBadRequest()
 
 
