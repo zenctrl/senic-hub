@@ -49,7 +49,7 @@ def wifi_setup(ctx, config):
     ctx.obj = get_app(abspath(config)).registry.settings
 
 
-@wifi_setup.command(name='status')
+@wifi_setup.command(name='status', help="query wifi connection status")
 @click.pass_context
 def wifi_setup_status(ctx):
     wlan_infra = ctx.obj['wlan_infra']
@@ -70,47 +70,21 @@ def wifi_setup_status(ctx):
     click.echo("infra_status=%s" % status)
 
 
-@click.command(help='scan the wifi interfaces for networks (requires root privileges)')
-@click.option('--config', '-c', required=True, type=click.Path(exists=True), help='app configuration file')
-@click.option('--forever/--no-forever', default=False, help='scan forever (until interupted')
-@click.option('--waitsec', default=20, help='How many seconds to wait inbetween scans (only when forever')
-def scan_wifi(config, forever=False, waitsec=20):
-    app = get_app(abspath(config))
-    device = app.registry.settings['wlan_infra']
-    run(['ifup', device])
-    while True:
-        click.echo("Scanning for wifi networks")
-        try:
-            networks = [c.ssid for c in wifi.Cell.all(device) if c.ssid]
-        except wifi.exceptions.InterfaceError as e:
-            click.echo("Scanning wifi networks failed: %s" % e)
-            networks = []
-        with open(app.registry.settings['wifi_networks_path'], 'w') as wifi_file:
-            json.dump({'ssids': networks}, wifi_file, indent=2)
-            wifi_file.write('\n')
-        if not forever:
-            exit(0)
-        time.sleep(waitsec)
-
-
-@click.command(help="Activate the wifi-onboarding setup")
-@click.option('--config', '-c', required=True, type=click.Path(exists=True), help="app configuration file")
-def enter_wifi_setup(config):
-    app = get_app(abspath(config))
-    WIFI_SETUP_FLAG_PATH = app.registry.settings['wifi_setup_flag_path']
+@wifi_setup.command(name='start', help="start the wifi setup by bringing up setup ad-hoc network")
+@click.pass_context
+def wifi_setup_start(ctx):
+    WIFI_SETUP_FLAG_PATH = ctx.obj['wifi_setup_flag_path']
     if not os.path.exists(WIFI_SETUP_FLAG_PATH):
         click.echo("Not entering wifi setup mode. %s not found" % WIFI_SETUP_FLAG_PATH)
         exit(0)
     click.echo("Entering wifi setup mode")
-    device = app.registry.settings['wlan_adhoc']
+    device = ctx.obj['wlan_adhoc']
     retries = 3  # Activating ad-hoc network can fail, we try it 3 times
     while retries > 0:
         click.echo("Trying to create ad-hoc network (%s attempts left)" % retries)
         activate_adhoc(device)
         run(['/usr/bin/supervisorctl', 'start', 'dhcpd'])
-        dhcpd_status = run(
-            ['/usr/bin/supervisorctl', 'status', 'dhcpd'],
-            stdout=PIPE)
+        dhcpd_status = run(['/usr/bin/supervisorctl', 'status', 'dhcpd'], stdout=PIPE)
         dhcpd_is_running = 'RUNNING' in dhcpd_status.stdout.decode()
         if dhcpd_is_running:
             click.echo("Ad-hoc network successfully created")
@@ -135,6 +109,29 @@ def activate_adhoc(device):
         IFACES_D.format(device)
     )
     run(['ifup', device])
+
+
+@click.command(help='scan the wifi interfaces for networks (requires root privileges)')
+@click.option('--config', '-c', required=True, type=click.Path(exists=True), help='app configuration file')
+@click.option('--forever/--no-forever', default=False, help='scan forever (until interupted')
+@click.option('--waitsec', default=20, help='How many seconds to wait inbetween scans (only when forever')
+def scan_wifi(config, forever=False, waitsec=20):
+    app = get_app(abspath(config))
+    device = app.registry.settings['wlan_infra']
+    run(['ifup', device])
+    while True:
+        click.echo("Scanning for wifi networks")
+        try:
+            networks = [c.ssid for c in wifi.Cell.all(device) if c.ssid]
+        except wifi.exceptions.InterfaceError as e:
+            click.echo("Scanning wifi networks failed: %s" % e)
+            networks = []
+        with open(app.registry.settings['wifi_networks_path'], 'w') as wifi_file:
+            json.dump({'ssids': networks}, wifi_file, indent=2)
+            wifi_file.write('\n')
+        if not forever:
+            exit(0)
+        time.sleep(waitsec)
 
 
 @click.command(help="join a given wifi network (requires root privileges)")
@@ -183,8 +180,9 @@ def join_wifi(config, ssid, password):
             click.echo("Bringing back ad-hoc network for wifi setup...")
             run([
                 'sudo',
-                os.path.join(app.registry.settings['bin_path'], 'enter_wifi_setup'),
-                '-c', app.registry.settings['config_ini_path']
+                os.path.join(app.registry.settings['bin_path'], 'wifi_setup'),
+                '-c', app.registry.settings['config_ini_path'],
+                'start'
             ], stdout=PIPE)
         exit(1)
 

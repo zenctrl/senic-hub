@@ -71,8 +71,9 @@ def test_join_wifi_enters_setup_again_if_join_fails(browser, connection_url, moc
     mocked_run.assert_any_call(
         [
             'sudo',
-            '%s/enter_wifi_setup' % settings['bin_path'],
+            '%s/wifi_setup' % settings['bin_path'],
             '-c', settings['config_ini_path'],
+            'start'
         ]
     )
 
