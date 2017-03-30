@@ -80,21 +80,17 @@ def scan_wifi(config, forever=False, waitsec=20):
     run(['ifup', device])
     while True:
         click.echo("Scanning for wifi networks")
-        networks = get_networks(device=device)
+        try:
+            networks = [c.ssid for c in wifi.Cell.all(device) if c.ssid]
+        except wifi.exceptions.InterfaceError as e:
+            click.echo("Scanning wifi networks failed: %s" % e)
+            networks = []
         with open(app.registry.settings['wifi_networks_path'], 'w') as wifi_file:
             json.dump({'ssids': networks}, wifi_file, indent=2)
             wifi_file.write('\n')
         if not forever:
             exit(0)
         time.sleep(waitsec)
-
-
-def get_networks(device):
-    try:
-        return [c.ssid for c in wifi.Cell.all(device) if c.ssid]
-    except wifi.exceptions.InterfaceError as e:
-        click.echo("Scanning wifi networks failed: %s" % e)
-        return []
 
 
 @click.command(help="Activate the wifi-onboarding setup")
