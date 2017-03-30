@@ -2,6 +2,7 @@
 branch = True
 omit =
   senic_hub/backend/commands.py
+  senic_hub/backend/network_discovery.py
   senic_hub/backend/subprocess_run.py
   senic_hub/backend/supervisor.py
   senic_hub/backend/testing.py
