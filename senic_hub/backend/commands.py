@@ -128,8 +128,10 @@ def join_wifi(config, ssid, password):
         joined_wifi.write(json.dumps(dict(ssid=ssid, status='connecting')))
     # Stop wifi scanner and DHCP daemon only if same wlan device is used for adhoc and infrastructure network
     if device == app.registry.settings['wlan_adhoc']:
+        click.echo("Stopping wifi scanner and bringing down ad-hoc network")
         run(['/usr/bin/supervisorctl', 'stop', 'scan_wifi'])
         run(['/usr/bin/supervisorctl', 'stop', 'dhcpd'])
+    click.echo("Configuring '%s' for infrastructure mode" % device)
     run(['ifdown', device])
     try:
         os.remove(IFACES_D.format(device))
@@ -156,10 +158,14 @@ def join_wifi(config, ssid, password):
         if os.path.exists(WIFI_SETUP_FLAG_PATH):
             os.remove(WIFI_SETUP_FLAG_PATH)
         run(['/bin/systemctl', 'restart', 'avahi-daemon'])
-        click.echo("Success!")
+        click.echo("Joining wifi network '%s' succeeded" % ssid)
         exit(0)
     else:
-        click.echo("Could not join %s." % ssid)
+        click.echo("Failed to join network '%s'" % ssid)
+        if device == app.registry.settings['wlan_adhoc']:
+            # TODO: Bring dhcpd back up (check `enter_wifi_setup`)
+            # TODO: Start wifi scanning again
+            pass
         # signal the setup mode is active because of
         # failed attempt (as opposed to not having tried
         # yet).

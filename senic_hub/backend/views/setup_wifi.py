@@ -6,7 +6,7 @@ import os
 from cornice.service import Service
 from pyramid.httpexceptions import HTTPBadRequest
 from pyramid.response import FileResponse
-from subprocess import CalledProcessError
+from subprocess import CalledProcessError, PIPE
 
 from ..config import path
 from ..subprocess_run import run
@@ -56,13 +56,17 @@ def join_network(request):
             '-c', request.registry.settings['config_ini_path'],
             ssid,
             password
-        ], check=True)
-    except CalledProcessError:
+        ], stdout=PIPE, check=True)
+        logger.info("Joining network '%s' succeeded" % ssid)
+    except CalledProcessError as e:
+        logger.error("Failed to join network '%s'" % ssid)
+        # TODO: The following logic should be done by `join_wifi` itself in failure case
+        #       See TODO messages over there.
         run([
             'sudo',
             os.path.join(request.registry.settings['bin_path'], 'enter_wifi_setup'),
             '-c', request.registry.settings['config_ini_path']
-        ])
+        ], stdout=PIPE)
         # TOOD: If we can still respond that probably means wifi wasn't joined,
         #       or that we were already connected to the same Wi-Fi.
         #       Study all possible cases to return something helpful if possible.
