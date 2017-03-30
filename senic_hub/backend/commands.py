@@ -41,14 +41,6 @@ DEFAULT_SCAN_INTERVAL_SECONDS = 1 * 60  # 1 minute
 logger = logging.getLogger(__name__)
 
 
-def get_networks(device):
-    try:
-        return [c.ssid for c in wifi.Cell.all(device) if c.ssid]
-    except wifi.exceptions.InterfaceError as e:
-        click.echo("Scanning wifi networks failed: %s" % e)
-        return []
-
-
 @click.command(help='scan the wifi interfaces for networks (requires root privileges)')
 @click.option('--config', '-c', required=True, type=click.Path(exists=True), help='app configuration file')
 @click.option('--forever/--no-forever', default=False, help='scan forever (until interupted')
@@ -66,6 +58,14 @@ def scan_wifi(config, forever=False, waitsec=20):
         if not forever:
             exit(0)
         time.sleep(waitsec)
+
+
+def get_networks(device):
+    try:
+        return [c.ssid for c in wifi.Cell.all(device) if c.ssid]
+    except wifi.exceptions.InterfaceError as e:
+        click.echo("Scanning wifi networks failed: %s" % e)
+        return []
 
 
 @click.command(help="Activate the wifi-onboarding setup")
