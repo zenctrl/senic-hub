@@ -9,7 +9,7 @@ def setup_url(route_url):
 
 
 def test_get_scanned_wifi(browser, setup_url):
-    assert browser.get_json(setup_url).json == ['grandpausethisnetwork']
+    assert browser.get_json(setup_url).json == {'ssids': ['grandpausethisnetwork']}
 
 
 @pytest.fixture
