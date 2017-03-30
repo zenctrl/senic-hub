@@ -107,7 +107,7 @@ def enter_wifi_setup(config):
         exit(0)
     click.echo("Entering wifi setup mode")
     device = app.registry.settings['wlan_adhoc']
-    retries = 3 # Activating ad-hoc network can fail, we try it 3 times
+    retries = 3  # Activating ad-hoc network can fail, we try it 3 times
     while retries > 0:
         click.echo("Trying to create ad-hoc network (%s attempts left)" % retries)
         activate_adhoc(device)
