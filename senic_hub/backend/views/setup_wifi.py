@@ -2,11 +2,11 @@ import colander
 import json
 import logging
 import os
+import re
 
 from cornice.service import Service
 from pyramid.httpexceptions import HTTPBadRequest
-from pyramid.response import FileResponse
-from subprocess import CalledProcessError, PIPE
+from subprocess import CalledProcessError, PIPE, TimeoutExpired
 
 from ..config import path
 from ..subprocess_run import run
@@ -65,11 +65,27 @@ def join_network(request):
 
 @wifi_connection.get()
 def get_wifi_connection(request):
-    fs_path = request.registry.settings['joined_wifi_path']
-    if os.path.exists(fs_path):
-        return FileResponse(fs_path)
+    try:
+        status = run([
+            'sudo',
+            os.path.join(request.registry.settings['bin_path'], 'wifi_setup'),
+            '-c', request.registry.settings['config_ini_path'],
+            'status'
+        ]).stdout.decode()
+    except TimeoutExpired:
+        status = ""
+    ssid_match = re.search("^infra_ssid=(.*)$", status, flags=re.MULTILINE)
+    ssid = ssid_match.group(1) if ssid_match else None
+    if 'infra_status=connecting' in status:
+        status = 'connecting'
+    elif 'infra_status=connected' in status:
+        status = 'connected'
     else:
-        return dict(ssid=None, status='unavailable')
+        status = 'unavailable'
+    return dict(
+        ssid=ssid if ssid else None,
+        status=status
+    )
 
 
 wifi_adhoc = Service(

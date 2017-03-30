@@ -71,6 +71,7 @@ setup(
         [paste.app_factory]
         main = senic_hub.backend:main
         [console_scripts]
+        wifi_setup = senic_hub.backend.commands:wifi_setup
         scan_wifi = senic_hub.backend.commands:scan_wifi
         enter_wifi_setup = senic_hub.backend.commands:enter_wifi_setup
         join_wifi = senic_hub.backend.commands:join_wifi

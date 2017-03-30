@@ -2,6 +2,7 @@ import click
 import json
 import logging
 import os
+import re
 import signal
 import sys
 import time
@@ -41,6 +42,34 @@ DEFAULT_SCAN_INTERVAL_SECONDS = 1 * 60  # 1 minute
 logger = logging.getLogger(__name__)
 
 
+@click.group()
+@click.pass_context
+@click.option('--config', '-c', required=True, type=click.Path(exists=True), help='app configuration file')
+def wifi_setup(ctx, config):
+    ctx.obj = get_app(abspath(config)).registry.settings
+
+
+@wifi_setup.command(name='status')
+@click.pass_context
+def wifi_setup_status(ctx):
+    wlan_infra = ctx.obj['wlan_infra']
+    try:
+        wpa_status = run(['wpa_cli', '-i', wlan_infra, 'status'], stdout=PIPE, timeout=5).stdout.decode()
+    except TimeoutExpired:
+        wpa_status = ""
+    ssid_match = re.search("^ssid=(.*)$", wpa_status, flags=re.MULTILINE)
+    ssid = ssid_match.group(1) if ssid_match else None
+    ip_address_match = re.search("^ip_address=(.*)$", wpa_status, flags=re.MULTILINE)
+    ip_address = ip_address_match.group(1) if ip_address_match else None
+    connected = 'wpa_state=COMPLETED' in wpa_status
+    if ssid and connected:
+        status = 'connected' if ip_address else 'connecting'
+    else:
+        status = 'unavailable'
+    click.echo("infra_ssid=%s" % (ssid or ""))
+    click.echo("infra_status=%s" % status)
+
+
 @click.command(help='scan the wifi interfaces for networks (requires root privileges)')
 @click.option('--config', '-c', required=True, type=click.Path(exists=True), help='app configuration file')
 @click.option('--forever/--no-forever', default=False, help='scan forever (until interupted')
@@ -77,10 +106,6 @@ def enter_wifi_setup(config):
         click.echo("Not entering wifi setup mode. %s not found" % WIFI_SETUP_FLAG_PATH)
         exit(0)
     click.echo("Entering wifi setup mode")
-    # signal that we no longer have joined a wifi
-    JOINED_WIFI_PATH = app.registry.settings['joined_wifi_path']
-    if os.path.exists(JOINED_WIFI_PATH):
-        os.remove(JOINED_WIFI_PATH)
     device = app.registry.settings['wlan_adhoc']
     retries = 3 # Activating ad-hoc network can fail, we try it 3 times
     while retries > 0:
@@ -123,9 +148,6 @@ def activate_adhoc(device):
 def join_wifi(config, ssid, password):
     app = get_app(abspath(config))
     device = app.registry.settings['wlan_infra']
-    # signal, that we've started to join:
-    with open(app.registry.settings['joined_wifi_path'], 'w') as joined_wifi:
-        joined_wifi.write(json.dumps(dict(ssid=ssid, status='connecting')))
     # Stop wifi scanner and DHCP daemon only if same wlan device is used for adhoc and infrastructure network
     if device == app.registry.settings['wlan_adhoc']:
         click.echo("Stopping wifi scanner and bringing down ad-hoc network")
@@ -150,13 +172,11 @@ def join_wifi(config, ssid, password):
     except TimeoutExpired:
         success = False
 
-    WIFI_SETUP_FLAG_PATH = app.registry.settings['wifi_setup_flag_path']
-
     if success:
-        with open(app.registry.settings['joined_wifi_path'], 'w') as joined_wifi:
-            joined_wifi.write(json.dumps(dict(ssid=ssid, status='connected')))
-        if os.path.exists(WIFI_SETUP_FLAG_PATH):
-            os.remove(WIFI_SETUP_FLAG_PATH)
+        try:
+            os.remove(app.registry.settings['wifi_setup_flag_path'])
+        except FileNotFoundError:
+            pass
         run(['/bin/systemctl', 'restart', 'avahi-daemon'])
         click.echo("Joining wifi network '%s' succeeded" % ssid)
         exit(0)
@@ -170,12 +190,6 @@ def join_wifi(config, ssid, password):
                 os.path.join(app.registry.settings['bin_path'], 'enter_wifi_setup'),
                 '-c', app.registry.settings['config_ini_path']
             ], stdout=PIPE)
-        # signal the setup mode is active because of
-        # failed attempt (as opposed to not having tried
-        # yet).
-        # TODO: Don't write into this file. Write 'failed' into 'joined_wifi_path' instead
-        with open(WIFI_SETUP_FLAG_PATH, 'w') as flag:
-            flag.write('FAILED')
         exit(1)
 
 
