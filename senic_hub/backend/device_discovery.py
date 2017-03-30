@@ -77,7 +77,7 @@ def discover(discovery_class=NetworkDiscovery):
 
     devices = []
 
-    netdisco = discovery_class(limit_discovery=SUPPORTED_DEVICES)
+    netdisco = discovery_class(SUPPORTED_DEVICES)
     netdisco.scan()
 
     for device_type in netdisco.discover():

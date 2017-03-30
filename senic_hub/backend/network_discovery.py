@@ -12,9 +12,13 @@ class NetworkDiscovery(object):
     to support at the moment.
 
     """
-    def __init__(self, limit_discovery=[]):
-        """Initialize the discovery."""
-        self.limit_discovery = limit_discovery
+    def __init__(self, whitelist):
+        """
+        Initialize the discovery.
+
+        :param whitelist: list of devices to discover
+        """
+        self.whitelist = whitelist
 
         self.ssdp = SSDP()
         self.phue = PHueNUPnPDiscovery()
@@ -70,7 +74,7 @@ class NetworkDiscovery(object):
         """Load the devices and services that can be discovered."""
         self.discoverables = {}
 
-        for device_name in self.limit_discovery:
+        for device_name in self.whitelist:
             module_name = 'netdisco.discoverables.{}'.format(device_name)
             module = importlib.import_module(module_name)
 

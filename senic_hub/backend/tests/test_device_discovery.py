@@ -65,16 +65,13 @@ def test_get_device_description_of_sonos_speaker_throws_when_getting_description
     assert e.value.error_type == 404
 
 
-class MockUnknownDeviceDiscovery(MagicMock):
-    def discover(self):
-        return ["unknown"]
-
-
-def test_discover_unknow_devices():
-    assert discover(MockUnknownDeviceDiscovery) == []
-
-
 class MockPhilipsDiscovery(MagicMock):
+    def scan(self):
+        pass
+
+    def stop(self):
+        pass
+
     def discover(self):
         return ["philips_hue"]
 
