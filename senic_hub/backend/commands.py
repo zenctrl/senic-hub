@@ -111,38 +111,14 @@ def activate_adhoc(device):
     run(['ifup', device])
 
 
-@click.command(help='scan the wifi interfaces for networks (requires root privileges)')
-@click.option('--config', '-c', required=True, type=click.Path(exists=True), help='app configuration file')
-@click.option('--forever/--no-forever', default=False, help='scan forever (until interupted')
-@click.option('--waitsec', default=20, help='How many seconds to wait inbetween scans (only when forever')
-def scan_wifi(config, forever=False, waitsec=20):
-    app = get_app(abspath(config))
-    device = app.registry.settings['wlan_infra']
-    run(['ifup', device])
-    while True:
-        click.echo("Scanning for wifi networks")
-        try:
-            networks = [c.ssid for c in wifi.Cell.all(device) if c.ssid]
-        except wifi.exceptions.InterfaceError as e:
-            click.echo("Scanning wifi networks failed: %s" % e)
-            networks = []
-        with open(app.registry.settings['wifi_networks_path'], 'w') as wifi_file:
-            json.dump({'ssids': networks}, wifi_file, indent=2)
-            wifi_file.write('\n')
-        if not forever:
-            exit(0)
-        time.sleep(waitsec)
-
-
-@click.command(help="join a given wifi network (requires root privileges)")
-@click.option('--config', '-c', required=True, type=click.Path(exists=True), help="app configuration file")
+@wifi_setup.command(name='join', help="join a given wifi network (requires root privileges)")
+@click.pass_context
 @click.argument('ssid')
 @click.argument('password')
-def join_wifi(config, ssid, password):
-    app = get_app(abspath(config))
-    device = app.registry.settings['wlan_infra']
+def wifi_setup_join(ctx, ssid, password):
+    device = ctx.obj['wlan_infra']
     # Stop wifi scanner and DHCP daemon only if same wlan device is used for adhoc and infrastructure network
-    if device == app.registry.settings['wlan_adhoc']:
+    if device == ctx.obj['wlan_adhoc']:
         click.echo("Stopping wifi scanner and bringing down ad-hoc network")
         run(['/usr/bin/supervisorctl', 'stop', 'scan_wifi'])
         run(['/usr/bin/supervisorctl', 'stop', 'dhcpd'])
@@ -167,7 +143,7 @@ def join_wifi(config, ssid, password):
 
     if success:
         try:
-            os.remove(app.registry.settings['wifi_setup_flag_path'])
+            os.remove(ctx.obj['wifi_setup_flag_path'])
         except FileNotFoundError:
             pass
         run(['/bin/systemctl', 'restart', 'avahi-daemon'])
@@ -175,16 +151,39 @@ def join_wifi(config, ssid, password):
         exit(0)
     else:
         click.echo("Failed to join network '%s'" % ssid)
-        if device == app.registry.settings['wlan_adhoc']:
+        if device == ctx.obj['wlan_adhoc']:
             # As one wlan adapter is shared for adhoc and infrastructure, bring up adhoc again
             click.echo("Bringing back ad-hoc network for wifi setup...")
             run([
                 'sudo',
-                os.path.join(app.registry.settings['bin_path'], 'wifi_setup'),
-                '-c', app.registry.settings['config_ini_path'],
+                os.path.join(ctx.obj['bin_path'], 'wifi_setup'),
+                '-c', ctx.obj['config_ini_path'],
                 'start'
             ], stdout=PIPE)
         exit(1)
+
+
+@click.command(help='scan the wifi interfaces for networks (requires root privileges)')
+@click.option('--config', '-c', required=True, type=click.Path(exists=True), help='app configuration file')
+@click.option('--forever/--no-forever', default=False, help='scan forever (until interupted')
+@click.option('--waitsec', default=20, help='How many seconds to wait inbetween scans (only when forever')
+def scan_wifi(config, forever=False, waitsec=20):
+    app = get_app(abspath(config))
+    device = app.registry.settings['wlan_infra']
+    run(['ifup', device])
+    while True:
+        click.echo("Scanning for wifi networks")
+        try:
+            networks = [c.ssid for c in wifi.Cell.all(device) if c.ssid]
+        except wifi.exceptions.InterfaceError as e:
+            click.echo("Scanning wifi networks failed: %s" % e)
+            networks = []
+        with open(app.registry.settings['wifi_networks_path'], 'w') as wifi_file:
+            json.dump({'ssids': networks}, wifi_file, indent=2)
+            wifi_file.write('\n')
+        if not forever:
+            exit(0)
+        time.sleep(waitsec)
 
 
 @click.command(help='create configuration files for nuimo app & hass and restart them')

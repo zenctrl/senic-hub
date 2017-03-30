@@ -73,7 +73,6 @@ setup(
         [console_scripts]
         wifi_setup = senic_hub.backend.commands:wifi_setup
         scan_wifi = senic_hub.backend.commands:scan_wifi
-        join_wifi = senic_hub.backend.commands:join_wifi
         setup_nuimo = senic_hub.backend.commands:setup_nuimo
         create_configurations = senic_hub.backend.commands:create_configuration_files_and_restart_apps
         device_discovery = senic_hub.backend.commands:device_discovery

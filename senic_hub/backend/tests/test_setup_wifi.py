@@ -43,8 +43,9 @@ def test_join_wifi_succeeds_with_correct_credentials(browser, connection_url, mo
     mocked_run.assert_called_once_with(
         [
             'sudo',
-            '%s/join_wifi' % settings['bin_path'],
+            '%s/wifi_setup' % settings['bin_path'],
             '-c', settings['config_ini_path'],
+            'join'
             'grandpausethisnetwork',
             'foobar',
         ],
@@ -61,8 +62,9 @@ def test_join_wifi_enters_setup_again_if_join_fails(browser, connection_url, moc
     mocked_run.assert_any_call(
         [
             'sudo',
-            '%s/join_wifi' % settings['bin_path'],
+            '%s/wifi_setup' % settings['bin_path'],
             '-c', settings['config_ini_path'],
+            'join',
             'grandpausethisnetwork',
             'grandpa-forgot-correct-password',
         ],

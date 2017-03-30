@@ -1,2 +1,1 @@
-{{run_user}} ALL=(ALL) NOPASSWD: {{backend_deploy_location}}/venv/bin/join_wifi
 {{run_user}} ALL=(ALL) NOPASSWD: {{backend_deploy_location}}/venv/bin/wifi_setup

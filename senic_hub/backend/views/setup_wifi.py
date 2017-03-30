@@ -52,8 +52,9 @@ def join_network(request):
     try:
         run([
             'sudo',
-            os.path.join(request.registry.settings['bin_path'], 'join_wifi'),
+            os.path.join(request.registry.settings['bin_path'], 'wifi_setup'),
             '-c', request.registry.settings['config_ini_path'],
+            'join',
             ssid,
             password
         ], stdout=PIPE, check=True)
