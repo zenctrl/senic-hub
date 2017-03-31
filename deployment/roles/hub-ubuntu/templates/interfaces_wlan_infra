@@ -1,2 +1,3 @@
+auto {{ploy_wlan_infra}}
 iface {{ploy_wlan_infra}} inet dhcp
 wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf

@@ -1,5 +1,1 @@
-auto {{ploy_wlan_adhoc}}
-auto {{ploy_wlan_infra}}
-
-# Include files from /etc/network/interfaces.d:
 source-directory /etc/network/interfaces.d

@@ -6,16 +6,17 @@ from ploy.common import shjoin
 
 AV = None
 
-eth_interface = """auto {eth_iface}
-interface {eth_iface}
-static ip_address={eth_ip}/{eth_netmask}
-static routers={eth_gateway}
-static domain_name_servers={eth_dns}
+eth_interface = """
+auto {eth_iface}
+iface {eth_iface} inet static
+  address {eth_ip}
+  netmask {eth_netmask}
+  gateway {eth_gateway}
 """
 
 
 @task
-def bootstrap(boot_ip=None, authorized_keys='authorized_keys', static_ip=True):
+def bootstrap(boot_ip=None, authorized_keys='authorized_keys', configure_ethernet="yes"):
     """bootstrap a freshly booted Raspberry PI 3 to make it ansible ready"""
     # (temporarily) set the user to `pi`
     if not path.isabs(authorized_keys):
@@ -32,18 +33,24 @@ def bootstrap(boot_ip=None, authorized_keys='authorized_keys', static_ip=True):
     fab.sudo("""apt update""")
     fab.sudo("""apt upgrade -y""")
     AV = env.instance.get_ansible_variables()
+    # TODO: Move defaults into ploy.conf
     AV.setdefault('eth_ip', final_ip)
     AV.setdefault('eth_iface', 'eth0')
-    AV.setdefault('eth_netmask', '24')
+    AV.setdefault('eth_netmask', '255.255.255.0')
     AV.setdefault('eth_gateway', '192.168.1.1')
     AV.setdefault('eth_dns', '8.8.8.8')
     with fab.settings(warn_only=True):
-        if static_ip:
-            fab.sudo(
-                'echo """%s""" >> /etc/dhcpcd.conf' %
-                eth_interface.format(**AV))
+        fab.sudo("systemctl stop dhcpcd")
+        fab.sudo("systemctl disable dhcpcd")
+        if configure_ethernet == "yes":
+            eth_config = eth_interface.format(**AV)
+            fab.sudo('echo """%s""" > /etc/network/interfaces.d/%s' %
+                (eth_config, AV['eth_iface']))
+            fab.sudo('echo "source-directory /etc/network/interfaces.d" > /etc/network/interfaces')
+            fab.sudo('echo "nameserver %s" | resolvconf -a %s' %
+                (AV['eth_gateway'], AV['eth_iface']))
         # enable passwordless root login via ssh
-        fab.sudo("""mkdir /root/.ssh""")
+        fab.sudo("""mkdir -p /root/.ssh""")
         fab.sudo("""chmod 700 /root/.ssh""")
         fab.put(
             local_path=authorized_keys,

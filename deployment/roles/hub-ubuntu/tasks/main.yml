@@ -149,5 +149,3 @@
     - nuimo_app
   notify: reload supervisord
   tags: wifi
-
-

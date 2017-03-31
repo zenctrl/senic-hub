@@ -1,4 +1,10 @@
 ---
+- name: Disable system's dhcpcd because we're running our own dhcpd with supervisor
+  service:
+      name: dhcpcd
+      state: stopped
+      enabled: no
+
 - name: Make sure DHCP server is installed
   apt:
     name: isc-dhcp-server

@@ -1,3 +1,4 @@
+auto {{ploy_wlan_adhoc}}
 iface {{ploy_wlan_adhoc}} inet static
   address 10.0.23.23
   netmask 255.255.255.0
