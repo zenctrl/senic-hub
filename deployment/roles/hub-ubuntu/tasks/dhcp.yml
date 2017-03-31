@@ -1,9 +1,26 @@
 ---
-- name: Disable system's dhcpcd because we're running our own dhcpd with supervisor
-  service:
+- name: Uninstall system's dhcpcd5 because we're using isc-dhcp-client
+  apt:
+      name: dhcpcd5
+      purge: yes
+      state: absent
+
+- name: Uninstall system's dhcpcd because we're using isc-dhcp-client
+  apt:
       name: dhcpcd
-      state: stopped
-      enabled: no
+      purge: yes
+      state: absent
+
+- name: Uninstall openresolv because we manage /etc/resolve.conf ourselves
+  apt:
+      name: openresolv
+      purge: yes
+      state: absent
+
+# - name: Disable system's dhcpd because we'll controll it with supervisor
+#   service:
+#     name: dhcpd
+#     state: installed
 
 - name: Make sure DHCP server is installed
   apt:
@@ -29,11 +46,3 @@
     dest: /etc/dhcp/dhcpd.conf
     owner: root
     mode: "0644"
-
-- name: configure supervisor to manage DHCP server
-  template:
-    src: dhcpd_supervisor.conf
-    dest: /etc/supervisor/conf.d/dhcpd.conf
-    owner: root
-    mode: "0644"
-  notify: reload supervisord

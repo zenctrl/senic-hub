@@ -28,8 +28,9 @@ from .device_discovery import PhilipsHueBridgeApiClient, discover_devices, read_
 
 IFACES_AVAILABLE = '/etc/network/interfaces.available/{}'
 IFACES_D = '/etc/network/interfaces.d/{}'
-WPA_SUPPLICANT_FS = '/etc/wpa_supplicant/wpa_supplicant.conf'
-WPA_SUPPLICANT_CONF = '''ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+WPA_SUPPLICANT_CONF_PATH = '/etc/wpa_supplicant/wpa_supplicant.conf'
+WPA_SUPPLICANT_CONF_TEMPLATE = '''
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
 network={{
     ssid="{ssid}"
@@ -78,24 +79,18 @@ def wifi_setup_start(ctx):
         click.echo("Not entering wifi setup mode. %s not found" % WIFI_SETUP_FLAG_PATH)
         exit(0)
     click.echo("Entering wifi setup mode")
-    device = ctx.obj['wlan_adhoc']
-    retries = 3  # Activating ad-hoc network can fail, we try it 3 times
-    while retries > 0:
-        click.echo("Trying to create ad-hoc network (%s attempts left)" % retries)
-        activate_adhoc(device)
-        run(['/usr/bin/supervisorctl', 'start', 'dhcpd'])
-        dhcpd_status = run(['/usr/bin/supervisorctl', 'status', 'dhcpd'], stdout=PIPE)
-        dhcpd_is_running = 'RUNNING' in dhcpd_status.stdout.decode()
-        if dhcpd_is_running:
-            click.echo("Ad-hoc network successfully created")
-            click.echo("Start scanning nearby wifi networks")
-            run(['/usr/bin/supervisorctl', 'start', 'scan_wifi'])
-            click.echo("Restart avahi daemon")
-            run(['/bin/systemctl', 'restart', 'avahi-daemon'])
-            exit("Wifi setup mode successfully entered")
-        click.echo("Creating ad-hoc network failed")
-        retries -= 1
-    click.echo("Unable to create ad-hoc network. Check supervisord log for details")
+    wlan_adhoc = ctx.obj['wlan_adhoc']
+    wlan_infra = ctx.obj['wlan_infra']
+    if wlan_adhoc != wlan_infra:
+        click.echo("Resetting interface '%s'" % wlan_infra)
+        activate_infra(wlan_infra)
+    click.echo("Creating ad-hoc network with interface '%s'" % wlan_adhoc)
+    activate_adhoc(wlan_adhoc)
+    click.echo("Start scanning nearby wifi networks")
+    run(['/usr/bin/supervisorctl', 'start', 'scan_wifi'])
+    click.echo("Restarting avahi daemon")
+    run(['/bin/systemctl', 'restart', 'avahi-daemon'])
+    click.echo("Wifi setup mode successfully entered")
 
 
 def activate_adhoc(device):
@@ -111,6 +106,25 @@ def activate_adhoc(device):
     run(['ifup', device])
 
 
+def activate_infra(device, ssid=None, password=None, timeout=None):
+    """Throws `subprocess.TimeoutExpired` if `ifup` takes longer than `timeout`"""
+    run(['ifdown', device])
+    try:
+        os.remove(IFACES_D.format(device))
+    except FileNotFoundError:
+        pass
+    os.symlink(
+        IFACES_AVAILABLE.format('interfaces_wlan_infra'),
+        IFACES_D.format(device)
+    )
+    # TODO: Support password-less networks, `key_mgmt=NONE` must be added to `network` section
+    with open(WPA_SUPPLICANT_CONF_PATH, 'w') as wpa_conf:
+        if ssid and password:
+            wpa_conf.write(WPA_SUPPLICANT_CONF_TEMPLATE.format(**locals()))
+        else:
+            wpa_conf.write('\n')
+    run(['ifup', device], timeout=timeout)
+
 @wifi_setup.command(name='join', help="join a given wifi network (requires root privileges)")
 @click.pass_context
 @click.argument('ssid')
@@ -123,19 +137,9 @@ def wifi_setup_join(ctx, ssid, password):
         run(['/usr/bin/supervisorctl', 'stop', 'scan_wifi'])
         run(['/usr/bin/supervisorctl', 'stop', 'dhcpd'])
     click.echo("Configuring '%s' for infrastructure mode" % device)
-    run(['ifdown', device])
     try:
-        os.remove(IFACES_D.format(device))
-    except FileNotFoundError:
-        pass
-    os.symlink(
-        IFACES_AVAILABLE.format('interfaces_wlan_infra'),
-        IFACES_D.format(device)
-    )
-    with open(WPA_SUPPLICANT_FS, 'w') as wpaconf:
-        wpaconf.write(WPA_SUPPLICANT_CONF.format(**locals()))
-    try:
-        run(['ifup', device], timeout=30)
+        activate_infra(device, ssid, password, timeout=30)
+        # TODO: Better run `wifi_setup_status` to check status
         status = run(['wpa_cli', '-i', device, 'status'], stdout=PIPE)
         success = 'wpa_state=COMPLETED' in status.stdout.decode()
     except TimeoutExpired:
@@ -151,6 +155,8 @@ def wifi_setup_join(ctx, ssid, password):
         exit(0)
     else:
         click.echo("Failed to join network '%s'" % ssid)
+        click.echo("PREMATURE EXIT!!!!! --- REMOVE exit() BELOW!!!!!")
+        exit(1)
         if device == ctx.obj['wlan_adhoc']:
             # As one wlan adapter is shared for adhoc and infrastructure, bring up adhoc again
             click.echo("Bringing back ad-hoc network for wifi setup...")
@@ -170,7 +176,6 @@ def wifi_setup_join(ctx, ssid, password):
 def scan_wifi(config, forever=False, waitsec=20):
     app = get_app(abspath(config))
     device = app.registry.settings['wlan_infra']
-    run(['ifup', device])
     while True:
         click.echo("Scanning for wifi networks")
         try:
