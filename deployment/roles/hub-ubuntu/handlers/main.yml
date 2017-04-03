@@ -31,3 +31,8 @@
   supervisorctl:
     name: senic_hub
     state: restarted
+
+- name: restart wifi_setup
+  supervisorctl:
+    name: wifi_setup
+    state: restarted

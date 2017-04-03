@@ -54,6 +54,7 @@
     - restart wlan_adhoc
     - restart wlan_infra
     - restart avahi
+    - restart wifi_setup
   tags: wlan
 
 - name: ensure document root
