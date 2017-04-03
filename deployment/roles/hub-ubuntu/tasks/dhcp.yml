@@ -17,32 +17,32 @@
       purge: yes
       state: absent
 
-# - name: Disable system's dhcpd because we'll controll it with supervisor
-#   service:
-#     name: dhcpd
-#     state: installed
-
-- name: Make sure DHCP server is installed
+- name: Install DHCP server
   apt:
     name: isc-dhcp-server
     state: installed
 
-- name: Make sure DHCP service is *not* running
+- name: Enable DHCP server
   service:
     name: isc-dhcp-server
-    state: stopped
-    enabled: no
+    enabled: yes
 
-- name: configure DHCP server interfaces
+- name: Configure DHCP server interface
   template:
     src: isc-dhcp-server_defaults
     dest: /etc/default/isc-dhcp-server
     owner: root
     mode: "0644"
+  notify:
+    - restart dhcp server
+    - restart wifi_setup
 
-- name: configure DHCP server network
+- name: Configure DHCP server network
   template:
     src: isc-dhcp-server_config
     dest: /etc/dhcp/dhcpd.conf
     owner: root
     mode: "0644"
+  notify:
+    - restart dhcp server
+    - restart wifi_setup

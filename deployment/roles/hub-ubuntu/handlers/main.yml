@@ -27,6 +27,11 @@
     name: supervisor
     state: restarted
 
+- name: restart dhcp server
+  service:
+    name: isc-dhcp-server
+    state: restarted
+
 - name: restart senic_hub
   supervisorctl:
     name: senic_hub
