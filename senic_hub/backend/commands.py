@@ -120,15 +120,26 @@ def wifi_setup_join(ctx, ssid, password):
         run(['/usr/bin/supervisorctl', 'stop', 'dhcpd'])
     click.echo("Configuring '%s' for infrastructure mode" % device)
     try:
-        activate_infra(device, ssid, password, timeout=30)
+        activate_infra(device, ssid, password, timeout=60)
         # TODO: Better run `wifi_setup_status` to check status
         # TODO: Continue polling connection state as long as it's `connecting`
-        status = run(['wpa_cli', '-i', device, 'status'], stdout=PIPE)
-        success = 'wpa_state=COMPLETED' in status.stdout.decode()
+        connected = False
+        while True:
+            click.echo("Requesting infrastructure connection state")
+            status = run([
+                os.path.join(ctx.obj['bin_path'], 'wifi_setup'),
+                '-c', ctx.obj['config_ini_path'],
+                'status'
+            ], stdout=PIPE).stdout.decode()
+            if 'infra_status=connecting' in status:
+                continue
+            connected = 'infra_status=connected' in status
+            break
     except TimeoutExpired:
-        success = False
+        click.echo("Timeout while trying to connect to network")
+        connected = False
 
-    if success:
+    if connected:
         try:
             os.remove(ctx.obj['wifi_setup_flag_path'])
         except FileNotFoundError:
