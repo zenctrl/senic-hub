@@ -6,9 +6,9 @@ import xml.etree.ElementTree as ET
 from copy import deepcopy
 from enum import IntEnum
 
-from netdisco.discovery import NetworkDiscovery
-
 import requests
+
+from .network_discovery import NetworkDiscovery
 
 
 SUPPORTED_DEVICES = [
@@ -77,13 +77,10 @@ def discover(discovery_class=NetworkDiscovery):
 
     devices = []
 
-    netdisco = discovery_class()
+    netdisco = discovery_class(SUPPORTED_DEVICES)
     netdisco.scan()
 
     for device_type in netdisco.discover():
-        if device_type not in SUPPORTED_DEVICES:
-            continue
-
         for device_info in netdisco.get_info(device_type):
             device_description = get_device_description(device_type, device_info)
             logger.info("Discovered %s device with ip %s", device_type, device_description["ip"])

@@ -266,8 +266,8 @@ def device_discovery(config):
     setup_logging(config)
 
     devices_path = app.registry.settings['devices_path']
-    scan_interval_seconds = app.registry.settings.get(
-        'scan_interval_seconds', DEFAULT_SCAN_INTERVAL_SECONDS)
+    scan_interval_seconds = int(app.registry.settings.get(
+        'device_scan_interval_seconds', DEFAULT_SCAN_INTERVAL_SECONDS))
 
     # install Ctrl+C handler
     signal.signal(signal.SIGINT, sigint_handler)
