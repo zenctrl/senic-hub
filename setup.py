@@ -50,17 +50,17 @@ setup(
         'click',
         'colander',
         'cornice<2.0',
+        'cryptoyaml',
+        'netdisco==0.9.1',
         'nuimo>=0.3.0,<0.4.0',
         'pyramid',
         'pyramid_tm',
         'pytz',
         'requests',
-        'cryptoyaml',
         'wifi',
-        'netdisco==0.9.1',
         # nuimo_app
-        'websocket-client==0.40.0',
         'nuimo',
+        'websocket-client==0.40.0',
     ],
     extras_require={
         'development': [
