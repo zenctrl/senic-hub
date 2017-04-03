@@ -81,11 +81,10 @@ def wifi_setup_start(ctx):
     click.echo("Entering wifi setup mode")
     wlan_adhoc = ctx.obj['wlan_adhoc']
     wlan_infra = ctx.obj['wlan_infra']
-    if wlan_adhoc != wlan_infra:
-        click.echo("Resetting interface '%s'" % wlan_infra)
-        activate_infra(wlan_infra)
     click.echo("Creating ad-hoc network with interface '%s'" % wlan_adhoc)
     activate_adhoc(wlan_adhoc)
+    click.echo("Resetting interface '%s'" % wlan_infra)
+    activate_infra(wlan_infra, ssid=None, password=None)
     click.echo("Start scanning nearby wifi networks")
     run(['/usr/bin/supervisorctl', 'start', 'scan_wifi'])
     click.echo("Restarting avahi daemon")
@@ -94,29 +93,12 @@ def wifi_setup_start(ctx):
 
 
 def activate_adhoc(device):
-    run(['ifdown', device])
-    try:
-        os.remove(IFACES_D.format(device))
-    except FileNotFoundError:
-        pass
-    os.symlink(
-        IFACES_AVAILABLE.format('interfaces_wlan_adhoc'),
-        IFACES_D.format(device)
-    )
     run(['ifup', device])
 
 
-def activate_infra(device, ssid=None, password=None, timeout=None):
+def activate_infra(device, ssid, password, timeout=None):
     """Throws `subprocess.TimeoutExpired` if `ifup` takes longer than `timeout`"""
     run(['ifdown', device])
-    try:
-        os.remove(IFACES_D.format(device))
-    except FileNotFoundError:
-        pass
-    os.symlink(
-        IFACES_AVAILABLE.format('interfaces_wlan_infra'),
-        IFACES_D.format(device)
-    )
     # TODO: Support password-less networks, `key_mgmt=NONE` must be added to `network` section
     with open(WPA_SUPPLICANT_CONF_PATH, 'w') as wpa_conf:
         if ssid and password:
@@ -140,6 +122,7 @@ def wifi_setup_join(ctx, ssid, password):
     try:
         activate_infra(device, ssid, password, timeout=30)
         # TODO: Better run `wifi_setup_status` to check status
+        # TODO: Continue polling connection state as long as it's `connecting`
         status = run(['wpa_cli', '-i', device, 'status'], stdout=PIPE)
         success = 'wpa_state=COMPLETED' in status.stdout.decode()
     except TimeoutExpired:
@@ -155,17 +138,6 @@ def wifi_setup_join(ctx, ssid, password):
         exit(0)
     else:
         click.echo("Failed to join network '%s'" % ssid)
-        click.echo("PREMATURE EXIT!!!!! --- REMOVE exit() BELOW!!!!!")
-        exit(1)
-        if device == ctx.obj['wlan_adhoc']:
-            # As one wlan adapter is shared for adhoc and infrastructure, bring up adhoc again
-            click.echo("Bringing back ad-hoc network for wifi setup...")
-            run([
-                'sudo',
-                os.path.join(ctx.obj['bin_path'], 'wifi_setup'),
-                '-c', ctx.obj['config_ini_path'],
-                'start'
-            ], stdout=PIPE)
         exit(1)
 
 
