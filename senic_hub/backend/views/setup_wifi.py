@@ -84,7 +84,7 @@ def get_wifi_connection(request):
     else:
         status = 'unavailable'
     return dict(
-        ssid=ssid if ssid else None,
+        ssid=ssid if ssid else None,  # `None` if ssid is an empty string or `None`
         status=status
     )
 
