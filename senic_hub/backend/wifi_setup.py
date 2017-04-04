@@ -6,7 +6,7 @@ import re
 import time
 
 from os.path import abspath
-from subprocess import PIPE, TimeoutExpired
+from subprocess import TimeoutExpired
 from .subprocess_run import run
 
 import wifi
@@ -40,7 +40,7 @@ def wifi_setup(ctx, config):
 def wifi_setup_status(ctx):
     wlan_infra = ctx.obj['wlan_infra']
     try:
-        wpa_status = run(['wpa_cli', '-i', wlan_infra, 'status'], stdout=PIPE, timeout=5).stdout.decode()
+        wpa_status = run(['wpa_cli', '-i', wlan_infra, 'status'], timeout=5).stdout.decode()
     except TimeoutExpired:
         wpa_status = ""
     ssid_match = re.search("^ssid=(.*)$", wpa_status, flags=re.MULTILINE)
@@ -116,7 +116,7 @@ def wifi_setup_join(ctx, ssid, password):
                 os.path.join(ctx.obj['bin_path'], 'wifi_setup'),
                 '-c', ctx.obj['config_ini_path'],
                 'status'
-            ], stdout=PIPE).stdout.decode()
+            ]).stdout.decode()
             if 'infra_status=connecting' in status:
                 continue
             connected = 'infra_status=connected' in status

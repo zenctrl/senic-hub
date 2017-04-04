@@ -6,7 +6,7 @@ import re
 
 from cornice.service import Service
 from pyramid.httpexceptions import HTTPBadRequest
-from subprocess import CalledProcessError, PIPE, TimeoutExpired
+from subprocess import CalledProcessError, TimeoutExpired
 
 from ..config import path
 from ..subprocess_run import run
@@ -48,7 +48,6 @@ def join_network(request):
     ssid = request.validated['ssid']
     password = request.validated['password']
     logger.debug("Trying to connect to network '%s'", ssid)
-    # TODO: Can we spawn the process so that we can give a proper request response?
     try:
         run([
             'sudo',
@@ -57,7 +56,7 @@ def join_network(request):
             'join',
             ssid,
             password
-        ], stdout=PIPE, check=True)
+        ], check=True)
         logger.info("Joining network '%s' succeeded" % ssid)
     except CalledProcessError as e:
         logger.error("Failed to join network '%s'" % ssid)
@@ -72,7 +71,7 @@ def get_wifi_connection(request):
             os.path.join(request.registry.settings['bin_path'], 'wifi_setup'),
             '-c', request.registry.settings['config_ini_path'],
             'status'
-        ]).stdout.decode()
+        ]).stdout.decode('utf8')
     except TimeoutExpired:
         status = ""
     ssid_match = re.search("^infra_ssid=(.*)$", status, flags=re.MULTILINE)

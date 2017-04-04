@@ -1,5 +1,6 @@
 import pytest
-from subprocess import CalledProcessError
+from collections import namedtuple
+from subprocess import CalledProcessError, TimeoutExpired
 from unittest.mock import patch
 
 
@@ -35,30 +36,10 @@ def connection_url(route_url):
     return route_url('wifi_connection')
 
 
-def test_join_wifi_succeeds_with_correct_credentials(browser, connection_url, mocked_run, settings):
+def test_join_wifi_returns_200_when_join_succeeds(browser, connection_url, mocked_run, settings):
     browser.post_json(connection_url, dict(
         ssid='grandpausethisnetwork',
-        password='foobar',
-        device='wlan0')).json
-    mocked_run.assert_called_once_with(
-        [
-            'sudo',
-            '%s/wifi_setup' % settings['bin_path'],
-            '-c', settings['config_ini_path'],
-            'join'
-            'grandpausethisnetwork',
-            'foobar',
-        ],
-        check=True
-    )
-
-
-def test_join_wifi_enters_setup_again_if_join_fails(browser, connection_url, mocked_run, settings):
-    mocked_run.side_effect = [CalledProcessError(1, ""), None]
-    browser.post_json(connection_url, dict(
-        ssid='grandpausethisnetwork',
-        password='grandpa-forgot-correct-password',
-        device='wlan0'), status=400)
+        password='foobar'))
     mocked_run.assert_any_call(
         [
             'sudo',
@@ -66,34 +47,57 @@ def test_join_wifi_enters_setup_again_if_join_fails(browser, connection_url, moc
             '-c', settings['config_ini_path'],
             'join',
             'grandpausethisnetwork',
-            'grandpa-forgot-correct-password',
-        ],
-        check=True
+            'foobar',
+        ], check=True
     )
+
+
+def test_join_wifi_returns_400_when_join_fails(browser, connection_url, mocked_run, settings):
+    mocked_run.side_effect = [CalledProcessError(1, None)]
+    browser.post_json(connection_url, dict(
+        ssid='grandpausethisnetwork',
+        password='foobar'), status=400)
     mocked_run.assert_any_call(
         [
             'sudo',
             '%s/wifi_setup' % settings['bin_path'],
             '-c', settings['config_ini_path'],
-            'start'
-        ]
+            'join',
+            'grandpausethisnetwork',
+            'foobar',
+        ], check=True
     )
 
 
-def test_get_connected_wifi(browser, connection_url):
+def test_connection_status_returns_connected_if_wifi_is_connected(browser, connection_url, mocked_run):
+    Output = namedtuple('Output', ['stdout'])
+    mocked_run.side_effect = [Output(stdout=b"infra_ssid=grandpausethisnetwork\ninfra_status=connected")]
     assert browser.get_json(connection_url).json == dict(
         ssid='grandpausethisnetwork',
         status='connected'
     )
 
 
-@pytest.fixture
-def wifi_not_connected(settings):
-    settings['joined_wifi_path'] = '/no/such/file'
-    return settings
+def test_connection_status_returns_connecting_if_wifi_is_connected(browser, connection_url, mocked_run):
+    Output = namedtuple('Output', ['stdout'])
+    mocked_run.side_effect = [Output(stdout=b"infra_ssid=grandpausethisnetwork\ninfra_status=connecting")]
+    assert browser.get_json(connection_url).json == dict(
+        ssid='grandpausethisnetwork',
+        status='connecting'
+    )
 
 
-def test_get_not_connected_wifi(wifi_not_connected, browser, connection_url):
+def test_connection_status_returns_unavailable_if_wifi_is_not_connected(browser, connection_url, mocked_run):
+    Output = namedtuple('Output', ['stdout'])
+    mocked_run.side_effect = [Output(stdout=b"")]
+    assert browser.get_json(connection_url).json == dict(
+        ssid=None,
+        status='unavailable'
+    )
+
+
+def test_connection_status_returns_unavailable_if_retrieving_status_takes_too_long(browser, connection_url, mocked_run):
+    mocked_run.side_effect = [TimeoutExpired(None, None)]
     assert browser.get_json(connection_url).json == dict(
         ssid=None,
         status='unavailable'
