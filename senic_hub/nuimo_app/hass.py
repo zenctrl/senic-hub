@@ -6,13 +6,13 @@ from collections import defaultdict
 from pprint import pformat
 from threading import Thread
 
-from websocket import WebSocketConnectionClosedException, create_connection
+import websocket
 
 
 logger = logging.getLogger(__name__)
 
 
-class HAListener(Thread):
+class HomeAssistant(Thread):
     """
     Listens on events & state change notification through HASS WS interface.
 

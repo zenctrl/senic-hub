@@ -1,13 +1,13 @@
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from senic_hub.nuimo_app.hass import HAListener
+from senic_hub.nuimo_app.hass import HomeAssistant
 
 
-class TestHAListener(TestCase):
+class TestHomeAssistant(TestCase):
     def test_find_state_entity_state(self):
         connection = MagicMock()
-        listener = HAListener("ws://localhost:8123", connection)
+        listener = HomeAssistant("ws://localhost:8123", connection)
 
         states = [
             {"entity_id": "eid1"},

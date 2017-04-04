@@ -7,7 +7,7 @@ from nuimo import (Controller, ControllerListener, ControllerManager, Gesture)
 
 from . import errors, icons
 
-from .hass import HAListener
+from .hass import HomeAssistant
 from .led import LEDMatrixConfig
 
 
@@ -69,7 +69,7 @@ class NuimoApp(NuimoControllerListener):
         self.rotation_value = 0
         self.action_in_progress = None
 
-        self.ha = HAListener(
+        self.ha = HomeAssistant(
             "ws://{}".format(ha_api_url),
             on_connect=self.ha_connected,
             on_disconnect=self.ha_disconnected,
