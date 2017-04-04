@@ -119,7 +119,8 @@ def wifi_setup_join(ctx, ssid, password):
             ]).stdout.decode()
             if 'infra_status=connecting' in status:
                 continue
-            connected = 'infra_status=connected' in status
+            elif 'infra_status=connected' in status:
+                connected = True
             break
     except TimeoutExpired:
         click.echo("Timeout while trying to connect to network")
