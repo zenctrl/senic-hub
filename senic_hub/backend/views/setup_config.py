@@ -2,7 +2,7 @@ from cornice.service import Service
 
 from ..commands import create_configuration_files_and_restart_apps_
 from ..config import path
-from ..supervisor import get_supervisor_rpc_client, stop_program
+from ..supervisor import stop_program
 
 
 configuration_service = Service(
@@ -17,6 +17,4 @@ configuration_service = Service(
 def configuration_create_view(request):
     create_configuration_files_and_restart_apps_(request.registry.settings)
 
-    # stop device discovery daemon
-    supervisorctl = get_supervisor_rpc_client()
-    stop_program('device_discovery', supervisorctl)
+    stop_program('device_discovery')

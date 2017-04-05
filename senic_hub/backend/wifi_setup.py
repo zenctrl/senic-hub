@@ -8,6 +8,7 @@ import time
 from os.path import abspath
 from subprocess import TimeoutExpired
 from .subprocess_run import run
+from . import supervisor
 
 import wifi
 from pyramid.paster import get_app
@@ -71,8 +72,11 @@ def wifi_setup_start(ctx):
     click.echo("Resetting interface '%s'" % wlan_infra)
     activate_infra(wlan_infra, ssid=None, password=None)
     click.echo("Start scanning nearby wifi networks")
-    run(['/usr/bin/supervisorctl', 'start', 'scan_wifi'])
+    supervisor.start_program('scan_wifi')
+
     click.echo("Restarting avahi daemon")
+    # TODO: Check if we can control avahi via supervisor (if it's not tied too much with the system)
+    # TODO: Send SIGHUP signal to ask avavahi daemon to reload its config
     run(['/bin/systemctl', 'restart', 'avahi-daemon'])
     click.echo("Wifi setup mode successfully entered")
 
@@ -102,8 +106,7 @@ def wifi_setup_join(ctx, ssid, password):
     # Stop wifi scanner and DHCP daemon only if same wlan device is used for adhoc and infrastructure network
     if device == ctx.obj['wlan_adhoc']:
         click.echo("Stopping wifi scanner and bringing down ad-hoc network")
-        run(['/usr/bin/supervisorctl', 'stop', 'scan_wifi'])
-        run(['/usr/bin/supervisorctl', 'stop', 'dhcpd'])
+        supervisor.stop_program('scan_wifi')
     click.echo("Configuring '%s' for infrastructure mode" % device)
     try:
         activate_infra(device, ssid, password, timeout=60)
@@ -131,6 +134,7 @@ def wifi_setup_join(ctx, ssid, password):
             os.remove(ctx.obj['wifi_setup_flag_path'])
         except FileNotFoundError:
             pass
+        # TODO: Send SIGHUP signal to ask avavahi daemon to reload its config
         run(['/bin/systemctl', 'restart', 'avahi-daemon'])
         click.echo("Joining wifi network '%s' succeeded" % ssid)
         exit(0)
