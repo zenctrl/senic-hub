@@ -1,33 +1,48 @@
 ---
-- name: Make sure DHCP server is installed
+- name: Uninstall system's dhcpcd5 because we're using isc-dhcp-client
+  apt:
+      name: dhcpcd5
+      purge: yes
+      state: absent
+
+- name: Uninstall system's dhcpcd because we're using isc-dhcp-client
+  apt:
+      name: dhcpcd
+      purge: yes
+      state: absent
+
+- name: Uninstall openresolv because we manage /etc/resolve.conf ourselves
+  apt:
+      name: openresolv
+      purge: yes
+      state: absent
+
+- name: Install DHCP server
   apt:
     name: isc-dhcp-server
     state: installed
 
-- name: Make sure DHCP service is *not* running
+- name: Enable DHCP server
   service:
     name: isc-dhcp-server
-    state: stopped
-    enabled: no
+    enabled: yes
 
-- name: configure DHCP server interfaces
+- name: Configure DHCP server interface
   template:
     src: isc-dhcp-server_defaults
     dest: /etc/default/isc-dhcp-server
     owner: root
     mode: "0644"
+  notify:
+    - restart dhcp server
+    - restart wifi_setup
 
-- name: configure DHCP server network
+- name: Configure DHCP server network
   template:
     src: isc-dhcp-server_config
     dest: /etc/dhcp/dhcpd.conf
     owner: root
     mode: "0644"
-
-- name: configure supervisor to manage DHCP server
-  template:
-    src: dhcpd_supervisor.conf
-    dest: /etc/supervisor/conf.d/dhcpd.conf
-    owner: root
-    mode: "0644"
-  notify: reload supervisord
+  notify:
+    - restart dhcp server
+    - restart wifi_setup

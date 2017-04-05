@@ -7,10 +7,7 @@ console.log = (...args) => log(...[new Date().toLocaleTimeString(), ...args])
 
 let Activity = {
   ENTER_WIFI_PASSWORD:               'ENTER_WIFI_PASSWORD',
-  SUBMIT_WIFI_CREDENTIALS:           'SUBMIT_WIFI_CREDENTIALS',
-  SUBMIT_WIFI_CREDENTIALS_FAILED:    'SUBMIT_WIFI_CREDENTIALS_FAILED',
   WAITING_FOR_HUB_TO_JOIN_HOME_WIFI: 'WAITING_FOR_HUB_TO_JOIN_HOME_WIFI',
-  LOOKING_FOR_HUB_IN_HOME_WIFI:      'LOOKING_FOR_HUB_IN_HOME_WIFI',
   HUB_IS_CONNECTED_TO_HOME_WIFI:     'HUB_IS_CONNECTED_TO_HOME_WIFI',
   HUB_FAILED_TO_JOIN_HOME_WIFI:      'HUB_FAILED_TO_JOIN_HOME_WIFI'
 }
@@ -22,8 +19,7 @@ class SetupWifiConnection extends Component {
       activity: Activity.ENTER_WIFI_PASSWORD,
       error: null,
       ssid: props.params.ssid,
-      password: '',
-      waitingForHubToJoinStartDate: null
+      password: ''
     };
   }
 
@@ -35,19 +31,7 @@ class SetupWifiConnection extends Component {
             <div className='SetupWifiConnection'>
               <div>Please enter the password for { this.state.ssid }</div>
               <input type="password" value={this.state.password} onChange={(event) => this.setState({password: event.target.value})} />
-              <a onClick={(event) => this.setActivity(Activity.SUBMIT_WIFI_CREDENTIALS) }>Continue</a>
-            </div>
-          )
-        case Activity.SUBMIT_WIFI_CREDENTIALS:
-          return (
-            <div className='SetupWifiConnection'>
-              <div>Sending your WiFi credentials to Senic Hub</div>
-            </div>
-          )
-        case Activity.SUBMIT_WIFI_CREDENTIALS_FAILED:
-          return (
-            <div className='SetupWifiConnection'>
-              <div>Senic Hub could not connect to your home WiFi: { this.state.error }</div>
+              <a onClick={(event) => this.setActivity(Activity.WAITING_FOR_HUB_TO_JOIN_HOME_WIFI) }>Continue</a>
             </div>
           )
         case Activity.WAITING_FOR_HUB_TO_JOIN_HOME_WIFI:
@@ -56,13 +40,8 @@ class SetupWifiConnection extends Component {
               <div>Please wait while Senic hub tries to connect to your home Wi-Fi</div>
             </div>
           )
-        case Activity.LOOKING_FOR_HUB_IN_HOME_WIFI:
-          return (
-            <div className='SetupWifiConnection'>
-              <div>Please connect your computer back to your home Wi-Fi</div>
-            </div>
-          )
         case Activity.HUB_FAILED_TO_JOIN_HOME_WIFI:
+          //TODO: Provide retry button that asks again for wifi password
           return (
             <div className='SetupWifiConnection'>
               <div>Your Senic Hub failed to connect to your home Wi-Fi: { this.state.error }</div>
@@ -91,41 +70,10 @@ class SetupWifiConnection extends Component {
     switch (activity) {
       case Activity.ENTER_WIFI_PASSWORD:
         break
-      case Activity.SUBMIT_WIFI_CREDENTIALS:
-        postWifiCredentials(this.state.ssid, this.state.password)
-          .then(() => this.setActivity(Activity.WAITING_FOR_HUB_TO_JOIN_HOME_WIFI))
-          .catch((error) => this.setActivity(Activity.SUBMIT_WIFI_CREDENTIALS_FAILED, error))
-        break
-      case Activity.SUBMIT_WIFI_CREDENTIALS_FAILED:
-        break
       case Activity.WAITING_FOR_HUB_TO_JOIN_HOME_WIFI:
-        // This is when we expect the user to be still connected to the adhoc
-        if (this.state.activity != Activity.WAITING_FOR_HUB_TO_JOIN_HOME_WIFI) {
-          this.state.waitingForHubToJoinStartDate = new Date()
-        }
-        else if ((new Date()).getTime() - this.state.waitingForHubToJoinStartDate.getTime() > 10000) {
-          this.setActivity(Activity.LOOKING_FOR_HUB_IN_HOME_WIFI)
-          break
-        }
-        // intentionally fall-through to next case
-      case Activity.LOOKING_FOR_HUB_IN_HOME_WIFI:
-        // This is when we want the user to connect her machine back to the home wifi
-        getWifiConnection(1000)
-          .then((connection) => {
-            console.log('HUB CONNECTION: ' + JSON.stringify(connection))
-            if (connection.ssid === this.state.ssid) {
-              console.log('SSID OK, status=' + connection.status)
-              switch (connection.status) {
-                case 'connected':  this.setActivity(Activity.HUB_IS_CONNECTED_TO_HOME_WIFI); break
-                case 'connecting': this.setActivity(activity); break
-                default:           this.setActivity(Activity.HUB_FAILED_TO_JOIN_HOME_WIFI, 'unknown reason'); break
-              }
-            }
-            else {
-              this.setActivity(Activity.HUB_FAILED_TO_JOIN_HOME_WIFI, 'unknown reason')
-            }
-          })
-          .catch((error) => this.setActivity(activity) /* try again */)
+        postWifiCredentials(this.state.ssid, this.state.password)
+          .then(() => this.setActivity(Activity.HUB_IS_CONNECTED_TO_HOME_WIFI))
+          .catch((error) => this.setActivity(Activity.HUB_FAILED_TO_JOIN_HOME_WIFI, error))
         break
       case Activity.HUB_FAILED_TO_JOIN_HOME_WIFI:
         break
@@ -142,10 +90,9 @@ class SetupWifiConnection extends Component {
 function postWifiCredentials(ssid, password) {
   /*
     Returns a promise that
-    - resolves if request times out after some seconds
-      expected behavior if hub joins another network and therefor needs to shutdown adhoc network
-    - resolves if response code is 200 (if hub can both open adhoc and join another network)
+    - resolves if response code is 200
     - otherwise rejects if response code != 200
+    - rejects if request isn't responded within time limit
   */
   let request = fetch('/-/setup/wifi/connection', {
       method: 'POST',
@@ -156,7 +103,7 @@ function postWifiCredentials(ssid, password) {
       body: JSON.stringify({ 'ssid': ssid, 'password': password })
     })
     .then((response) => { if (!response.ok) throw new Error('not-ok') })
-  let requestTimeout = new Promise((resolve, reject) => setTimeout(resolve, 15000))
+  let requestTimeout = new Promise((resolve, reject) => setTimeout(resolve, 60000))
   return Promise.race([request, requestTimeout])
 }
 

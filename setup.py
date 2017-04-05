@@ -50,17 +50,17 @@ setup(
         'click',
         'colander',
         'cornice<2.0',
+        'cryptoyaml',
+        'netdisco==0.9.1',
         'nuimo>=0.3.0,<0.4.0',
         'pyramid',
         'pyramid_tm',
         'pytz',
         'requests',
-        'cryptoyaml',
         'wifi',
-        'netdisco==0.9.1',
         # nuimo_app
-        'websocket-client==0.40.0',
         'nuimo',
+        'websocket-client==0.40.0',
     ],
     extras_require={
         'development': [
@@ -71,10 +71,8 @@ setup(
         [paste.app_factory]
         main = senic_hub.backend:main
         [console_scripts]
-        scan_wifi = senic_hub.backend.commands:scan_wifi
-        enter_wifi_setup = senic_hub.backend.commands:enter_wifi_setup
-        join_wifi = senic_hub.backend.commands:join_wifi
-        setup_nuimo = senic_hub.backend.commands:setup_nuimo
+        wifi_setup = senic_hub.backend.wifi_setup:wifi_setup
+        scan_wifi = senic_hub.backend.wifi_setup:scan_wifi
         create_configurations = senic_hub.backend.commands:create_configuration_files_and_restart_apps
         device_discovery = senic_hub.backend.commands:device_discovery
         nuimo_app = senic_hub.nuimo_app.__main__:main

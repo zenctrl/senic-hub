@@ -1,12 +1,11 @@
 ---
-- name: restart wlan0
-  raw: "ifdown {{ploy_wlan0}} && ifup {{ploy_wlan0}}"
+- name: restart wlan_adhoc
+  raw: "ifdown {{ploy_wlan_adhoc}} && ifup {{ploy_wlan_adhoc}}"
   args:
     executable: /bin/bash
 
-- name: restart wlan1
-  raw: "ifdown {{ploy_wlan1}} && ifup {{ploy_wlan1}}"
-  when: ploy_wlan0 != ploy_wlan1
+- name: restart wlan_infra
+  raw: "ifdown {{ploy_wlan_infra}} && ifup {{ploy_wlan_infra}}"
   args:
     executable: /bin/bash
 
@@ -28,7 +27,17 @@
     name: supervisor
     state: restarted
 
+- name: restart dhcp server
+  service:
+    name: isc-dhcp-server
+    state: restarted
+
 - name: restart senic_hub
   supervisorctl:
     name: senic_hub
+    state: restarted
+
+- name: restart wifi_setup
+  supervisorctl:
+    name: wifi_setup
     state: restarted

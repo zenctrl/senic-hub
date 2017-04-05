@@ -1,7 +1,7 @@
 target = pi3hub
-boot_ip = 
+boot_ip =
 authorized_keys = authorized_keys
-static_ip = True
+configure_ethernet = yes
 
 install: bin/ploy
 
@@ -15,7 +15,7 @@ bin/python bin/pip:
 
 download-pine64: downloads/pine64-image-ubuntubase-31065bsp-longsleep.img.xz
 downloads/pine64-image-ubuntubase-31065bsp-longsleep.img.xz:
-	wget -P downloads/ https://www.pine64.pro/download/ubuntu/image/pine64-image-ubuntubase-31065bsp-longsleep.img.xz 
+	wget -P downloads/ https://www.pine64.pro/download/ubuntu/image/pine64-image-ubuntubase-31065bsp-longsleep.img.xz
 
 download-nanopi: downloads/Armbian_5.25_Nanopiair_Ubuntu_xenial_default_3.4.113.7z
 downloads/Armbian_5.25_Nanopiair_Ubuntu_xenial_default_3.4.113.7z:
@@ -27,7 +27,7 @@ downloads/$(notdir $(raspbian_lite_image)):
 	wget -P downloads/ http://director.downloads.raspberrypi.org/raspbian_lite/images/$(raspbian_lite_image)
 
 bootstrap: bin/ploy
-	bin/ploy do $(target) bootstrap boot_ip=$(boot_ip) authorized_keys=$(authorized_keys) static_ip=$(static_ip)
+	bin/ploy do $(target) bootstrap boot_ip=$(boot_ip) authorized_keys=$(authorized_keys) configure_ethernet=$(configure_ethernet)
 
 osx-deps:
 	brew install python openssl libffi

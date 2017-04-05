@@ -49,13 +49,13 @@ class SetupWifiSelection extends Component {
     fetch('/-/setup/wifi')
       //TODO: Write tests for all possible API call responses, server not available, etc.
       .then((response) => response.json())
-      .then((ssids) => {
-        ssids = ssids.sort((lhs, rhs) => lhs.toLowerCase().localeCompare(rhs.toLowerCase()))
+      .then((response) => {
+        let ssids = response.ssids.sort((lhs, rhs) => lhs.toLowerCase().localeCompare(rhs.toLowerCase()))
         this.setState({ssids: ssids})
         done()
       })
       .catch((error) => {
-        console.error(error);
+        console.error(error)
         done()
       })
   }

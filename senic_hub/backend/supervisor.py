@@ -17,15 +17,13 @@ def get_supervisor_rpc_client():
 
 
 def restart_program(name):
-    supervisor = get_supervisor_rpc_client()
-
-    stop_program(name, supervisor)
-    start_program(name, supervisor)
+    stop_program(name)
+    start_program(name)
 
 
-def stop_program(name, supervisor):
+def stop_program(name):
     try:
-        supervisor.stopProcess(name)
+        get_supervisor_rpc_client().stopProcess(name)
     except xmlrpc.client.Fault as e:
         # list of possible faults https://github.com/Supervisor/supervisor/blob/master/supervisor/xmlrpc.py#L27
         if e.faultCode in (40, 70):
@@ -34,5 +32,5 @@ def stop_program(name, supervisor):
             raise
 
 
-def start_program(name, supervisor):
-    supervisor.startProcess(name)
+def start_program(name):
+    get_supervisor_rpc_client().startProcess(name)

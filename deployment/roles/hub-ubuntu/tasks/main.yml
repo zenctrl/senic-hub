@@ -28,33 +28,24 @@
     - libssl-dev
     - lighttpd
 
-- name: available interfaces directory
-  file:
-    path: /etc/network/interfaces.available
-    owner: root
-    group: root
-    mode: "0755"
-    state: directory
-  tags: wlan
-
 - name: configure network interfaces
   template:
     src: "{{item.src}}"
     dest: "/etc/network/{{item.dest}}"
     owner: root
     mode: "0644"
-  when: ploy_wlan0 is defined
   with_items:
     - src: interfaces
       dest: interfaces
-    - src: interfaces_dhcp_wifi
-      dest: interfaces.available/interfaces_dhcp_wifi
-    - src: interfaces_setup_wifi
-      dest: interfaces.available/interfaces_setup_wifi
+    - src: interfaces_wlan_adhoc
+      dest: interfaces.d/wlan_adhoc
+    - src: interfaces_wlan_infra
+      dest: interfaces.d/wlan_infra
   notify:
-    - restart wlan0
-    - restart wlan1
+    - restart wlan_adhoc
+    - restart wlan_infra
     - restart avahi
+    - restart wifi_setup
   tags: wlan
 
 - name: ensure document root
@@ -117,7 +108,6 @@
 
 - include: dhcp.yml
   tags: dhcp
-  when: ploy_wlan0 is defined
 
 - name: allow run user to setup wifi
   template:
@@ -126,7 +116,6 @@
     owner: root
     mode: "0755"
     validate: visudo -cf %s
-  when: ploy_wlan0 is defined
   tags: wifi
 
 - name: configure supervisor (enable RPC interface)
@@ -151,7 +140,4 @@
     - device_discovery
     - nuimo_app
   notify: reload supervisord
-  when: ploy_wlan0 is defined
   tags: wifi
-
-

@@ -2,10 +2,10 @@ import colander
 import json
 import logging
 import os
+import re
 
 from cornice.service import Service
 from pyramid.httpexceptions import HTTPBadRequest
-from pyramid.response import FileResponse
 from subprocess import CalledProcessError
 
 from ..config import path
@@ -29,10 +29,10 @@ wifi_setup = Service(
 
 @wifi_setup.get()
 def scan_wifi_networks(request):
-    fs_path = request.registry.settings['wifi_networks_path']
-    if os.path.exists(fs_path):
-        networks = json.load(open(fs_path))
-        return list(networks.keys())
+    networks_path = request.registry.settings['wifi_networks_path']
+    if os.path.exists(networks_path):
+        with open(networks_path, "r") as networks_file:
+            return json.load(networks_file)
     else:
         return []
 
@@ -49,34 +49,41 @@ def join_network(request):
     ssid = request.validated['ssid']
     password = request.validated['password']
     logger.debug("Trying to connect to network '%s'", ssid)
-    # TODO: Can we spawn the process so that we can give a proper request response?
     try:
         run([
             'sudo',
-            os.path.join(request.registry.settings['bin_path'], 'join_wifi'),
+            os.path.join(request.registry.settings['bin_path'], 'wifi_setup'),
             '-c', request.registry.settings['config_ini_path'],
+            'join',
             ssid,
             password
         ], check=True)
-    except CalledProcessError:
-        run([
-            'sudo',
-            os.path.join(request.registry.settings['bin_path'], 'enter_wifi_setup'),
-            '-c', request.registry.settings['config_ini_path']
-        ])
-        # TOOD: If we can still respond that probably means wifi wasn't joined,
-        #       or that we were already connected to the same Wi-Fi.
-        #       Study all possible cases to return something helpful if possible.
+        logger.info("Joining network '%s' succeeded", ssid)
+    except CalledProcessError as e:
+        logger.error("Failed to join network '%s'", ssid)
         raise HTTPBadRequest()
 
 
 @wifi_connection.get()
 def get_wifi_connection(request):
-    fs_path = request.registry.settings['joined_wifi_path']
-    if os.path.exists(fs_path):
-        return FileResponse(fs_path)
+    status = run([
+        'sudo',
+        os.path.join(request.registry.settings['bin_path'], 'wifi_setup'),
+        '-c', request.registry.settings['config_ini_path'],
+        'status'
+    ]).stdout.decode('utf8')
+    ssid_match = re.search("^infra_ssid=(.+)$", status, flags=re.MULTILINE)
+    ssid = ssid_match.group(1) if ssid_match else None
+    if 'infra_status=connecting' in status:
+        status = 'connecting'
+    elif 'infra_status=connected' in status:
+        status = 'connected'
     else:
-        return dict(ssid=None, status='unavailable')
+        status = 'unavailable'
+    return dict(
+        ssid=ssid,
+        status=status
+    )
 
 
 wifi_adhoc = Service(
