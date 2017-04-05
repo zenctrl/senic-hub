@@ -58,9 +58,9 @@ def join_network(request):
             ssid,
             password
         ], check=True)
-        logger.info("Joining network '%s' succeeded" % ssid)
+        logger.info("Joining network '%s' succeeded", ssid)
     except CalledProcessError as e:
-        logger.error("Failed to join network '%s'" % ssid)
+        logger.error("Failed to join network '%s'", ssid)
         raise HTTPBadRequest()
 
 
