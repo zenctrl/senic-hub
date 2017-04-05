@@ -7,7 +7,7 @@ from nuimo import (Controller, ControllerListener, ControllerManager, Gesture)
 
 from . import errors, icons
 
-from .hass import HAListener
+from .hass import HomeAssistant
 from .led import LEDMatrixConfig
 
 
@@ -69,11 +69,7 @@ class NuimoApp(NuimoControllerListener):
         self.rotation_value = 0
         self.action_in_progress = None
 
-        self.ha = HAListener(
-            "ws://{}".format(ha_api_url),
-            on_connect=self.ha_connected,
-            on_disconnect=self.ha_disconnected,
-        )
+        self.ha = HomeAssistant(ha_api_url, on_connect=self.ha_connected)
 
     def run(self):
         self.ha.start()
@@ -88,9 +84,6 @@ class NuimoApp(NuimoControllerListener):
 
         for component in self.components:
             self.initialize_component(component)
-
-    def ha_disconnected(self):
-        self.controller.listener = None
 
     def initialize_component(self, component):
         logger.debug("Initializing component: %s", component.name)
@@ -114,7 +107,7 @@ class NuimoApp(NuimoControllerListener):
             if not self.active_component:
                 self.set_active_component()
 
-        self.ha.get_state(component.entity_id, [set_state])
+        self.ha.get_state(component.entity_id, [set_state], self.show_error_icon)
 
     def process_gesture_event(self, event):
         if event.gesture in self.GESTURES_TO_IGNORE:
@@ -186,9 +179,6 @@ class NuimoApp(NuimoControllerListener):
 
     def execute_action(self, action):
         def call_service_callback(entity_id, response):
-            logger.debug("service_call response for %s:", entity_id)
-            logger.debug(pformat(response))
-
             if response["success"]:
                 matrix_config = action.led_matrix_config
             else:
@@ -202,7 +192,7 @@ class NuimoApp(NuimoControllerListener):
         attributes.update(action.extra_args)
 
         callback = partial(call_service_callback, action.entity_id)
-        self.ha.call_service(action.domain, action.service, attributes, callback)
+        self.ha.call_service(action.domain, action.service, attributes, callback, self.show_error_icon)
 
     def get_prev_component(self):
         if not self.components:
