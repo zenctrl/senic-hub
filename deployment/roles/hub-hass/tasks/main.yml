@@ -47,7 +47,7 @@
     virtualenv: "{{hass_deploy_location}}/venv/"
     requirements: "{{hass_deploy_location}}/requirements.txt"
     extra_args: "--pre --upgrade -i {{devpi_index_url}}"
-  notify: restart nuimo_hass
+  notify: restart homeassistant
   tags: update_hass
 
 - name: configure homeassistant
@@ -58,14 +58,14 @@
     group: "{{run_user}}"
     mode: "0664"
     src: configuration.yaml
-  notify: restart nuimo_hass
+  notify: restart homeassistant
   tags: update_hass
 
 - name: configure supervisor
   become: yes
   template:
     src: supervisor.conf
-    dest: /etc/supervisor/conf.d/nuimo_hass.conf
+    dest: /etc/supervisor/conf.d/homeassistant.conf
     mode: "0644"
   tags: update_hass
 
@@ -78,6 +78,6 @@
 
 - name: ensure homeassistant is running
   supervisorctl:
-    name: nuimo_hass
+    name: homeassistant
     state: started
   tags: update_hass
