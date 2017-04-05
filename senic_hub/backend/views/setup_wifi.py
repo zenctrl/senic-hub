@@ -75,7 +75,7 @@ def get_wifi_connection(request):
         ]).stdout.decode('utf8')
     except TimeoutExpired:
         status = ""
-    ssid_match = re.search("^infra_ssid=(.*)$", status, flags=re.MULTILINE)
+    ssid_match = re.search("^infra_ssid=(.+)$", status, flags=re.MULTILINE)
     ssid = ssid_match.group(1) if ssid_match else None
     if 'infra_status=connecting' in status:
         status = 'connecting'
@@ -84,7 +84,7 @@ def get_wifi_connection(request):
     else:
         status = 'unavailable'
     return dict(
-        ssid=ssid if ssid else None,  # `None` if ssid is an empty string or `None`
+        ssid=ssid,
         status=status
     )
 
