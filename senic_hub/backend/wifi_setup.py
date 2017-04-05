@@ -1,6 +1,5 @@
 import click
 import json
-import logging
 import os
 import re
 import time
@@ -25,8 +24,6 @@ network={{
     psk="{password}"
 }}
 '''
-
-logger = logging.getLogger(__name__)
 
 
 @click.group()
