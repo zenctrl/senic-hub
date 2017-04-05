@@ -1,6 +1,6 @@
 import pytest
 from collections import namedtuple
-from subprocess import CalledProcessError, TimeoutExpired
+from subprocess import CalledProcessError
 from unittest.mock import patch
 
 
@@ -90,14 +90,6 @@ def test_connection_status_returns_connecting_if_wifi_is_connected(browser, conn
 def test_connection_status_returns_unavailable_if_wifi_is_not_connected(browser, connection_url, mocked_run):
     Output = namedtuple('Output', ['stdout'])
     mocked_run.side_effect = [Output(stdout=b"")]
-    assert browser.get_json(connection_url).json == dict(
-        ssid=None,
-        status='unavailable'
-    )
-
-
-def test_connection_status_returns_unavailable_if_retrieving_status_takes_too_long(browser, connection_url, mocked_run):
-    mocked_run.side_effect = [TimeoutExpired(None, None)]
     assert browser.get_json(connection_url).json == dict(
         ssid=None,
         status='unavailable'
