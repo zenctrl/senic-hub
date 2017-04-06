@@ -1,5 +1,5 @@
 ---
-- name: restart nuimo_hass
+- name: restart homeassistant
   supervisorctl:
-    name: nuimo_hass
+    name: homeassistant
     state: restarted
