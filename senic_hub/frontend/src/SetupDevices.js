@@ -20,7 +20,7 @@ class SetupDevices extends Component {
       <div className="SetupDevices">
         <p>We're now looking for your smart devices</p>
         <table>
-          <ReactCSSTransitionGroup component="tbody" transitionName="SetupDevices_Transition" transitionEnterTimeout={500}>
+          <ReactCSSTransitionGroup component="tbody" transitionName="SetupDevices_Transition" transitionEnterTimeout={500} transitionLeaveTimeout={500}>
           {
             this.state.devices.map((device) =>
               <tr key={device.id}>
@@ -71,7 +71,7 @@ class SetupDevices extends Component {
         device = this.state.devices.find((d) => d.id === device.id)
         if (!device) return
         device.authenticated = response.authenticated
-        this.setState()
+        this.forceUpdate()
       })
   }
 }
