@@ -107,13 +107,4 @@ function postWifiCredentials(ssid, password) {
   return Promise.race([request, requestTimeout])
 }
 
-function getWifiConnection(timeout) {
-  let request = fetch('/-/setup/wifi/connection')
-    .then((response) => { if (response.ok) { return response } else { throw new Error('not-ok') }})
-    .then((response) => response.json())
-    .then((response) => ({ ssid: response.ssid, status: response.status }))
-  let requestTimeout = new Promise((resolve, reject) => setTimeout(() => reject(new Error('timeout')), timeout))
-  return Promise.race([request, requestTimeout])
-}
-
 export default SetupWifiConnection

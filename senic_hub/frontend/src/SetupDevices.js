@@ -68,9 +68,10 @@ class SetupDevices extends Component {
     fetch('/-/setup/devices/' + device.id + '/authenticate', {method: 'POST'})
       .then((response) => response.json())
       .then((response) => {
-        let i = this.state.devices.findIndex((d) => d.id == device.id)
-        this.state.devices[i].authenticated = response.authenticated
-        this.setState({ devices: this.state.devices })
+        device = this.state.devices.find((d) => d.id === device.id)
+        if (!device) return
+        device.authenticated = response.authenticated
+        this.setState()
       })
   }
 }
