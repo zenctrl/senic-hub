@@ -7,7 +7,6 @@ import time
 from os.path import abspath
 from subprocess import TimeoutExpired
 from .subprocess_run import run
-from . import supervisor
 
 import wifi
 from pyramid.paster import get_app
@@ -79,8 +78,6 @@ def wifi_setup_start(ctx):
     activate_adhoc(wlan_adhoc)
     click.echo("Resetting interface '%s'" % wlan_infra)
     activate_infra(wlan_infra, ssid=None, password=None)
-    click.echo("Start scanning nearby wifi networks")
-    supervisor.start_program('scan_wifi')
 
     click.echo("Restarting avahi daemon")
     # TODO: Check if we can control avahi via supervisor (if it's not tied too much with the system)
@@ -116,15 +113,9 @@ def activate_infra(device, ssid, password, timeout=None):
 @click.argument('password')
 def wifi_setup_join(ctx, ssid, password):
     device = ctx.obj['wlan_infra']
-    # Stop wifi scanner and DHCP daemon only if same wlan device is used for adhoc and infrastructure network
-    if device == ctx.obj['wlan_adhoc']:
-        click.echo("Stopping wifi scanner and bringing down ad-hoc network")
-        supervisor.stop_program('scan_wifi')
     click.echo("Configuring '%s' for infrastructure mode" % device)
     try:
         activate_infra(device, ssid, password, timeout=60)
-        # TODO: Better run `wifi_setup_status` to check status
-        # TODO: Continue polling connection state as long as it's `connecting`
         connected = False
         while True:
             click.echo("Requesting infrastructure connection state")
@@ -151,6 +142,7 @@ def wifi_setup_join(ctx, ssid, password):
         exit(0)
     else:
         click.echo("Failed to join network '%s'" % ssid)
+        activate_infra(device)
         exit(1)
 
 
