@@ -142,6 +142,7 @@ def wifi_setup_join(ctx, ssid, password):
         exit(0)
     else:
         click.echo("Failed to join network '%s'" % ssid)
+        activate_infra(device)
         exit(1)
 
 
