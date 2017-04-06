@@ -13,8 +13,19 @@ import wifi
 from pyramid.paster import get_app
 
 
-IFACES_AVAILABLE = '/etc/network/interfaces.available/{}'
-IFACES_D = '/etc/network/interfaces.d/{}'
+INTERFACESD_WLAN_INFRA_PATH = '/etc/network/interfaces.d/wlan_infra'
+INTERFACESD_WLAN_INFRA_SCAN_ONLY = '''
+auto wlan1
+iface wlan1 inet static
+  address 10.0.42.42
+  netmask 255.255.255.0
+'''
+INTERFACESD_WLAN_INFRA_JOIN = '''
+auto wlan1
+iface wlan1 inet dhcp
+wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
+'''
+
 WPA_SUPPLICANT_CONF_PATH = '/etc/wpa_supplicant/wpa_supplicant.conf'
 WPA_SUPPLICANT_CONF_TEMPLATE = '''
 ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
@@ -85,6 +96,11 @@ def activate_adhoc(device):
 def activate_infra(device, ssid, password, timeout=None):
     """Throws `subprocess.TimeoutExpired` if `ifup` takes longer than `timeout`"""
     run(['ifdown', device])
+    with open(INTERFACESD_WLAN_INFRA_PATH, 'w') as wlan_conf:
+        if ssid:
+            wlan_conf.write(INTERFACESD_WLAN_INFRA_JOIN)
+        else:
+            wlan_conf.write(INTERFACESD_WLAN_INFRA_SCAN_ONLY)
     # TODO: Support password-less networks, `key_mgmt=NONE` must be added to `network` section
     with open(WPA_SUPPLICANT_CONF_PATH, 'w') as wpa_conf:
         if ssid and password:
