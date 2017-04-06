@@ -31,7 +31,7 @@ class SetupWifiConnection extends Component {
             <div className='SetupWifiConnection'>
               <div>Please enter the password for { this.state.ssid }</div>
               <input type="password" value={this.state.password} onChange={(event) => this.setState({password: event.target.value})} />
-              <a onClick={(event) => this.setActivity(Activity.WAITING_FOR_HUB_TO_JOIN_HOME_WIFI) }>Continue</a>
+              <a onClick={(event) => this.setActivity(Activity.WAITING_FOR_HUB_TO_JOIN_HOME_WIFI) } style={{cursor: 'pointer', textDecoration: 'underline'}}>Continue</a>
             </div>
           )
         case Activity.WAITING_FOR_HUB_TO_JOIN_HOME_WIFI:
