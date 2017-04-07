@@ -20,7 +20,7 @@ class SetupDevices extends Component {
       <div className="SetupDevices">
         <p>We're now looking for your smart devices</p>
         <table>
-          <ReactCSSTransitionGroup component="tbody" transitionName="SetupDevices_Transition" transitionEnterTimeout={500}>
+          <ReactCSSTransitionGroup component="tbody" transitionName="SetupDevices_Transition" transitionEnterTimeout={500} transitionLeaveTimeout={500}>
           {
             this.state.devices.map((device) =>
               <tr key={device.id}>
@@ -68,9 +68,8 @@ class SetupDevices extends Component {
     fetch('/-/setup/devices/' + device.id + '/authenticate', {method: 'POST'})
       .then((response) => response.json())
       .then((response) => {
-        let i = this.state.devices.findIndex((d) => d.id == device.id)
-        this.state.devices[i].authenticated = response.authenticated
-        this.setState({ devices: this.state.devices })
+        device.authenticated = response.authenticated
+        this.forceUpdate()
       })
   }
 }

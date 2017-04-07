@@ -30,8 +30,14 @@ class SetupWifiConnection extends Component {
           return (
             <div className='SetupWifiConnection'>
               <div>Please enter the password for { this.state.ssid }</div>
-              <input type="password" value={this.state.password} onChange={(event) => this.setState({password: event.target.value})} />
-              <a onClick={(event) => this.setActivity(Activity.WAITING_FOR_HUB_TO_JOIN_HOME_WIFI) }>Continue</a>
+              <input
+                type="password"
+                value={this.state.password}
+                onChange={event => this.setState({password: event.target.value})}
+                onKeyPress={event => event.key === 'Enter' ? this.setActivity(Activity.WAITING_FOR_HUB_TO_JOIN_HOME_WIFI) : null } />
+              <a
+                onClick={event => this.setActivity(Activity.WAITING_FOR_HUB_TO_JOIN_HOME_WIFI) }
+                style={{cursor: 'pointer', textDecoration: 'underline'}}>Continue</a>
             </div>
           )
         case Activity.WAITING_FOR_HUB_TO_JOIN_HOME_WIFI:
@@ -73,7 +79,7 @@ class SetupWifiConnection extends Component {
       case Activity.WAITING_FOR_HUB_TO_JOIN_HOME_WIFI:
         postWifiCredentials(this.state.ssid, this.state.password)
           .then(() => this.setActivity(Activity.HUB_IS_CONNECTED_TO_HOME_WIFI))
-          .catch((error) => this.setActivity(Activity.HUB_FAILED_TO_JOIN_HOME_WIFI, error))
+          .catch(error => this.setActivity(Activity.HUB_FAILED_TO_JOIN_HOME_WIFI, error))
         break
       case Activity.HUB_FAILED_TO_JOIN_HOME_WIFI:
         break
@@ -102,17 +108,8 @@ function postWifiCredentials(ssid, password) {
       },
       body: JSON.stringify({ 'ssid': ssid, 'password': password })
     })
-    .then((response) => { if (!response.ok) throw new Error('not-ok') })
+    .then(response => { if (!response.ok) throw new Error('not-ok') })
   let requestTimeout = new Promise((resolve, reject) => setTimeout(resolve, 60000))
-  return Promise.race([request, requestTimeout])
-}
-
-function getWifiConnection(timeout) {
-  let request = fetch('/-/setup/wifi/connection')
-    .then((response) => { if (response.ok) { return response } else { throw new Error('not-ok') }})
-    .then((response) => response.json())
-    .then((response) => ({ ssid: response.ssid, status: response.status }))
-  let requestTimeout = new Promise((resolve, reject) => setTimeout(() => reject(new Error('timeout')), timeout))
   return Promise.race([request, requestTimeout])
 }
 
