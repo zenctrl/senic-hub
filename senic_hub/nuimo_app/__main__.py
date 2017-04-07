@@ -2,7 +2,9 @@ import configparser
 import logging
 import sys
 
-from . import NuimoApp, components
+from importlib import import_module
+
+from . import NuimoApp
 
 
 # TODO: Read from main ini file
@@ -41,7 +43,7 @@ def main(config_file_path=DEFAULT_CONFIG_FILE_PATH):
     nuimo_app = NuimoApp(ha_api_url, ble_adapter_name, controller_mac_address, component_instances)
 
     try:
-        nuimo_app.run()
+        nuimo_app.start()
     except KeyboardInterrupt:
         logger.debug("Stopping...")
         nuimo_app.stop()
@@ -54,13 +56,20 @@ def read_config(config_file_path):
 
 
 def get_component_instances(component_config):
+    """
+    Import component modules configured in the Nuimo app configuration
+    and return instances of the contained component classes.
+    """
     instances = []
+
+    module_name_format = __name__.rsplit('.', 1)[0] + '.components.{}'
 
     for cid in component_config.sections():
         cfg = component_config[cid]
-        component_class = getattr(components, cfg["component"])
-        component = component_class(cfg["name"], cfg["entity_id"])
-        instances.append(component)
+        module_name = module_name_format.format(cfg.pop('component'))
+        logger.info("Importing module %s", module_name)
+        component_module = import_module(module_name)
+        instances.append(component_module.Component(cfg))
 
     return instances
 

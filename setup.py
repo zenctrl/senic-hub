@@ -61,6 +61,8 @@ setup(
         'wifi',
         # nuimo_app
         'websocket-client==0.40.0',
+        'soco==0.12',
+        'phue==0.9',
     ],
     extras_require={
         'development': [

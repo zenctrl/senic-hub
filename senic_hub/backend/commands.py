@@ -52,7 +52,7 @@ def create_configuration_files_and_restart_apps_(settings):
     nuimo_app_config_file_path = settings['nuimo_app_config_path']
     bluetooth_adapter_name = settings['bluetooth_adapter_name']
     with open(nuimo_app_config_file_path, 'w') as f:
-        config = generate_nuimo_configuration(devices, nuimo_controller_mac_address, bluetooth_adapter_name)
+        config = generate_nuimo_configuration(devices, nuimo_controller_mac_address, bluetooth_adapter_name, settings)
         config.write(f)
 
     supervisor.restart_program('nuimo_app')
@@ -86,7 +86,7 @@ def phue_bridge_config(bridge):
     }
 
 
-def generate_nuimo_configuration(devices, nuimo_controller_mac_address, bluetooth_adapter_name):
+def generate_nuimo_configuration(devices, nuimo_controller_mac_address, bluetooth_adapter_name, settings):
     config = configparser.ConfigParser()
     config['DEFAULT'] = {
         'ha_api_url': 'localhost:8123',
@@ -97,17 +97,24 @@ def generate_nuimo_configuration(devices, nuimo_controller_mac_address, bluetoot
     authenticated_devices = [d for d in devices if d["authenticated"]]
     for index, device in enumerate(authenticated_devices):
         section_name = '{}-{}'.format(device['type'], index)
-        component = {
-            'philips_hue': 'PhilipsHue',
-            'sonos': 'Sonos',
-        }[device['type']]
-
         config[section_name] = {
-            'name': section_name,
-            'component': component,
+            'name': device['name'],
+            'component': device['type'],
             'entity_id': device["ha_entity_id"],
+            'ip_address': device['ip'],
         }
+
+        if device['type'] == 'philips_hue':
+            config[section_name]['username'] = get_phue_bridge_username(device, settings)
+
     return config
+
+
+def get_phue_bridge_username(bridge, settings):
+    homeassistant_data_path = settings['homeassistant_data_path']
+    phue_auth_details_path = os.path.join(homeassistant_data_path, '{}.conf'.format(bridge['id']))
+    with open(phue_auth_details_path) as f:
+        return json.load(f)[bridge['ip']]['username']
 
 
 def sigint_handler(*args):
