@@ -51,7 +51,7 @@ setup(
         'colander',
         'cornice<2.0',
         'cryptoyaml',
-        'netdisco==0.9.1',
+        'netdisco==0.9.2',
         'nuimo>=0.3.0,<0.4.0',
         'pyramid',
         'pyramid_tm',
@@ -59,7 +59,6 @@ setup(
         'requests',
         'wifi',
         # nuimo_app
-        'nuimo',
         'websocket-client==0.40.0',
     ],
     extras_require={
