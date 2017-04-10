@@ -6,4 +6,5 @@ include setup.*
 graft *.egg-info
 graft PKG-INFO
 recursive-exclude senic_hub/frontend *
+recursive-exclude deployment *
 graft senic_hub/frontend/distribution
