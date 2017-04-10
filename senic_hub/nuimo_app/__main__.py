@@ -2,7 +2,7 @@ import configparser
 import logging
 import sys
 
-from . import NuimoApp, components, errors
+from . import NuimoApp, components
 
 
 # TODO: Read from main ini file
@@ -42,7 +42,7 @@ def main(config_file_path=DEFAULT_CONFIG_FILE_PATH):
 
     try:
         nuimo_app.run()
-    except (KeyboardInterrupt, errors.NuimoControllerConnectionError):
+    except KeyboardInterrupt:
         logger.debug("Stopping...")
         nuimo_app.stop()
 
