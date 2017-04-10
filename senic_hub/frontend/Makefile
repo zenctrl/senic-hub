@@ -12,10 +12,7 @@ distribution/index.html: build/index.html
 $(react): package.json
 	npm install
 
-upload: setup.py bin/devpi distribution/index.html
-	PATH=${PWD}/bin:${PATH} bin/devpi upload --no-vcs
-
 clean:
-	git clean -fXd
+	git clean -fX
 
-.PHONY: clean upload
+.PHONY: clean
