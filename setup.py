@@ -35,9 +35,10 @@ setup(
     package_data={
         name: [
             '.coveragerc',
-            'backend/tests/*.py',
-            'backend/tests/data/*.*',
-            'backend/views/*.*',
+            'senic_hub/backend/tests/*.py',
+            'senic_hub/backend/tests/data/*.*',
+            'senic_hub/backend/views/*.*',
+            'senic_hub/frontend/distribution',
         ],
     },
     zip_safe=False,
