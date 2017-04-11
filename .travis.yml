@@ -1,14 +1,22 @@
 git:
   depth: 10000
-sudo: false
+sudo: required
 language: python
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/.nvm/
+    - $HOME/nodejs
 python:
 - '3.5'
 env:
   global:
   - LINUX_WITHOUT_DBUS=1
   - devpi_user=travis
-install: pip install tox-travis
+before_install:
+  - "./travis_before_install.sh"
+install:
+  - pip install tox-travis
 script: tox
 after_success:
 - "./travis_after_success.sh"

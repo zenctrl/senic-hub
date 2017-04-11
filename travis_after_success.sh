@@ -4,15 +4,12 @@
 PATH="$TRAVIS_BUILD_DIR/.tox/py35/bin/:$PATH"
 REPO_OWNER="${TRAVIS_REPO_SLUG%/*}"
 
-echo `git describe --tags`
-echo `git tag`
-
 # build and publish for
 if  [ "$TRAVIS_PULL_REQUEST" = "false" ] ; then
     if [ "$TRAVIS_BRANCH" = "master" ] || [ "$REPO_OWNER" != "getsenic" ]; then
         devpi use "https://pypi.senic.com/$REPO_OWNER/master"
         devpi login $devpi_user --password="$devpi_password"
-        devpi upload --no-vcs --with-docs --formats bdist_wheel
+        make upload NODE_BIN=$HOME/nodejs/node-v6.10.2-linux-x64/bin/
     else
         echo "Not building for branch '$TRAVIS_BRANCH'"
     fi
