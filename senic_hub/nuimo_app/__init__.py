@@ -234,9 +234,6 @@ class NuimoApp(NuimoControllerListener):
             self.active_component = active_component
             self.ha.register_state_listener(self.active_component.entity_id, self.state_changed)
 
-            if self.controller.is_connected():
-                self.show_active_component()
-
     def state_changed(self, state):
         """
         Gets called whenever state changes in any device within
