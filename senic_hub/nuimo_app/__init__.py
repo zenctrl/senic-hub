@@ -5,7 +5,7 @@ from pprint import pformat
 
 from nuimo import (Controller, ControllerListener, ControllerManager, Gesture)
 
-from . import errors, icons
+from . import icons
 
 from .hass import HomeAssistant
 from .led import LEDMatrixConfig
@@ -27,7 +27,7 @@ class NuimoControllerListener(ControllerListener):
     def connect_failed(self, error):
         mac = self.controller.mac_address
         logger.critical("Connection failed %s: %s", mac, error)
-        raise errors.NuimoControllerConnectionError
+        self.controller.connect()
 
     def disconnect_succeeded(self):
         mac = self.controller.mac_address
