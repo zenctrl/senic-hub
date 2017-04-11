@@ -7,7 +7,7 @@ name = 'senic_hub'
 
 def find_data(top):
     for dirpath, _, files in walk(top):
-        base = dirpath.replace(top, 'htdocs', 1)
+        base = dirpath.replace(top, 'senic-hub-htdocs', 1)
         yield base, [path.join(dirpath, name) for name in files]
 
 
@@ -35,9 +35,10 @@ setup(
     package_data={
         name: [
             '.coveragerc',
-            'backend/tests/*.py',
-            'backend/tests/data/*.*',
-            'backend/views/*.*',
+            'senic_hub/backend/tests/*.py',
+            'senic_hub/backend/tests/data/*.*',
+            'senic_hub/backend/views/*.*',
+            'senic_hub/frontend/distribution',
         ],
     },
     zip_safe=False,
