@@ -5,7 +5,7 @@ language: python
 cache:
   directories:
     - $HOME/.cache/pip
-    - $HOME/.npm/
+    - $TRAVIS_BUILD_DIR/senic_hub/frontend/node_modules/
     - $HOME/nodejs
 python:
 - '3.5'
