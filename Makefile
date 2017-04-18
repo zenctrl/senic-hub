@@ -1,6 +1,5 @@
 # convenience makefile to set up the backend for local development
 python_version = 3
-NODE_BIN = dirname `which node`
 
 all: venv/bin/pserve
 
