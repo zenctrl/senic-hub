@@ -5,7 +5,7 @@ language: python
 cache:
   directories:
     - $HOME/.cache/pip
-    - $HOME/.nvm/
+    - $HOME/.npm/
     - $HOME/nodejs
 python:
 - '3.5'
