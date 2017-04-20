@@ -1,14 +1,8 @@
 import logging
 
-from functools import partial
-from pprint import pformat
+from nuimo import (Controller, ControllerListener, ControllerManager, Gesture, LedMatrix)
 
-from nuimo import (Controller, ControllerListener, ControllerManager, Gesture)
-
-from . import icons
-
-from .hass import HomeAssistant
-from .led import LEDMatrixConfig
+from . import matrices
 
 
 logger = logging.getLogger(__name__)
@@ -66,48 +60,22 @@ class NuimoApp(NuimoControllerListener):
         self.controller.listener = self
         self.controller.connect()
 
-        self.rotation_value = 0
-        self.action_in_progress = None
+        for component in self.components:
+            component.nuimo = self
 
-        self.ha = HomeAssistant(ha_api_url, on_connect=self.ha_connected)
+        component = self.get_next_component()
+        if component:
+            self.set_active_component(component)
 
-    def run(self):
-        self.ha.start()
+    def start(self):
         self.manager.run()
 
     def stop(self):
-        self.ha.stop()
+        if self.active_component:
+            self.active_component.stop()
+
+        self.controller.disconnect()
         self.manager.stop()
-
-    def ha_connected(self):
-        self.controller.listener = self
-
-        for component in self.components:
-            self.initialize_component(component)
-
-    def initialize_component(self, component):
-        logger.debug("Initializing component: %s", component.name)
-
-        def set_state(state):
-            if not state:
-                # Couldn't retrieve state for the component. Most
-                # probably entity_id doesn't exist in Home Assistant.
-                return
-
-            component.set_state(state)
-            logger.debug("Setting state for component %s:", component.name)
-            logger.debug(pformat(state))
-
-            # register a state_changed callback that is called
-            # every time there's a state changed event for any of
-            # entities known by the component
-            self.ha.register_state_listener(component.entity_id, component.state_changed)
-
-            # set active component if it's not set already
-            if not self.active_component:
-                self.set_active_component()
-
-        self.ha.get_state(component.entity_id, [set_state], self.show_error_icon)
 
     def process_gesture_event(self, event):
         if event.gesture in self.GESTURES_TO_IGNORE:
@@ -122,16 +90,10 @@ class NuimoApp(NuimoControllerListener):
 
         if not self.active_component:
             logger.warn("Ignoring event, no active component...")
-            self.show_error_icon()
+            self.show_error_matrix()
             return
 
-        if event.gesture == Gesture.ROTATION:
-            action = self.process_rotation(event.value)
-        else:
-            action = self.process_gesture(event.gesture)
-
-        if action:
-            self.execute_action(action)
+        self.process_gesture(event.gesture, event.value)
 
     def process_internal_gesture(self, gesture):
         if gesture == Gesture.SWIPE_UP:
@@ -150,49 +112,22 @@ class NuimoApp(NuimoControllerListener):
 
         self.show_active_component()
 
-    def process_rotation(self, rotation_value):
-        self.rotation_value += rotation_value
-
-        if not self.action_in_progress:
-            action = self.active_component.rotation(self.rotation_value)
-            self.rotation_value = 0
-            self.action_in_progress = action
-            return action
-
-    def process_gesture(self, gesture):
-        action = None
+    def process_gesture(self, gesture, delta):
+        if gesture == Gesture.ROTATION:
+            self.active_component.on_rotation(delta)
 
         if gesture == Gesture.BUTTON_PRESS:
-            action = self.active_component.button_press()
+            self.active_component.on_button_press()
 
         elif gesture == Gesture.SWIPE_LEFT:
-            action = self.active_component.swipe_left()
+            self.active_component.on_swipe_left()
 
         elif gesture == Gesture.SWIPE_RIGHT:
-            action = self.active_component.swipe_right()
+            self.active_component.on_swipe_right()
 
         else:
             # TODO handle all remaining gestures...
             pass
-
-        return action
-
-    def execute_action(self, action):
-        def call_service_callback(entity_id, response):
-            if response["success"]:
-                matrix_config = action.led_matrix_config
-            else:
-                matrix_config = LEDMatrixConfig(icons.ERROR)
-
-            self.update_led_matrix(matrix_config)
-
-            self.action_in_progress = None
-
-        attributes = {"entity_id": action.entity_id}
-        attributes.update(action.extra_args)
-
-        callback = partial(call_service_callback, action.entity_id)
-        self.ha.call_service(action.domain, action.service, attributes, callback, self.show_error_icon)
 
     def get_prev_component(self):
         if not self.components:
@@ -226,40 +161,25 @@ class NuimoApp(NuimoControllerListener):
             active_component = self.components[0]
 
         if active_component:
-            logger.debug("active component: %s", active_component.name)
-
             if self.active_component:
-                self.ha.unregister_state_listener(self.active_component.entity_id)
+                logger.debug("Stopping component: %s", self.active_component.name)
+                self.active_component.stop()
 
+            logger.debug("Activating component: %s", active_component.name)
             self.active_component = active_component
-            self.ha.register_state_listener(self.active_component.entity_id, self.state_changed)
-
-    def state_changed(self, state):
-        """
-        Gets called whenever state changes in any device within
-        currently active component group.
-
-        """
+            self.active_component.start()
 
     def show_active_component(self):
         if self.active_component:
             index = self.components.index(self.active_component)
-            icon = icons.icon_with_index(self.active_component.ICON, index)
+            matrix = matrices.matrix_with_index(self.active_component.MATRIX, index)
         else:
-            icon = icons.ERROR
+            matrix = matrices.ERROR
 
-        self.update_led_matrix(LEDMatrixConfig(icon))
+        self.display_matrix(matrix)
 
-    def show_error_icon(self):
-        self.update_led_matrix(LEDMatrixConfig(icons.ERROR))
+    def show_error_matrix(self):
+        self.display_matrix(matrices.ERROR)
 
-    def update_led_matrix(self, matrix_config):
-        self.controller.display_matrix(
-            matrix_config.matrix,
-            fading=matrix_config.fading,
-            ignore_duplicates=matrix_config.ignore_duplicates,
-        )
-
-    def quit(self):
-        if self.controller.is_connected():
-            self.controller.disconnect()
+    def display_matrix(self, matrix, **kwargs):
+        self.controller.display_matrix(LedMatrix(matrix), **kwargs)

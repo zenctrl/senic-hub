@@ -134,7 +134,7 @@ LETTER_W = \
 
 def light_bar(max_value, value):
     """
-    Generates a light bar icon to display volume / brightness level.
+    Generates a light bar matrix to display volume / brightness level.
 
     """
     dots = list(" " * 81)
@@ -146,13 +146,13 @@ def light_bar(max_value, value):
     return "".join(dots)
 
 
-def icon_with_index(icon, index):
+def matrix_with_index(matrix, index):
     """
     Adds index of the component in the component list to the top right
-    corner of the component icon.
+    corner of the component matrix.
 
     """
-    dots = list(icon)
+    dots = list(matrix)
 
     while index >= 0:
         dots[index * 9 + 8] = '*'
