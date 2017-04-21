@@ -40,8 +40,22 @@ def test_device_list_is_empty_if_devices_file_doesnt_exist(no_device_file, brows
 
 def test_device_list_contains_devices(browser, url):
     assert browser.get_json(url).json == [
-        {"id": "ph1", "type": "philips_hue", "ip": "127.0.0.1", "authenticationRequired": True, "authenticated": False},
-        {"id": "s1", "type": "sonos", "ip": "127.0.0.1", "authenticationRequired": False, "authenticated": True},
+        {
+            "id": "ph1",
+            "type": "philips_hue",
+            "ip": "127.0.0.1",
+            "authenticationRequired": True,
+            "authenticated": False,
+            "extra": {},
+        },
+        {
+            "id": "s1",
+            "type": "sonos",
+            "ip": "127.0.0.1",
+            "authenticationRequired": False,
+            "authenticated": True,
+            "extra": {},
+        },
     ]
 
 
@@ -86,6 +100,7 @@ def test_devices_authenticate_view_returns_success(no_phue_config_file, browser,
     payload = [{"success": {"username": "23"}}]
     responses.add(responses.POST, 'http://127.0.0.1/api', json=payload, status=200)
     responses.add(responses.GET, 'http://127.0.0.1/api/23', json={"a": 1}, status=200)
+    responses.add(responses.GET, 'http://127.0.0.1/api/23/lights', json={"1": {}}, status=200)
     responses.add(responses.GET, 'http://127.0.0.1/description.xml', body=philips_hue_bridge_description, status=200)
     assert browser.post_json(auth_url, {}).json == {"id": "ph1", "authenticated": True}
 
@@ -94,6 +109,7 @@ def test_devices_authenticate_view_returns_success(no_phue_config_file, browser,
 def test_devices_authenticate_view_returns_already_authenticated(
         phue_config_file, browser, auth_url, philips_hue_bridge_description):
     responses.add(responses.GET, 'http://127.0.0.1/api/23', json={"a": 1}, status=200)
+    responses.add(responses.GET, 'http://127.0.0.1/api/23/lights', json={"1": {}}, status=200)
     responses.add(responses.GET, 'http://127.0.0.1/description.xml', body=philips_hue_bridge_description, status=200)
     assert browser.post_json(auth_url, {}).json == {"id": "ph1", "authenticated": True}
 

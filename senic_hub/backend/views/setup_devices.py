@@ -102,7 +102,7 @@ def devices_authenticate_view(request):
     with open(phue_bridge_config, "w") as f:
         json.dump(config, f)
 
-    update_device(device, request.registry.settings)
+    update_device(device, request.registry.settings, username)
 
     return {"id": device_id, "authenticated": authenticated}
 
@@ -152,10 +152,17 @@ def get_device(device_list_path, device_id):
     return device
 
 
-def update_device(device, settings):
+def update_device(device, settings, username):
     devices_path = settings["devices_path"]
     with open(devices_path, "r") as f:
         devices = json.loads(f.read())
+
+    device["extra"]["username"] = username
+
+    if device['authenticated'] and username:
+        bridge = PhilipsHueBridgeApiClient(device["ip"], username)
+
+        device['extra']['lights'] = bridge.get_lights()
 
     device_index = [i for (i, d) in enumerate(devices) if d["id"] == device["id"]].pop()
 
