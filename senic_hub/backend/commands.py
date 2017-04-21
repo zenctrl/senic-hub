@@ -42,7 +42,7 @@ def create_configuration_files_and_restart_apps_(settings):
     with open(hass_config_file_path, 'w') as f:
         yaml.dump(generate_hass_configuration(devices), f, default_flow_style=False)
 
-    supervisor.restart_program('homeassistant')
+    # supervisor.restart_program('homeassistant')
 
     # generate nuimo app config & restart supervisor app
     nuimo_controller_mac_address_file_path = settings['nuimo_mac_address_filepath']
