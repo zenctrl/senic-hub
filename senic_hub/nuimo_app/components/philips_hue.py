@@ -47,8 +47,11 @@ class Component(BaseComponent):
         Create or update group if there is more than 1 hue bulb
         available, otherwise return ID of the bulb.
         """
+        # TODO handle cases when light becomes available later at some point
         lights = {k: v for k, v in self.bridge.get_light().items() if v['state']['reachable']}
-        if len(lights) == 1:
+        if not lights:
+            return None
+        elif len(lights) == 1:
             return int(list(lights.keys())[0])
 
         groups = self.bridge.get_group()
@@ -75,6 +78,9 @@ class Component(BaseComponent):
         return group_id
 
     def update_state(self):
+        if not self.entity_id:
+            return
+
         try:
             settings = self.bridge.get_light(self.entity_id)
 
@@ -91,8 +97,11 @@ class Component(BaseComponent):
             self.set_light_attributes(on=on)
 
     def set_light_attributes(self, **attributes):
-        responses = self.bridge.set_light(self.entity_id, attributes, transitiontime=1)
-        self.set_state_from_responses(responses, attributes)
+        if self.entity_id:
+            responses = self.bridge.set_light(self.entity_id, attributes, transitiontime=1)
+            self.set_state_from_responses(responses, attributes)
+        else:
+            self.nuimo.display_matrix(matrices.ERROR)
 
     def set_state_from_responses(self, responses, request_attributes):
         error = any(x for x in responses[0] if 'error' in x)
