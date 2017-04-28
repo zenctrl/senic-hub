@@ -170,6 +170,11 @@ class LightSet(HueBase):
         logger.debug("on: %s brightness: %s", self._on, self._brightness)
 
     def set_attributes(self, attributes):
+        # Send ON/OFF  to a group instead lights separately for a nicer UX
+        if self.group_id is not None and 'on' in attributes and len(attributes) == 1:
+            responses = self.bridge.set_group(self.group_id, attributes, transitiontime=self.TRANSITION_TIME)
+            return self.parse_responses(responses, attributes)
+
         for light_id in self.light_ids:
             responses = self.bridge.set_light(int(light_id), attributes, transitiontime=self.TRANSITION_TIME)
             response = self.parse_responses(responses, attributes)
