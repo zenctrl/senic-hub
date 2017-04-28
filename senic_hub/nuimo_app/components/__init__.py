@@ -3,18 +3,15 @@ from threading import Thread
 from .. import matrices
 
 
-class EncoderRing:
-    NUM_POINTS = 1800
+NUIMO_ENCODER_RING_POINTS = 1800
 
-    def __init__(self, min_value, max_value):
-        self.min_value = min_value
-        self.max_value = max_value
 
-    def points_to_value(self, points):
-        return points / self.NUM_POINTS * self.max_value
+def clamp_value(value, range_):
+    return min(max(value, range_.start), range_.stop)
 
-    def clamp_value(self, value):
-        return min(max(value, self.min_value), self.max_value)
+
+def normalize_delta(points, max_value):
+    return points / NUIMO_ENCODER_RING_POINTS * max_value
 
 
 class BaseComponent:
