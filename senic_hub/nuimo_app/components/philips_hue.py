@@ -149,7 +149,7 @@ class LightSet(HueBase):
     Wraps one or multiple lights
     """
 
-    TRANSITION_TIME = 1  # * 100 milliseconds
+    TRANSITION_TIME = 2  # * 100 milliseconds
 
     @property
     def update_interval(self):
@@ -190,7 +190,7 @@ class Group(HueBase):
     Wraps a Philips Hue group
     """
 
-    TRANSITION_TIME = 4  # * 100 ms
+    TRANSITION_TIME = 2  # * 100 ms
 
     @property
     def update_interval(self):
