@@ -251,11 +251,7 @@ class Component(BaseComponent):
         return reachable
 
     def on_button_press(self):
-        on = not self.lights.on
-        if on and self.lights.brightness:
-            self.set_light_attributes(on=on, bri=self.lights.brightness)
-        else:
-            self.set_light_attributes(on=on)
+        self.set_light_attributes(on=not self.lights.on)
 
     def set_light_attributes(self, **attributes):
         response = self.lights.set_attributes(attributes)
@@ -282,10 +278,7 @@ class Component(BaseComponent):
                 matrix = matrices.light_bar(self.delta_range.stop, self.lights.brightness)
                 self.nuimo.display_matrix(matrix, fading=True, ignore_duplicates=True)
             else:
-                self.turn_off()
-
-    def turn_off(self):
-        self.set_light_attributes(on=False)
+                self.set_light_attributes(on=False)
 
     def on_swipe_left(self):
         self.set_light_attributes(on=True, bri=self.lights.brightness, xy=COLOR_WHITE_XY)
@@ -325,4 +318,5 @@ class Component(BaseComponent):
             self.set_light_attributes(bri_inc=delta)
         else:
             if delta > 0:
-                self.set_light_attributes(bri_inc=delta, on=True)
+                self.set_light_attributes(on=True)
+                self.set_light_attributes(bri_inc=delta)
