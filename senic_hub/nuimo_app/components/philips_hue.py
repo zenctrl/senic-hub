@@ -18,151 +18,16 @@ logger = logging.getLogger(__name__)
 
 
 class HueBase:
-    @property
-    def sync_interval(self):
-        """
-        How often to sync with the bridge to detect changes made by
-        external apps.
-        """
-        return 5  # seconds
-
-    def parse_responses(self, responses, request_attributes):
-        errors = [x['error'] for x in responses[0] if 'error' in x]
-        if errors:
-            return {'errors': errors}
-
-        response = self.merge_success_responses(responses)
-        logger.debug("response: %s", response)
-
-        self.update_state_from_response(response)
-        return response
-
-    def merge_success_responses(self, responses):
-        updates = [x['success'] for x in responses[0] if not list(x['success'])[0].endswith('transitiontime')]
-        return {k.rsplit("/", 1)[-1]: v for u in updates for k, v in u.items()}
-
-    def update_state_from_response(self, response):
-        for key, value in response.items():
-            if key == 'bri':
-                self.brightness = value
-
-            elif key == 'on':
-                self.on = value
-
-            elif key == 'bri_inc':
-                # response to bri_inc applied to a group doesn't return actual brightness for some reason...
-                self.brightness = clamp_value(self.brightness + value, range(0, 254))
-
-
-class EmptyLightSet(HueBase):
-    """
-    Wrapper used when we don't have any reachable lights to control
-    """
-
-    def __init__(self):
-        self._on = False
-        self._brightness = 0
-
-    @property
-    def on(self):
-        return self._on
-
-    @property
-    def brightness(self):
-        return self._brightness
-
-    @property
-    def update_interval(self):
-        return 1
-
-    def update_state(self):
-        pass
-
-    def set_attributes(self, attributes):
-        return {'errors': "No reachable lights"}
-
-    @property
-    def sync_interval(self):
-        """
-        How often to sync with the bridge to detect changes made by
-        external apps.
-        """
-        return 60  # seconds
-
-
-class LightSet(HueBase):
-    """
-    Wraps one or multiple lights
-    """
-
-    TRANSITION_TIME = 1  # * 100 milliseconds
-
-    def __init__(self, bridge, light_ids):
-        self.bridge = bridge
-        self.light_ids = light_ids
-
-        self._on = None
-        self._brightness = None
-        self._state = None
-
-    @property
-    def on(self):
-        return self._on
-
-    @on.setter
-    def on(self, other):
-        self._on = other
-
-    @property
-    def brightness(self):
-        return self._brightness
-
-    @brightness.setter
-    def brightness(self, other):
-        self._brightness = other
-
-    @property
-    def update_interval(self):
-        return 0.1
-
-    def update_state(self):
-        """
-        Get current state of all the lights from the bridge
-        """
-        response = self.bridge.get_light()
-        self._state = {k: v['state'] for k, v in response.items() if k in self.light_ids}
-
-        logger.debug("state: %s", pformat(self._state))
-
-        self._on = all(s['on'] for s in self._state.values())
-        self._brightness = min(s['bri'] for s in self._state.values())
-
-        logger.debug("on: %s brightness: %s", self._on, self._brightness)
-
-    def set_attributes(self, attributes):
-        for light_id in self.light_ids:
-            responses = self.bridge.set_light(int(light_id), attributes, transitiontime=self.TRANSITION_TIME)
-            response = self.parse_responses(responses, attributes)
-            if 'errors' in response:
-                # exit early if a call fails
-                return response
-
-        return response
-
-
-class Group(HueBase):
-    """
-    Wraps a Philips Hue group
-    """
-
     GROUP_NAME = "Senic hub"
-    TRANSITION_TIME = 4  # * 100 ms
 
     def __init__(self, bridge, light_ids):
         self.bridge = bridge
         self.light_ids = light_ids
 
-        self.group_id = self.get_or_create_group()
+        if len(light_ids) > 1:
+            self.group_id = self.get_or_create_group()
+        else:
+            self.group_id = None
 
         self._on = None
         self._brightness = None
@@ -200,8 +65,39 @@ class Group(HueBase):
         return group_id
 
     @property
-    def update_interval(self):
-        return 1  # second
+    def sync_interval(self):
+        """
+        How often to sync with the bridge to detect changes made by
+        external apps.
+        """
+        return 5  # seconds
+
+    def parse_responses(self, responses, request_attributes):
+        errors = [x['error'] for x in responses[0] if 'error' in x]
+        if errors:
+            return {'errors': errors}
+
+        response = self.merge_success_responses(responses)
+        logger.debug("response: %s", response)
+
+        self.update_state_from_response(response)
+        return response
+
+    def merge_success_responses(self, responses):
+        updates = [x['success'] for x in responses[0] if not list(x['success'])[0].endswith('transitiontime')]
+        return {k.rsplit("/", 1)[-1]: v for u in updates for k, v in u.items()}
+
+    def update_state_from_response(self, response):
+        for key, value in response.items():
+            if key == 'bri':
+                self.brightness = value
+
+            elif key == 'on':
+                self.on = value
+
+            elif key == 'bri_inc':
+                # response to bri_inc applied to a group doesn't return actual brightness for some reason...
+                self.brightness = clamp_value(self.brightness + value, range(0, 254))
 
     @property
     def on(self):
@@ -219,13 +115,94 @@ class Group(HueBase):
     def brightness(self, other):
         self._brightness = other
 
+
+class EmptyLightSet(HueBase):
+    """
+    Wrapper used when we don't have any reachable lights to control
+    """
+
+    def __init__(self):
+        self._on = False
+        self._brightness = 0
+
+    @property
+    def update_interval(self):
+        return 1
+
+    def update_state(self):
+        pass
+
+    def set_attributes(self, attributes):
+        return {'errors': "No reachable lights"}
+
+    @property
+    def sync_interval(self):
+        """
+        How often to sync with the bridge to detect changes made by
+        external apps.
+        """
+        return 60  # seconds
+
+
+class LightSet(HueBase):
+    """
+    Wraps one or multiple lights
+    """
+
+    TRANSITION_TIME = 2  # * 100 milliseconds
+
+    @property
+    def update_interval(self):
+        return 0.1
+
+    def update_state(self):
+        """
+        Get current state of all the lights from the bridge
+        """
+        response = self.bridge.get_light()
+        self._state = {k: v['state'] for k, v in response.items() if k in self.light_ids}
+
+        logger.debug("state: %s", pformat(self._state))
+
+        self._on = all(s['on'] for s in self._state.values())
+        self._brightness = min(s['bri'] for s in self._state.values())
+
+        logger.debug("on: %s brightness: %s", self._on, self._brightness)
+
+    def set_attributes(self, attributes):
+        # Send ON/OFF  to a group instead lights separately for a nicer UX
+        if self.group_id is not None and 'on' in attributes and len(attributes) == 1:
+            responses = self.bridge.set_group(self.group_id, attributes, transitiontime=self.TRANSITION_TIME)
+            return self.parse_responses(responses, attributes)
+
+        for light_id in self.light_ids:
+            responses = self.bridge.set_light(int(light_id), attributes, transitiontime=self.TRANSITION_TIME)
+            response = self.parse_responses(responses, attributes)
+            if 'errors' in response:
+                # exit early if a call fails
+                return response
+
+        return response
+
+
+class Group(HueBase):
+    """
+    Wraps a Philips Hue group
+    """
+
+    TRANSITION_TIME = 2  # * 100 ms
+
+    @property
+    def update_interval(self):
+        return 1  # second
+
     def update_state(self):
         """
         Get current state of the group from the bridge
         """
         state = self.bridge.get_group(self.group_id)
 
-        logger.debug("state: %s", pformat(state))
+        logger.debug("group state: %s", pformat(state))
 
         self._on = state['state']['all_on']
         self._brightness = state['action']['bri']
@@ -274,11 +251,7 @@ class Component(BaseComponent):
         return reachable
 
     def on_button_press(self):
-        on = not self.lights.on
-        if on and self.lights.brightness:
-            self.set_light_attributes(on=on, bri=self.lights.brightness)
-        else:
-            self.set_light_attributes(on=on)
+        self.set_light_attributes(on=not self.lights.on)
 
     def set_light_attributes(self, **attributes):
         response = self.lights.set_attributes(attributes)
@@ -305,10 +278,7 @@ class Component(BaseComponent):
                 matrix = matrices.light_bar(self.delta_range.stop, self.lights.brightness)
                 self.nuimo.display_matrix(matrix, fading=True, ignore_duplicates=True)
             else:
-                self.turn_off()
-
-    def turn_off(self):
-        self.set_light_attributes(on=False)
+                self.set_light_attributes(on=False)
 
     def on_swipe_left(self):
         self.set_light_attributes(on=True, bri=self.lights.brightness, xy=COLOR_WHITE_XY)
@@ -348,4 +318,5 @@ class Component(BaseComponent):
             self.set_light_attributes(bri_inc=delta)
         else:
             if delta > 0:
-                self.set_light_attributes(bri_inc=delta, on=True)
+                self.set_light_attributes(on=True)
+                self.set_light_attributes(bri_inc=delta)
