@@ -27,13 +27,13 @@
     src: bluetooth.conf
   notify: restart dbus
 
-- name: install system dependencies
-  apt:
-    name: "{{item}}"
-    state: installed
-  become: true
-  with_items:
-    - python3-dev
+# - name: install system dependencies
+#   apt:
+#     name: "{{item}}"
+#     state: installed
+#   become: true
+#   with_items:
+#     - python3-dev
 
 - name: init virtualenv in deployment location
   command: "{{python_interpreter}} -m venv venv"

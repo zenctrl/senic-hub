@@ -1,7 +1,7 @@
 ---
-- name: set hostname
-  hostname:
-    name: "{{hostname}}"
+# - name: set hostname
+#   hostname:
+#     name: "{{hostname}}"
 
 - name: disable default users
   user:
@@ -12,41 +12,41 @@
     - ubuntu
     - pi
 
-- name: install runtime dependencies
-  apt:
-    name: "{{item}}"
-    state: installed
-  with_items:
-    - avahi-daemon
-    - python3
-    - wpasupplicant
-    - wireless-tools
-    - supervisor
-    - python3-venv
-    - python3-dbus
-    - libffi-dev
-    - libssl-dev
-    - lighttpd
+# - name: install runtime dependencies
+#   apt:
+#     name: "{{item}}"
+#     state: installed
+#   with_items:
+#     - avahi-daemon
+#     - python3
+#     - wpasupplicant
+#     - wireless-tools
+#     - supervisor
+#     - python3-venv
+#     - python3-dbus
+#     - libffi-dev
+#     - libssl-dev
+#     - lighttpd
 
-- name: configure network interfaces
-  template:
-    src: "{{item.src}}"
-    dest: "/etc/network/{{item.dest}}"
-    owner: root
-    mode: "0644"
-  with_items:
-    - src: interfaces
-      dest: interfaces
-    - src: interfaces_wlan_adhoc
-      dest: interfaces.d/wlan_adhoc
-    - src: interfaces_wlan_infra
-      dest: interfaces.d/wlan_infra
-  notify:
-    - restart wlan_adhoc
-    - restart wlan_infra
-    - restart avahi
-    - restart wifi_setup
-  tags: wlan
+# - name: configure network interfaces
+#   template:
+#     src: "{{item.src}}"
+#     dest: "/etc/network/{{item.dest}}"
+#     owner: root
+#     mode: "0644"
+#   with_items:
+#     - src: interfaces
+#       dest: interfaces
+#     - src: interfaces_wlan_adhoc
+#       dest: interfaces.d/wlan_adhoc
+#     - src: interfaces_wlan_infra
+#       dest: interfaces.d/wlan_infra
+#   notify:
+#     - restart wlan_adhoc
+#     - restart wlan_infra
+#     - restart avahi
+#     - restart wifi_setup
+#   tags: wlan
 
 - name: ensure document root
   file:
@@ -89,25 +89,25 @@
   notify: restart httpd
   tags: www
 
-- name: announce web UI via avahi
-  template:
-    src: hub_service.xml
-    dest: /etc/avahi/services/hub.service
-    owner: root
-    mode: "0644"
-  notify: restart avahi
-  tags: avahi
+# - name: announce web UI via avahi
+#   template:
+#     src: hub_service.xml
+#     dest: /etc/avahi/services/hub.service
+#     owner: root
+#     mode: "0644"
+#   notify: restart avahi
+#   tags: avahi
 
-- name: Make sure the hostname is available for local commands (i.e. sudo)
-  lineinfile:
-    dest: /etc/hosts
-    state: present
-    regexp: '{{hostname}}$'
-    line: '127.0.0.1  {{hostname}}.local {{hostname}}'
-  tags: avahi
+# - name: Make sure the hostname is available for local commands (i.e. sudo)
+#   lineinfile:
+#     dest: /etc/hosts
+#     state: present
+#     regexp: '{{hostname}}$'
+#     line: '127.0.0.1  {{hostname}}.local {{hostname}}'
+#   tags: avahi
 
-- include: dhcp.yml
-  tags: dhcp
+# - include: dhcp.yml
+#   tags: dhcp
 
 - name: allow run user to setup wifi
   template:
