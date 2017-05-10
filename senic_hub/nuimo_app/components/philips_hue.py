@@ -6,7 +6,7 @@ from time import sleep, time
 
 from phue import Bridge
 
-from . import BaseComponent, clamp_value, normalize_delta
+from . import ThreadComponent, clamp_value
 
 from .. import matrices
 
@@ -214,7 +214,7 @@ class Group(HueBase):
         return self.parse_responses(responses, attributes)
 
 
-class Component(BaseComponent):
+class Component(ThreadComponent):
     MATRIX = matrices.LIGHT_BULB
 
     def __init__(self, config):
@@ -275,7 +275,7 @@ class Component(BaseComponent):
 
         elif 'bri' in attributes or 'bri_inc' in attributes:
             if self.lights.brightness:
-                matrix = matrices.light_bar(self.delta_range.stop, self.lights.brightness)
+                matrix = matrices.progress_bar(self.lights.brightness / self.delta_range.stop)
                 self.nuimo.display_matrix(matrix, fading=True, ignore_duplicates=True)
             else:
                 self.set_light_attributes(on=False)
@@ -311,8 +311,7 @@ class Component(BaseComponent):
             sleep(0.05)
 
     def send_updates(self):
-        normalized_delta = normalize_delta(self.delta, self.delta_range.stop)
-        delta = round(clamp_value(normalized_delta, self.delta_range))
+        delta = round(clamp_value(self.delta_range.stop * self.delta, self.delta_range))
 
         if self.lights.on:
             self.set_light_attributes(bri_inc=delta)

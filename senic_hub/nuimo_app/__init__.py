@@ -114,7 +114,7 @@ class NuimoApp(NuimoControllerListener):
 
     def process_gesture(self, gesture, delta):
         if gesture == Gesture.ROTATION:
-            self.active_component.on_rotation(delta)
+            self.active_component.on_rotation(delta / 1800)  # 1800 is the amount of all ticks for a full ring rotation
 
         if gesture == Gesture.BUTTON_PRESS:
             self.active_component.on_button_press()
