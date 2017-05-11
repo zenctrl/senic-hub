@@ -55,10 +55,10 @@ class Component(HomeAssistantComponent):
             self.nuimo.display_matrix(matrices.ERROR)
         elif self.playback_state == 'playing':
             self.nuimo.display_matrix(matrices.PAUSE)
-            self.call_ha_service("turn_off")
+            self.call_ha_service("media_pause")
         else:
             self.nuimo.display_matrix(matrices.PLAY)
-            self.call_ha_service("turn_on")
+            self.call_ha_service("media_play")
 
     def on_swipe_right(self):
         logger.debug("swipe right")
