@@ -54,8 +54,7 @@ class HomeAssistantComponent(BaseComponent):
 
         # TODO: Parametrize HA's address?
         self._ha_address = "localhost:8123"
-        # TODO: Read entity id from config
-        self._ha_entity_id = "media_player.office"
+        self._ha_entity_id = config['entity_id']
         self._ha_domain = ha_domain
 
     def start(self):
