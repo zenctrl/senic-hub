@@ -24,7 +24,7 @@ class Component(HomeAssistantComponent):
 
     def update_from_ha_state(self, state):
         super().update_from_ha_state(state)
-        logger.debug("Updated Sonos state: %s", pformat(state))
+        logger.debug("Updated media player state: %s", pformat(state))
         self.playback_state = state.get('state', None)
         if self.is_on:
             received_volume = state.get('attributes', {}).get('volume_level', None)
