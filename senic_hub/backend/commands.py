@@ -101,6 +101,7 @@ def generate_nuimo_configuration(devices, nuimo_controller_mac_address, bluetoot
             'name': device['name'],
             'component': device['type'],
             'ip_address': device['ip'],
+            'entity_id': device["ha_entity_id"],
         }
 
         if device['type'] == 'philips_hue':
@@ -140,6 +141,7 @@ def device_discovery(config):
 
         add_authentication_status(devices)
         add_device_details(devices)
+        add_homeassistant_entity_ids(devices)
 
         fd, filename = mkstemp(dir=app.registry.settings['homeassistant_data_path'])
         with open(fd, "w") as f:
@@ -169,3 +171,14 @@ def add_device_details(devices):
     for bridge in authenticated_bridges:
         api = PhilipsHueBridgeApiClient(bridge["ip"], bridge['extra']['username'])
         bridge['extra']['lights'] = api.get_lights()
+
+
+def add_homeassistant_entity_ids(devices):
+    for device in devices:
+        if device["type"] == "philips_hue":
+            device["ha_entity_id"] = "light.senic_hub"
+        elif device["type"] == "soundtouch":
+            device["ha_entity_id"] = "media_player.bose_soundtouch"
+        else:
+            room_name = device["extra"]["roomName"]
+            device["ha_entity_id"] = "media_player.{}".format(room_name.replace(" ", "_").lower())
