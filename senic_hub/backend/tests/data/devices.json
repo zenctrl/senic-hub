@@ -14,5 +14,14 @@
     "authenticationRequired": false,
     "authenticated": true,
     "extra": {}
+  },
+  {
+    "id": "soundtouch1",
+    "type": "soundtouch",
+    "ip": "127.0.0.1",
+    "port": "8090",
+    "authenticationRequired": false,
+    "authenticated": true,
+    "extra": {}
   }
 ]

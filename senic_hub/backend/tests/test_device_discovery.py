@@ -19,6 +19,11 @@ def sonos_device_info():
     return "192.168.1.42"
 
 
+@fixture
+def soundtouch_device_info():
+    return ("192.168.1.23", 8090)
+
+
 @responses.activate
 def test_get_device_description_of_philips_hue_bridge(philips_hue_bridge_device_info, philips_hue_bridge_description):
     responses.add(responses.GET, 'http://127.0.0.1:80/description.xml', body=philips_hue_bridge_description, status=200)
@@ -55,6 +60,20 @@ def test_get_device_description_of_sonos_speaker(sonos_device_info, sonos_speake
         },
     }
     assert get_device_description("sonos", sonos_device_info) == expected
+
+
+@responses.activate
+def test_get_device_description_of_soundtouch_speaker(soundtouch_device_info):
+    expected = {
+        "id": "192_168_1_23",
+        "type": "soundtouch",
+        "ip": "192.168.1.23",
+        "port": 8090,
+        "authenticationRequired": False,
+        "name": "Bose Soundtouch",
+        "extra": {},
+    }
+    assert get_device_description("bose_soundtouch", soundtouch_device_info) == expected
 
 
 @responses.activate
