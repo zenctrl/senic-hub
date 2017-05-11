@@ -24,7 +24,7 @@ class Component(HomeAssistantComponent):
 
     def update_from_ha_state(self, state):
         super().update_from_ha_state(state)
-        logger.debug("Updated Sonos state: %s", pformat(state))
+        logger.debug("Updated media player state: %s", pformat(state))
         self.playback_state = state.get('state', None)
         if self.is_on:
             received_volume = state.get('attributes', {}).get('volume_level', None)
@@ -52,13 +52,14 @@ class Component(HomeAssistantComponent):
         # TODO: When triggering play state change, we won't know very soon which new state the player is in.
         #       This said, when the user continuosly presses the button we can't quickly switch playback state yet.
         if not self.is_on:
-            self.nuimo.display_matrix(matrices.ERROR)
-        elif self.playback_state == 'playing':
+            self.call_ha_service("turn_on")
+
+        if self.playback_state == 'playing':
             self.nuimo.display_matrix(matrices.PAUSE)
-            self.call_ha_service("turn_off")
+            self.call_ha_service("media_pause")
         else:
             self.nuimo.display_matrix(matrices.PLAY)
-            self.call_ha_service("turn_on")
+            self.call_ha_service("media_play")
 
     def on_swipe_right(self):
         logger.debug("swipe right")
