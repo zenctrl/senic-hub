@@ -2,6 +2,7 @@ import importlib
 import threading
 
 from netdisco.philips_hue_nupnp import PHueNUPnPDiscovery
+from netdisco.mdns import MDNS
 from netdisco.ssdp import SSDP
 
 
@@ -12,6 +13,7 @@ class NetworkDiscovery(object):
     to support at the moment.
 
     """
+
     def __init__(self, whitelist):
         """
         Initialize the discovery.
@@ -20,8 +22,9 @@ class NetworkDiscovery(object):
         """
         self.whitelist = whitelist
 
-        self.ssdp = SSDP()
+        self.mdns = MDNS()
         self.phue = PHueNUPnPDiscovery()
+        self.ssdp = SSDP()
 
         self._load_device_support()
 
@@ -33,15 +36,19 @@ class NetworkDiscovery(object):
             self.is_discovering = True
 
         # Start all discovery processes in parallel
-        ssdp_thread = threading.Thread(target=self.ssdp.scan)
-        ssdp_thread.start()
+        mdns_thread = threading.Thread(target=self.mdns.start)
+        mdns_thread.start()
 
         phue_thread = threading.Thread(target=self.phue.scan)
         phue_thread.start()
 
+        ssdp_thread = threading.Thread(target=self.ssdp.scan)
+        ssdp_thread.start()
+
         # Wait for all discovery processes to complete
-        ssdp_thread.join()
+        mdns_thread.join()
         phue_thread.join()
+        ssdp_thread.join()
 
     def stop(self):
         """Turn discovery off."""
