@@ -52,8 +52,9 @@ class Component(HomeAssistantComponent):
         # TODO: When triggering play state change, we won't know very soon which new state the player is in.
         #       This said, when the user continuosly presses the button we can't quickly switch playback state yet.
         if not self.is_on:
-            self.nuimo.display_matrix(matrices.ERROR)
-        elif self.playback_state == 'playing':
+            self.call_ha_service("turn_on")
+
+        if self.playback_state == 'playing':
             self.nuimo.display_matrix(matrices.PAUSE)
             self.call_ha_service("media_pause")
         else:
