@@ -56,6 +56,15 @@ def test_device_list_contains_devices(browser, url):
             "authenticated": True,
             "extra": {},
         },
+        {
+            "id": "soundtouch1",
+            "type": "soundtouch",
+            "ip": "127.0.0.1",
+            "port": "8090",
+            "authenticationRequired": False,
+            "authenticated": True,
+            "extra": {}
+        }
     ]
 
 
