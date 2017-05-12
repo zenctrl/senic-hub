@@ -1,5 +1,6 @@
 import logging
 from pprint import pformat
+from time import time
 from . import HomeAssistantComponent
 from .. import matrices
 
