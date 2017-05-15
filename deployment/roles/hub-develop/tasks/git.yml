@@ -88,9 +88,9 @@
 
 - name: checkout hub sources
   git:
-    repo: "git@github.com:tomster/nuimo-hub-backend"
+    repo: "git@github.com:tomster/senic-hub"
     remote: tomster
-    dest: "/home/{{build_user}}/nuimo-hub-backend"
+    dest: "/home/{{build_user}}/senic-hub"
     version: "deploy-monolith"
     accept_hostkey: true
   become: true
