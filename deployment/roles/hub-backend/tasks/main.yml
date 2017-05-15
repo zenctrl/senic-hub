@@ -147,11 +147,11 @@
     mode: "0644"
   notify: restart senic_hub
 
-- name: ensure supervisord is running
-  service:
-    name: supervisor
-    state: running
-    enabled: true
+# - name: ensure supervisord is running
+#   service:
+#     name: supervisor
+#     state: running
+#     enabled: true
 
 - name: make sure we enter wifi setup mode when we boot
   file:

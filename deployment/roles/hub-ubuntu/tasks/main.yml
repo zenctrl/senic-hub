@@ -126,7 +126,7 @@
   with_items:
     - { regexp: '^\[inet_http_server\]$', line: '[inet_http_server]' }
     - { regexp: '^port=127.0.0.1:9001$', line: 'port=127.0.0.1:9001' }
-  notify: restart supervisor service
+#  notify: restart supervisor service
 
 - name: configure supervisor programs
   template:
@@ -139,5 +139,5 @@
     - wifi_setup
     - device_discovery
     - nuimo_app
-  notify: reload supervisord
+#  notify: reload supervisord
   tags: wifi

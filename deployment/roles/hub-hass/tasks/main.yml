@@ -64,12 +64,12 @@
     mode: "0644"
   tags: update_hass
 
-- name: ensure supervisord is running
-  service:
-    name: supervisor
-    state: running
-    enabled: true
-  tags: update_hass
+# - name: ensure supervisord is running
+#   service:
+#     name: supervisor
+#     state: running
+#     enabled: true
+#   tags: update_hass
 
 - name: ensure homeassistant is running
   supervisorctl:
