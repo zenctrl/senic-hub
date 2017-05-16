@@ -118,16 +118,6 @@
     validate: visudo -cf %s
   tags: wifi
 
-- name: configure supervisor (enable RPC interface)
-  lineinfile:
-    dest: /etc/supervisor/supervisord.conf
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  with_items:
-    - { regexp: '^\[inet_http_server\]$', line: '[inet_http_server]' }
-    - { regexp: '^port=127.0.0.1:9001$', line: 'port=127.0.0.1:9001' }
-#  notify: restart supervisor service
-
 - name: configure supervisor programs
   template:
     src: "{{item}}_supervisor.conf"
