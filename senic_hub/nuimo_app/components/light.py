@@ -30,7 +30,7 @@ class Component(HomeAssistantComponent):
         if received_brightness is not None:
             # Only overwrite our brightness if we haven't recently modified it ourselves
             # This avoids synching with an old brightness while the user is still turning the wheel
-            if time() - self.last_brightness_request_time > Component.BRIGHTNESS_CHANGE_RESPONSE_TIMEOUT:
+            if self.brightness is None or time() - self.last_brightness_request_time > Component.BRIGHTNESS_CHANGE_RESPONSE_TIMEOUT:
                 self.brightness = received_brightness
         else:
             self.brightness = None
