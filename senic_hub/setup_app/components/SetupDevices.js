@@ -2,12 +2,13 @@ import React, { Component } from 'react';
 import {
   ActivityIndicator,
   AppRegistry,
-  Button,
-  ListView,
+  FlatList,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+
+import { Button, ListItem } from 'react-native-elements'
 
 import { API_URL } from '../Config';
 
@@ -23,11 +24,8 @@ export default class SetupDevices extends Component {
   constructor() {
     super()
 
-    dataSource = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
-
     this.state = {
       devices: [],
-      dataSource: dataSource.cloneWithRows([]),
     }
   }
 
@@ -46,14 +44,15 @@ export default class SetupDevices extends Component {
         </View>
 
         <View style={this.state.devices.length > 0 ? '' : styles.hidden}>
-          <ListView
-            dataSource={this.state.dataSource}
-            renderRow={(rowData) => <Text style={styles.device}>{rowData}</Text>}
-          />
+          <FlatList
+            data={this.state.devices}
+            renderItem={({item}) => <ListItem title={item.name} hideChevron={true} />}
+            keyExtractor={(item, index) => item.id}
+           />
         </View>
 
         <View>
-          <Button disabled={this.state.devices.length === 0} onPress={() => navigate('Completion')} title="Continue" />
+          <Button buttonStyle={styles.button} disabled={this.state.devices.length === 0} onPress={() => navigate('Completion')} title="Continue" />
         </View>
       </View>
     );
@@ -75,8 +74,7 @@ export default class SetupDevices extends Component {
       //TODO: Write tests for all possible API call responses, server not available, etc.
       .then((response) => response.json())
       .then((devices) => {
-        deviceNames = devices.map((d) => d.authenticationRequired && (d.authenticated ? d.name + ' - Authenticated' : d.name + ' - Not authenticated') || d.name)
-        this.setState({ devices: devices, dataSource: dataSource.cloneWithRows(deviceNames) })
+        this.setState({ devices: devices })
         devices
           .filter((device) => device.authenticationRequired && !device.authenticated)
           .forEach((device) => this.authenticateDevice(device))
@@ -101,6 +99,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'space-between',
+    padding: 10,
   },
   title: {
     fontSize: 18,
@@ -112,6 +111,9 @@ const styles = StyleSheet.create({
   },
   device: {
     fontSize: 18,
+  },
+  button: {
+    backgroundColor: '#397af8',
   }
 });
 

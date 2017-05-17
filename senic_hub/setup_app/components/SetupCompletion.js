@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
 import {
   AppRegistry,
-  Button,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+
+import { Button } from 'react-native-elements';
 
 import { API_URL } from '../Config';
 
@@ -24,7 +25,11 @@ export default class SetupCompletion extends Component {
         </View>
 
         <View>
-          <Button onPress={() => navigate('Tutorial')} title="Watch tutorial" />
+          <Button color={'#000'} backgroundColor={'#fff'} title="Watch tutorial" />
+        </View>
+
+        <View>
+          <Button buttonStyle={styles.button} onPress={() => navigate('DeviceSelection')} title="Done" />
         </View>
       </View>
     );
@@ -40,12 +45,16 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'space-between',
+    padding: 10,
   },
   title: {
     fontSize: 18,
     textAlign: 'center',
     margin: 10,
   },
+  button: {
+    backgroundColor: '#397af8',
+  }
 });
 
 AppRegistry.registerComponent('SetupCompletion', () => SetupCompletion);

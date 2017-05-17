@@ -5,8 +5,8 @@ import {
   StyleSheet,
   Text,
   View,
-  Button
 } from 'react-native';
+import { Button } from 'react-native-elements';
 
 
 export default class SetupWelcome extends Component {
@@ -39,18 +39,12 @@ export default class SetupWelcome extends Component {
 
         <View>
           <Text style={styles.title}>
-            Welcome to Senic Hub. Press "continue" to continue :)
+            Welcome to Senic Hub
           </Text>
         </View>
 
         <View>
-          <Text>
-            You're connected to {this.state.currentSSID} wifi network!
-          </Text>
-        </View>
-
-        <View>
-          <Button onPress={() => navigate('Nuimo')} title="Continue" />
+          <Button buttonStyle={styles.button} onPress={() => navigate('Nuimo')} title="Continue" />
         </View>
 
       </View>
@@ -63,12 +57,16 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'space-between',
+    padding: 10,
   },
   title: {
     fontSize: 18,
     textAlign: 'center',
     margin: 10,
   },
+  button: {
+    backgroundColor: '#397af8',
+  }
 });
 
 AppRegistry.registerComponent('SetupWelcome', () => SetupWelcome);
