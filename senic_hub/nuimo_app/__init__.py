@@ -125,6 +125,15 @@ class NuimoApp(NuimoControllerListener):
         elif gesture == Gesture.SWIPE_RIGHT:
             self.active_component.on_swipe_right()
 
+        elif gesture == Gesture.LONGTOUCH_LEFT:
+            self.active_component.on_longtouch_left()
+
+        elif gesture == Gesture.LONGTOUCH_BOTTOM:
+            self.active_component.on_longtouch_bottom()
+
+        elif gesture == Gesture.LONGTOUCH_RIGHT:
+            self.active_component.on_longtouch_right()
+
         else:
             # TODO handle all remaining gestures...
             pass

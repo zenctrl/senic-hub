@@ -24,6 +24,15 @@ class BaseComponent:
     def stop(self):
         pass
 
+    def on_longtouch_left(self):
+        pass
+
+    def on_longtouch_bottom(self):
+        pass
+
+    def on_longtouch_right(self):
+        pass
+
 
 class ThreadComponent(BaseComponent):
     def __init__(self, component_id, config):

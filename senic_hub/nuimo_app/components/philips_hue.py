@@ -228,6 +228,10 @@ class Component(ThreadComponent):
         self.lights = self.create_lights(config['lights'])
         self.lights.update_state()
 
+        self.station_id_1 = config.get('station1', None)
+        self.station_id_2 = config.get('station2', None)
+        self.station_id_3 = config.get('station3', None)
+
         # seed random nr generator (used to get random color value)
         seed()
 
@@ -252,6 +256,24 @@ class Component(ThreadComponent):
 
     def on_button_press(self):
         self.set_light_attributes(on=not self.lights.on)
+
+    def on_longtouch_left(self):
+        logger.debug("on_longtouch_left()")
+        if self.station_id_1 is not None:
+            self.bridge.activate_scene('0', self.station_id_1)
+            self.nuimo.display_matrix(matrices.STATION1)
+
+    def on_longtouch_bottom(self):
+        logger.debug("on_longtouch_bottom()")
+        if self.station_id_2 is not None:
+            self.bridge.activate_scene('0', self.station_id_2)
+            self.nuimo.display_matrix(matrices.STATION2)
+
+    def on_longtouch_right(self):
+        logger.debug("on_longtouch_right()")
+        if self.station_id_3 is not None:
+            self.bridge.activate_scene('0', self.station_id_3)
+            self.nuimo.display_matrix(matrices.STATION3)
 
     def set_light_attributes(self, **attributes):
         response = self.lights.set_attributes(attributes)
