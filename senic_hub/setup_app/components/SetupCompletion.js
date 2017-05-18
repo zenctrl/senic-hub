@@ -29,7 +29,7 @@ export default class SetupCompletion extends Component {
         </View>
 
         <View>
-          <Button buttonStyle={styles.button} onPress={() => navigate('DeviceSelection')} title="Done" />
+          <Button buttonStyle={styles.button} onPress={() => navigate('NuimoComponents')} title="Done" />
         </View>
       </View>
     );

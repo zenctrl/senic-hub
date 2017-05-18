@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 
-import { Button, ListItem } from 'react-native-elements'
+import { Button, List, ListItem } from 'react-native-elements'
 
 import { API_URL } from '../Config';
 
@@ -41,13 +41,13 @@ export default class SetupDevices extends Component {
 
         <ActivityIndicator animating={this.state.devices.length === 0} />
 
-        <View style={this.state.devices.length > 0 ? '' : styles.hidden}>
+        <List style={this.state.devices.length > 0 ? '' : styles.hidden}>
           <FlatList
             data={this.state.devices}
             renderItem={({item}) => <ListItem title={item.name} hideChevron={true} />}
-            keyExtractor={(item, index) => item.id}
+            keyExtractor={(item) => item.id}
            />
-        </View>
+        </List>
 
         <View>
           <Button buttonStyle={styles.button} disabled={this.state.devices.length === 0} onPress={() => navigate('Completion')} title="Continue" />
