@@ -39,9 +39,7 @@ export default class SetupDevices extends Component {
           </Text>
         </View>
 
-        <View style={this.state.devices.length > 0 ? styles.hidden : ''}>
-          <ActivityIndicator size={96} />
-        </View>
+        <ActivityIndicator animating={this.state.devices.length === 0} />
 
         <View style={this.state.devices.length > 0 ? '' : styles.hidden}>
           <FlatList
