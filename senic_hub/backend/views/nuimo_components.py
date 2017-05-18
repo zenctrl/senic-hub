@@ -38,19 +38,20 @@ def nuimo_components_view(request):
     if not path.exists(nuimo_app_config_path):
         raise HTTPNotFound("App config file does not exist")
 
-    def nuimo_app_config_component_to_response_component(device):
+    def nuimo_app_config_component_to_response_component(component_id, device):
         component = {
-            'component': device['component'],
+            'id': component_id,
+            'type': device['component'],
             'device_id': device['device_id'],
         }
-        if component['component'] == 'philips_hue':
+        if component['type'] == 'philips_hue':
             component['selected_devices'] = [d.strip() for d in device['lights'].split(',')]
         return component
 
     config = ConfigParser()
     config.read(nuimo_app_config_path)
     components = [
-        nuimo_app_config_component_to_response_component(dict(config[s]))
+        nuimo_app_config_component_to_response_component(s, dict(config[s]))
         for s in config.sections()
     ]
 
@@ -90,14 +91,15 @@ def create_component(device):
         'soundtouch': 'media_player',
         'philips_hue': 'philips_hue',
     }
+    component_type = COMPONENT_FOR_TYPE[device['type']]
     component = {
         'id': str(uuid4()),
         'device_id': device['id'],
-        'component': COMPONENT_FOR_TYPE[device['type']],
+        'type': component_type,
     }
-    if component['component'] in ['philips_hue', 'sonos']:
+    if component_type in ['philips_hue', 'sonos']:
         component['ip_address'] = device['ip']
-    if component['component'] == 'philips_hue':
+    if component_type == 'philips_hue':
         component['username'] = device['extra']['username']
         component['lights'] = ", ".join(sorted(list(device['extra']['lights'])))
     return component

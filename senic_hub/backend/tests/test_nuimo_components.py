@@ -24,9 +24,22 @@ def test_nuimo_components_returns_404_if_config_file_doesnt_exist(
 
 def test_nuimo_components_returns_components(url, browser):
     assert browser.get_json(url).json == {'components': [
-        {'component': 'philips_hue', 'device_id': 'ph2', 'selected_devices': ['5', '7', '4', '8', '6']},
-        {'component': 'media_player', 'device_id': 'soundtouch1'},
-        {'component': 'sonos', 'device_id': 's1'},
+        {
+            'id': 'component-ph2',
+            'type': 'philips_hue',
+            'device_id': 'ph2',
+            'selected_devices': ['5', '7', '4', '8', '6']
+        },
+        {
+            'id': 'component-soundtouch1',
+            'type': 'media_player',
+            'device_id': 'soundtouch1'
+        },
+        {
+            'id': 'component-s1',
+            'type': 'sonos',
+            'device_id': 's1'
+        },
     ]}
 
 
@@ -43,7 +56,7 @@ def temporary_nuimo_app_config_file(settings):
     remove(temp_file_name)
 
 
-def test_add_component_returns_adds_it_to_components(url, browser, temporary_nuimo_app_config_file, settings):
+def test_add_component_adds_it_to_components(url, browser, temporary_nuimo_app_config_file, settings):
     browser.post_json(url, {
         'device_id': 's1',
         'component': 'sonos'},
@@ -56,7 +69,7 @@ def test_add_component_returns_adds_it_to_components(url, browser, temporary_nui
     last_section = dict(config.items(config.sections()[-1]))
     assert last_section['device_id'] == 's1'
     assert last_section['ip_address'] == '127.0.0.1'
-    assert last_section['component'] == 'sonos'
+    assert last_section['type'] == 'sonos'
 
 
 def test_add_component_returns_new_component(url, browser):
@@ -66,7 +79,7 @@ def test_add_component_returns_new_component(url, browser):
     ).json
     assert 'id' in response
     assert response['device_id'] == 's1'
-    assert response['component'] == 'sonos'
+    assert response['type'] == 'sonos'
     assert response['ip_address'] == '127.0.0.1'
     assert response['index'] == 3
 
@@ -99,7 +112,7 @@ def test_create_philips_hue_component():
     assert component == {
         'id': component['id'],
         'device_id': 'ph1',
-        'component': 'philips_hue',
+        'type': 'philips_hue',
         'ip_address': '127.0.0.1',
         'username': 'light_bringer',
         'lights': '4, 5, 6, 7, 8'
@@ -115,7 +128,7 @@ def test_create_soundtouch_component():
     assert component == {
         'id': component['id'],
         'device_id': 'soundtouch1',
-        'component': 'media_player'
+        'type': 'media_player'
     }
 
 

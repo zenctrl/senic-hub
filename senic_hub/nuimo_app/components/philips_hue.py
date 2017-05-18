@@ -217,8 +217,8 @@ class Group(HueBase):
 class Component(ThreadComponent):
     MATRIX = matrices.LIGHT_BULB
 
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, component_id, config):
+        super().__init__(component_id, config)
 
         self.bridge = Bridge(config['ip_address'], config['username'])
 

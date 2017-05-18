@@ -26,8 +26,8 @@ class Component(ThreadComponent):
     # receiving device state change events
     EVENT_IDLE_INTERVAL = 2  # seconds
 
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, component_id, config):
+        super().__init__(component_id, config)
 
         self.sonos_controller = SoCo(config['ip_address'])
 

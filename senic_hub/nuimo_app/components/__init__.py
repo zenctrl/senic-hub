@@ -15,8 +15,8 @@ def clamp_value(value, range_):
 class BaseComponent:
     MATRIX = matrices.ERROR
 
-    def __init__(self, config):
-        self.name = config['name']
+    def __init__(self, component_id, config):
+        self.component_id = component_id
 
     def start(self):
         pass
@@ -26,8 +26,8 @@ class BaseComponent:
 
 
 class ThreadComponent(BaseComponent):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, component_id, config):
+        super().__init__(component_id, config)
         self.stopping = True
         self.thread = None
 
@@ -47,8 +47,8 @@ class ThreadComponent(BaseComponent):
 
 
 class HomeAssistantComponent(BaseComponent):
-    def __init__(self, ha_domain, config):
-        super().__init__(config)
+    def __init__(self, ha_domain, component_id, config):
+        super().__init__(component_id, config)
 
         self.is_on = False
 

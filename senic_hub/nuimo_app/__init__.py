@@ -162,10 +162,10 @@ class NuimoApp(NuimoControllerListener):
 
         if active_component:
             if self.active_component:
-                logger.debug("Stopping component: %s", self.active_component.name)
+                logger.debug("Stopping component: %s", self.active_component.component_id)
                 self.active_component.stop()
 
-            logger.debug("Activating component: %s", active_component.name)
+            logger.debug("Activating component: %s", active_component.component_id)
             self.active_component = active_component
             self.active_component.start()
 
