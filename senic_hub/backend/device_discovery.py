@@ -93,14 +93,6 @@ def discover(discovery_class=NetworkDiscovery):
     return devices
 
 
-def read_json(file_path, default=None):
-    try:
-        with open(file_path) as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return default
-
-
 def get_device_description(device_type, device_info):
     if device_type == "philips_hue":
         device_class = PhilipsHueBridgeDeviceDescription

@@ -2,7 +2,7 @@ import pytest
 
 
 @pytest.fixture
-def url(app, route_url):
+def url(route_url):
     return route_url('appinfo')
 
 

@@ -116,10 +116,12 @@ def generate_nuimo_app_configuration(devices, nuimo_controller_mac_address, blue
     authenticated_devices = [d for d in devices if d["authenticated"]]
     for index, device in enumerate(authenticated_devices):
         section_name = '{}-{}'.format(device['type'], index)
+        # TODO: Write business for converting devices to app config sections in one single place
         config[section_name] = {
             'component': COMPONENT_FOR_TYPE[device['type']],
             'ip_address': device['ip'],
             'entity_id': device['ha_entity_id'],
+            'device_id': device['id'],
         }
 
         if device['type'] == 'philips_hue':

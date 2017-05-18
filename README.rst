@@ -37,6 +37,12 @@ Running tests
 
 To run the tests, just type `tox`.
 
+To run tests during development without packaging and coverage checks you can speed up test execution by running:
+
+1. `make` # Only necessary once
+2. `venv/bin/activate`
+3. `py.test` # Use `py.test -k <regex>` to run tests only from specific test suite or specific test methods
+
 
 Run local instance
 ------------------

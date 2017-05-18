@@ -24,6 +24,7 @@ def test_get_scanned_wifi_empty(no_such_wifi, browser, setup_url):
 
 
 @pytest.yield_fixture(autouse=True)
+# TODO: Can we remove the `request` arg?
 def mocked_run(request):
     """don't run actual external commands during these tests
     """
