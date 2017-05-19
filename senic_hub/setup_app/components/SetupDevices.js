@@ -19,10 +19,9 @@ export default class SetupDevices extends Component {
 
   devicesPollInterval = 5000  // 5 seconds
   devicesPollTimer = null
-  dataSource = null
 
-  constructor() {
-    super()
+  constructor(props) {
+    super(props)
 
     this.state = {
       devices: [],
@@ -55,7 +54,10 @@ export default class SetupDevices extends Component {
         <ActivityIndicator animating={this.state.devices.length === 0} />
 
         <View>
-          <Button buttonStyle={styles.button} disabled={this.state.devices.length === 0} onPress={() => navigate('Completion')} title="Continue" />
+          <Button buttonStyle={styles.button} disabled={this.state.devices.length === 0} title="Continue" onPress={() => {
+            this.clearTimeouts()
+            navigate('Completion')
+          }} />
         </View>
       </View>
     );
@@ -65,16 +67,13 @@ export default class SetupDevices extends Component {
     this.pollDevices()
   }
 
-  componentWillUnmount() {
-    console.log('will clear timer', this.devicesPollTimer)
-
+  clearTimeouts() {
     if (this.devicesPollTimer) {
       clearTimeout(this.devicesPollTimer)
     }
   }
 
   pollDevices() {
-    //TODO: Promise chain doesn't get cancelled when component unmounts
     //TODO: Figure out why {cache: "no-cache"} doesn't work
     fetch(API_URL + '/-/setup/devices?cache-bust=' + Date.now())
       .then((response) => {
@@ -84,7 +83,6 @@ export default class SetupDevices extends Component {
         throw new Error('Request failed: ' + JSON.stringify(response))
       })
       .then((devices) => {
-        console.log(devices)
         this.setState({ devices: devices })
         devices
           .filter((device) => device.authenticationRequired && !device.authenticated)
@@ -96,7 +94,6 @@ export default class SetupDevices extends Component {
   }
 
   authenticateDevice(device) {
-    console.log('authenticating', device)
     fetch(API_URL + '/-/setup/devices/' + device.id + '/authenticate', {method: 'POST'})
       .then((response) => response.json())
       .then((response) => {
