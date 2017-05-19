@@ -39,15 +39,18 @@ export default class SetupDevices extends Component {
           </Text>
         </View>
 
-        <View>
-          <List>
-            <FlatList
-              data={this.state.devices}
-              renderItem={({item}) => <ListItem title={item.name} hideChevron={true} />}
-              keyExtractor={(item) => item.id}
-             />
-          </List>
-        </View>
+        <List>
+          <FlatList
+            data={this.state.devices}
+            renderItem={({item}) => (
+              <ListItem
+                title={item.name}
+                hideChevron={true}
+                subtitle={item.authenticated ? 'Authenticated' : 'Not Authenticated'} />
+            )}
+            keyExtractor={(item) => item.id}
+           />
+        </List>
 
         <ActivityIndicator animating={this.state.devices.length === 0} />
 
