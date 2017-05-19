@@ -13,7 +13,10 @@ export default class NuimoComponents extends Component {
   static navigationOptions = ({ navigation }) => ({
     title: 'Components',
     headerLeft: null,
-    headerRight: <Button icon={{name: 'add'}} onPress={() => navigation.navigate('AddComponent')} />,
+    headerRight: <Button
+                    backgroundColor={'transparent'}
+                    icon={{name: 'add', color: '#000'}}
+                    onPress={() => navigation.navigate('AddComponent')} />,
   });
 
   constructor() {
@@ -30,12 +33,16 @@ export default class NuimoComponents extends Component {
 
   fetchComponents() {
     fetch(API_URL + '/-/nuimos/0/components')
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.ok) {
+          return response.json()
+        }
+        throw new Error('Request failed: ' + JSON.stringify(response))
+      })
       .then((components) => {
-        console.log(components)
         this.setState({ components: components.components })
       })
-      .catch((error) => console.error(error))
+      .catch((error) => alert(error))
   }
 
   render() {

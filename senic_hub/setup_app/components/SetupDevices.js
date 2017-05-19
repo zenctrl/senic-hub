@@ -61,6 +61,8 @@ export default class SetupDevices extends Component {
   }
 
   componentWillUnmount() {
+    console.log('will clear timer', this.devicesPollTimer)
+
     if (this.devicesPollTimer) {
       clearTimeout(this.devicesPollTimer)
     }
@@ -68,10 +70,16 @@ export default class SetupDevices extends Component {
 
   pollDevices() {
     //TODO: Promise chain doesn't get cancelled when component unmounts
-    fetch(API_URL + '/-/setup/devices')
-      //TODO: Write tests for all possible API call responses, server not available, etc.
-      .then((response) => response.json())
+    //TODO: Figure out why {cache: "no-cache"} doesn't work
+    fetch(API_URL + '/-/setup/devices?cache-bust=' + Date.now())
+      .then((response) => {
+        if (response.ok) {
+          return response.json()
+        }
+        throw new Error('Request failed: ' + JSON.stringify(response))
+      })
       .then((devices) => {
+        console.log(devices)
         this.setState({ devices: devices })
         devices
           .filter((device) => device.authenticationRequired && !device.authenticated)
@@ -79,16 +87,18 @@ export default class SetupDevices extends Component {
 
           this.devicesPollTimer = setTimeout(this.pollDevices.bind(this), this.devicesPollInterval)
       })
-      .catch((error) => console.error(error))
+      .catch((error) => alert(error))
   }
 
   authenticateDevice(device) {
+    console.log('authenticating', device)
     fetch(API_URL + '/-/setup/devices/' + device.id + '/authenticate', {method: 'POST'})
       .then((response) => response.json())
       .then((response) => {
         device.authenticated = response.authenticated
         this.forceUpdate()
       })
+      .catch((error) => alert(error))
   }
 }
 
