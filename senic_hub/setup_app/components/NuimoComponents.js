@@ -15,7 +15,7 @@ export default class NuimoComponents extends Component {
     headerLeft: null,
     headerRight: <Button
                     backgroundColor={'transparent'}
-                    icon={{name: 'add', color: '#000'}}
+                    icon={{name: 'add', color: '#397af8'}}
                     onPress={() => navigation.navigate('AddComponent')} />,
   });
 

@@ -39,15 +39,17 @@ export default class SetupDevices extends Component {
           </Text>
         </View>
 
-        <ActivityIndicator animating={this.state.devices.length === 0} />
+        <View>
+          <List>
+            <FlatList
+              data={this.state.devices}
+              renderItem={({item}) => <ListItem title={item.name} hideChevron={true} />}
+              keyExtractor={(item) => item.id}
+             />
+          </List>
+        </View>
 
-        <List style={this.state.devices.length > 0 ? '' : styles.hidden}>
-          <FlatList
-            data={this.state.devices}
-            renderItem={({item}) => <ListItem title={item.name} hideChevron={true} />}
-            keyExtractor={(item) => item.id}
-           />
-        </List>
+        <ActivityIndicator animating={this.state.devices.length === 0} />
 
         <View>
           <Button buttonStyle={styles.button} disabled={this.state.devices.length === 0} onPress={() => navigate('Completion')} title="Continue" />
@@ -113,12 +115,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: 'center',
     margin: 10,
-  },
-  hidden: {
-    display: 'none',
-  },
-  device: {
-    fontSize: 18,
   },
   button: {
     backgroundColor: '#397af8',

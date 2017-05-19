@@ -34,13 +34,13 @@ export default class SetupNuimo extends Component {
           </Text>
         </View>
 
-        <ActivityIndicator animating={this.state.nuimos.length === 0} />
-
         <View style={this.state.nuimos.length > 0 ? '' : styles.hidden}>
           <Text style={styles.title}>
             Found your Nuimo {this.state.nuimos[0]}
           </Text>
         </View>
+
+        <ActivityIndicator animating={this.state.nuimos.length === 0} />
 
         <View>
           <Button buttonStyle={styles.button} disabled={this.state.nuimos.length === 0} onPress={() => navigate('Devices')} title="Continue" />

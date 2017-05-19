@@ -13,7 +13,7 @@ export default class AddComponent extends Component {
   //TODO: Replace the dummy deviceId value
   static navigationOptions = ({navigation}) => ({
     title: 'Select devices',
-    headerRight: <Button title={'Save'} backgroundColor={'transparent'} color={'#000'}
+    headerRight: <Button title={'Save'} backgroundColor={'transparent'} color={'#397af8'}
                     onPress={() => navigation.state.params.saveComponent('001788176885', navigation)} />,
   })
 
