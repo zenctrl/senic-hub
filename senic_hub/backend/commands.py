@@ -18,6 +18,7 @@ import yaml
 from . import supervisor
 
 from .device_discovery import PhilipsHueBridgeApiClient, discover_devices
+from .views.nuimo_components import component_to_app_config_component, create_component
 
 
 DEFAULT_SCAN_INTERVAL_SECONDS = 1 * 60  # 1 minute
@@ -114,19 +115,9 @@ def generate_nuimo_app_configuration(devices, nuimo_controller_mac_address, blue
         'bluetooth_adapter_name': bluetooth_adapter_name,
     }
     authenticated_devices = [d for d in devices if d["authenticated"]]
-    for index, device in enumerate(authenticated_devices):
-        section_name = '{}-{}'.format(device['type'], index)
-        # TODO: Write business for converting devices to app config sections in one single place
-        config[section_name] = {
-            'type': COMPONENT_FOR_TYPE[device['type']],
-            'ip_address': device['ip'],
-            'entity_id': device['ha_entity_id'],
-            'device_id': device['id'],
-        }
-
-        if device['type'] == 'philips_hue':
-            config[section_name]['username'] = device['extra']['username']
-            config[section_name]['lights'] = ', '.join(device['extra']['lights'].keys())
+    for device in authenticated_devices:
+        component = component_to_app_config_component(create_component(device))
+        config[component['id']] = component
 
     return config
 

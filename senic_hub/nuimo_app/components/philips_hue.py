@@ -225,7 +225,11 @@ class Component(ThreadComponent):
         self.delta_range = range(-254, 254)
         self.delta = 0
 
-        self.lights = self.create_lights(config['lights'])
+        # Extract light IDs, they are stored with format `<bridgeID>-light-<lightID>`
+        light_ids = config['device_ids'].split(', ')
+        light_ids = [i.split('-light-')[1].strip() for i in light_ids]
+
+        self.lights = self.create_lights(light_ids)
         self.lights.update_state()
 
         self.station_id_1 = config.get('station1', None)
@@ -236,9 +240,7 @@ class Component(ThreadComponent):
         seed()
 
     def create_lights(self, light_ids):
-        lights = [i.strip() for i in light_ids.split(',')]
-
-        reachable_lights = self.filter_reachable(lights)
+        reachable_lights = self.filter_reachable(light_ids)
         if not reachable_lights:
             lights = EmptyLightSet()
         elif len(reachable_lights) > 10:
