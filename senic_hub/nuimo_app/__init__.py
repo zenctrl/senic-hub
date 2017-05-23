@@ -55,6 +55,7 @@ class NuimoApp(NuimoControllerListener):
         self.active_component = None
 
         self.manager = ControllerManager(ble_adapter_name)
+        self.manager.is_adapter_powered = True
 
         self.controller = Controller(mac_address, self.manager)
         self.controller.listener = self
