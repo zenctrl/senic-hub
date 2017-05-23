@@ -2,10 +2,10 @@
 - name: set default locale
   lineinfile:
     dest: "/etc/profile"
-    line: "{{item}}"
+    line: "{{item}}{{locale}}"
   with_items:
-    - "export LC_ALL=en_GB.UTF-8"
-    - "export LANG=en_GB.UTF-8"
+    - "export LC_ALL="
+    - "export LANG="
 
 - name: create deployment location
   become: true
@@ -100,8 +100,8 @@
     chdir: "{{backend_deploy_location}}"
     creates: "{{backend_deploy_location}}/production.key"
   environment:
-    LC_ALL: C.UTF-8
-    LANG: C.UTF-8
+    LC_ALL: "{{locale}}"
+    LANG: "{{locale}}"
 
 - name: initialize cryptoyaml settings
   become: true
@@ -110,8 +110,8 @@
     chdir: "{{backend_deploy_location}}"
     creates: "{{backend_deploy_location}}/production.yml.aes"
   environment:
-    LC_ALL: C.UTF-8
-    LANG: C.UTF-8
+    LC_ALL: "{{locale}}"
+    LANG: "{{locale}}"
 
 - name: enable read access to production.key
   become: true
