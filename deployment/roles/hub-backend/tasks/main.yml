@@ -1,15 +1,4 @@
 ---
-- name: upload local files
-  copy:
-    src: locale.tar.gz
-    dest: /tmp/
-
-- name: unpack locale files
-  command: "tar zxf /tmp/locale.tar.gz"
-  args:
-    chdir: /usr/lib
-    creates: /usr/lib/locale
-
 - name: set default locale
   lineinfile:
     dest: "/etc/profile"
