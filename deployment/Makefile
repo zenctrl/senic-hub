@@ -11,7 +11,7 @@ bin/ploy bin/ploy-ssh: bin/pip requirements.txt
 	@touch $@
 
 bin/python bin/pip:
-	virtualenv --python=python2.7 --clear .
+	virtualenv --system-site-packages --python=python2.7 --clear .
 
 download-pine64: downloads/pine64-image-ubuntubase-31065bsp-longsleep.img.xz
 downloads/pine64-image-ubuntubase-31065bsp-longsleep.img.xz:
