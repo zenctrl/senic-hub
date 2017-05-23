@@ -30,12 +30,8 @@ export default class AddComponent extends Component {
       },
       body: body,
     }
-    console.log('sending body', body, 'params', params)
     fetch(API_URL + '/-/nuimos/0/components', params)
-                   .then((response) => {
-                     console.log('response', response)
-                     navigation.navigate('NuimoComponents')
-                   })
+      .then(() => navigation.navigate('NuimoComponents'))
       .catch((error) => console.error(error))
   }
 
