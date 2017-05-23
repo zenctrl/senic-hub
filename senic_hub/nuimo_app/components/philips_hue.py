@@ -6,7 +6,7 @@ from time import sleep, time
 
 from phue import Bridge
 
-from . import BaseComponent, clamp_value, normalize_delta
+from . import ThreadComponent, clamp_value
 
 from .. import matrices
 
@@ -214,27 +214,33 @@ class Group(HueBase):
         return self.parse_responses(responses, attributes)
 
 
-class Component(BaseComponent):
+class Component(ThreadComponent):
     MATRIX = matrices.LIGHT_BULB
 
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, component_id, config):
+        super().__init__(component_id, config)
 
         self.bridge = Bridge(config['ip_address'], config['username'])
 
         self.delta_range = range(-254, 254)
         self.delta = 0
 
-        self.lights = self.create_lights(config['lights'])
+        # Extract light IDs, they are stored with format `<bridgeID>-light-<lightID>`
+        light_ids = config['device_ids'].split(', ')
+        light_ids = [i.split('-light-')[1].strip() for i in light_ids]
+
+        self.lights = self.create_lights(light_ids)
         self.lights.update_state()
+
+        self.station_id_1 = config.get('station1', None)
+        self.station_id_2 = config.get('station2', None)
+        self.station_id_3 = config.get('station3', None)
 
         # seed random nr generator (used to get random color value)
         seed()
 
     def create_lights(self, light_ids):
-        lights = [i.strip() for i in light_ids.split(',')]
-
-        reachable_lights = self.filter_reachable(lights)
+        reachable_lights = self.filter_reachable(light_ids)
         if not reachable_lights:
             lights = EmptyLightSet()
         elif len(reachable_lights) > 10:
@@ -252,6 +258,24 @@ class Component(BaseComponent):
 
     def on_button_press(self):
         self.set_light_attributes(on=not self.lights.on)
+
+    def on_longtouch_left(self):
+        logger.debug("on_longtouch_left()")
+        if self.station_id_1 is not None:
+            self.bridge.activate_scene('0', self.station_id_1)
+            self.nuimo.display_matrix(matrices.STATION1)
+
+    def on_longtouch_bottom(self):
+        logger.debug("on_longtouch_bottom()")
+        if self.station_id_2 is not None:
+            self.bridge.activate_scene('0', self.station_id_2)
+            self.nuimo.display_matrix(matrices.STATION2)
+
+    def on_longtouch_right(self):
+        logger.debug("on_longtouch_right()")
+        if self.station_id_3 is not None:
+            self.bridge.activate_scene('0', self.station_id_3)
+            self.nuimo.display_matrix(matrices.STATION3)
 
     def set_light_attributes(self, **attributes):
         response = self.lights.set_attributes(attributes)
@@ -275,7 +299,7 @@ class Component(BaseComponent):
 
         elif 'bri' in attributes or 'bri_inc' in attributes:
             if self.lights.brightness:
-                matrix = matrices.light_bar(self.delta_range.stop, self.lights.brightness)
+                matrix = matrices.progress_bar(self.lights.brightness / self.delta_range.stop)
                 self.nuimo.display_matrix(matrix, fading=True, ignore_duplicates=True)
             else:
                 self.set_light_attributes(on=False)
@@ -311,8 +335,7 @@ class Component(BaseComponent):
             sleep(0.05)
 
     def send_updates(self):
-        normalized_delta = normalize_delta(self.delta, self.delta_range.stop)
-        delta = round(clamp_value(normalized_delta, self.delta_range))
+        delta = round(clamp_value(self.delta_range.stop * self.delta, self.delta_range))
 
         if self.lights.on:
             self.set_light_attributes(bri_inc=delta)

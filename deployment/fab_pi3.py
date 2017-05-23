@@ -103,7 +103,7 @@ def rsync(*args, **kwargs):
 def sync_src():
     get_vars()
     with fab.lcd('..'):
-        destination = '/home/%s/nuimo-hub-backend' % AV['build_user']
+        destination = '/home/%s/senic-hub' % AV['build_user']
         fab.sudo('mkdir -p %s' % destination, user=AV['build_user'])
         rsync(
             '-rlptvD',
@@ -113,6 +113,40 @@ def sync_src():
             '--exclude', 'node_modules',
             '--exclude', '/build',
             '--exclude', '/deployment',
+            '--exclude', '/dist',
+            '--exclude', '/docs',
+            '--exclude', '/venv',
+            '.',
+            '{host_string}:%s' % destination)
+
+@task
+def sync_ha_src():
+    get_vars()
+    with fab.lcd('../../home-assistant'):
+        destination = '/home/%s/home-assistant' % AV['build_user']
+        fab.sudo('mkdir -p %s' % destination, user=AV['build_user'])
+        rsync(
+            '-rlptvD',
+            '--exclude', '.*',
+            '--exclude', '*.egg-info',
+            '--exclude', '__pycache__',
+            '--exclude', '/dist',
+            '--exclude', '/docs',
+            '--exclude', '/venv',
+            '.',
+            '{host_string}:%s' % destination)
+
+@task
+def sync_soco_src():
+    get_vars()
+    with fab.lcd('../../SoCo'):
+        destination = '/home/%s/SoCo' % AV['build_user']
+        fab.sudo('mkdir -p %s' % destination, user=AV['build_user'])
+        rsync(
+            '-rlptvD',
+            '--exclude', '.*',
+            '--exclude', '*.egg-info',
+            '--exclude', '__pycache__',
             '--exclude', '/dist',
             '--exclude', '/docs',
             '--exclude', '/venv',

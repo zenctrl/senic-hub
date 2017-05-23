@@ -90,10 +90,11 @@ class HomeAssistant(Thread):
 
         self.stopping = False
 
-        self.result_callbacks = {}  # req_id: callback
+        self.result_callbacks = None
         self.state_listeners = defaultdict(list)  # entity_id: [callback1, ...]
 
     def connect(self):
+        self.result_callbacks = {}  # req_id: callback
         self.connection = HomeAssistantConnection(
             self.url,
             on_open=self.on_connect,
@@ -210,16 +211,16 @@ class HomeAssistant(Thread):
 
     def call_service(self, domain, service, data, success_callback, error_callback):
         request = self.prepare_request("call_service", domain=domain, service=service, service_data=data)
+
         self.send_request(request, success_callback, error_callback)
 
-    def get_state(self, entity_id, callbacks, error_callback):
+    def get_state(self, entity_id, callback, error_callback):
         request = self.prepare_request("get_states")
 
         def get_state_callback(response):
             state = self.find_entity_state(response["result"], entity_id)
             if state:
-                for callback in callbacks:
-                    callback(state)
+                callback(state)
             else:
                 logger.error("Can't determine state of %s", entity_id)
 

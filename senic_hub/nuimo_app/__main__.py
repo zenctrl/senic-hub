@@ -64,12 +64,12 @@ def get_component_instances(component_config):
 
     module_name_format = __name__.rsplit('.', 1)[0] + '.components.{}'
 
-    for cid in component_config.sections():
-        cfg = component_config[cid]
-        module_name = module_name_format.format(cfg.pop('component'))
+    for component_id in component_config.sections():
+        config = component_config[component_id]
+        module_name = module_name_format.format(config.pop('type'))
         logger.info("Importing module %s", module_name)
         component_module = import_module(module_name)
-        instances.append(component_module.Component(cfg))
+        instances.append(component_module.Component(component_id, config))
 
     return instances
 

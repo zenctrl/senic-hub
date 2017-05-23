@@ -18,9 +18,16 @@ import yaml
 from . import supervisor
 
 from .device_discovery import PhilipsHueBridgeApiClient, discover_devices
+from .views.nuimo_components import component_to_app_config_component, create_component
 
 
 DEFAULT_SCAN_INTERVAL_SECONDS = 1 * 60  # 1 minute
+
+COMPONENT_FOR_TYPE = {
+    'sonos': 'sonos',
+    'soundtouch': 'media_player',
+    'philips_hue': 'philips_hue',
+}
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +49,7 @@ def create_configuration_files_and_restart_apps_(settings):
     with open(hass_config_file_path, 'w') as f:
         yaml.dump(generate_hass_configuration(devices), f, default_flow_style=False)
 
-    # supervisor.restart_program('homeassistant')
+    supervisor.restart_program('homeassistant')
 
     # generate nuimo app config & restart supervisor app
     nuimo_controller_mac_address_file_path = settings['nuimo_mac_address_filepath']
@@ -52,7 +59,7 @@ def create_configuration_files_and_restart_apps_(settings):
     nuimo_app_config_file_path = settings['nuimo_app_config_path']
     bluetooth_adapter_name = settings['bluetooth_adapter_name']
     with open(nuimo_app_config_file_path, 'w') as f:
-        config = generate_nuimo_configuration(devices, nuimo_controller_mac_address, bluetooth_adapter_name)
+        config = generate_nuimo_app_configuration(devices, nuimo_controller_mac_address, bluetooth_adapter_name)
         config.write(f)
 
     supervisor.restart_program('nuimo_app')
@@ -64,12 +71,25 @@ def generate_hass_configuration(devices):
         'websocket_api': '',
     }
 
-    sonos_speakers = [x['ip'] for x in devices if x['type'] == 'sonos']
-    if sonos_speakers:
-        hass_configuration['media_player'] = [{
+    media_players = []
+
+    sonos_speakers = [d for d in devices if d['type'] == 'sonos']
+    for speaker in sonos_speakers:
+        media_players.append({
             'platform': 'sonos',
-            'hosts': sonos_speakers,
-        }]
+            'host': speaker['ip'],
+        })
+
+    soundtouch_speakers = [d for d in devices if d['type'] == 'soundtouch']
+    for speaker in soundtouch_speakers:
+        media_players.append({
+            'platform': 'soundtouch',
+            'host': speaker['ip'],
+            'port': speaker['port'],
+        })
+
+    if media_players:
+        hass_configuration['media_player'] = media_players
 
     phue_bridges = [d for d in devices if d['type'] == 'philips_hue' and d['authenticated']]
     if phue_bridges:
@@ -86,7 +106,7 @@ def phue_bridge_config(bridge):
     }
 
 
-def generate_nuimo_configuration(devices, nuimo_controller_mac_address, bluetooth_adapter_name):
+def generate_nuimo_app_configuration(devices, nuimo_controller_mac_address, bluetooth_adapter_name):
     config = configparser.ConfigParser()
     config['DEFAULT'] = {
         'ha_api_url': 'localhost:8123',
@@ -95,17 +115,9 @@ def generate_nuimo_configuration(devices, nuimo_controller_mac_address, bluetoot
         'bluetooth_adapter_name': bluetooth_adapter_name,
     }
     authenticated_devices = [d for d in devices if d["authenticated"]]
-    for index, device in enumerate(authenticated_devices):
-        section_name = '{}-{}'.format(device['type'], index)
-        config[section_name] = {
-            'name': device['name'],
-            'component': device['type'],
-            'ip_address': device['ip'],
-        }
-
-        if device['type'] == 'philips_hue':
-            config[section_name]['username'] = device['extra']['username']
-            config[section_name]['lights'] = ', '.join(device['extra']['lights'].keys())
+    for device in authenticated_devices:
+        component = component_to_app_config_component(create_component(device))
+        config[component['id']] = component
 
     return config
 
@@ -140,6 +152,7 @@ def device_discovery(config):
 
         add_authentication_status(devices)
         add_device_details(devices)
+        add_homeassistant_entity_ids(devices)
 
         fd, filename = mkstemp(dir=app.registry.settings['homeassistant_data_path'])
         with open(fd, "w") as f:
@@ -169,3 +182,14 @@ def add_device_details(devices):
     for bridge in authenticated_bridges:
         api = PhilipsHueBridgeApiClient(bridge["ip"], bridge['extra']['username'])
         bridge['extra']['lights'] = api.get_lights()
+
+
+def add_homeassistant_entity_ids(devices):
+    for device in devices:
+        if device["type"] == "philips_hue":
+            device["ha_entity_id"] = "light.senic_hub"
+        elif device["type"] == "soundtouch":
+            device["ha_entity_id"] = "media_player.bose_soundtouch"
+        elif device["type"] == "sonos":
+            room_name = device["extra"]["roomName"]
+            device["ha_entity_id"] = "media_player.{}".format(room_name.replace(" ", "_").lower())

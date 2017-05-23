@@ -12,7 +12,7 @@ def as_dict(content, **kw):
 
 
 @fixture
-def route_url():
+def route_url(app):
 
     def _route_url(name, **kwargs):
         return DummyRequest().route_url(name, **kwargs)
@@ -39,6 +39,7 @@ def settings():
         'devices_path': asset_path('devices.json'),
         'data_path': '/tmp',
         'nuimo_mac_address_filepath': asset_path('nuimo_mac_address.txt'),
+        'nuimo_app_config_path': asset_path('nuimo_app.cfg'),
         'config_ini_path': '/no/such/file.ini',
         'joined_wifi_path': asset_path('joined_wifi.json'),
         'homeassistant_data_path': asset_path(),

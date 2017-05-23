@@ -7,7 +7,7 @@ from time import time
 from soco import SoCo, SoCoException
 from soco.events import event_listener
 
-from . import BaseComponent, clamp_value, normalize_delta
+from . import ThreadComponent, clamp_value
 
 from .. import matrices
 
@@ -15,7 +15,7 @@ from .. import matrices
 logger = logging.getLogger(__name__)
 
 
-class Component(BaseComponent):
+class Component(ThreadComponent):
     MATRIX = matrices.MUSIC_NOTE
 
     STATE_PLAYING = 'PLAYING'
@@ -26,14 +26,16 @@ class Component(BaseComponent):
     # receiving device state change events
     EVENT_IDLE_INTERVAL = 2  # seconds
 
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, component_id, config):
+        super().__init__(component_id, config)
 
         self.sonos_controller = SoCo(config['ip_address'])
 
         self.volume_range = range(0, 100)
 
         self.event_listener = event_listener  # comes from global scope
+
+        # TODO: Subscribe only when component is active, i.e. "running", unsubscribe when stopped
         self.subscribe_to_events()
 
         self.state = None
@@ -46,8 +48,6 @@ class Component(BaseComponent):
         self.last_request_time = time()
 
     def run(self):
-        self.stopping = False
-
         while not self.stopping:
             try:
                 event = self.av_transport_subscription.events.get(timeout=0.1)
@@ -68,6 +68,7 @@ class Component(BaseComponent):
                 pass
 
     def subscribe_to_events(self):
+        # TODO: `subscribe` throws if the Speaker is offline
         self.av_transport_subscription = self.sonos_controller.avTransport.subscribe()
         self.rendering_control_subscription = self.sonos_controller.renderingControl.subscribe()
 
@@ -79,13 +80,13 @@ class Component(BaseComponent):
 
     def on_rotation(self, delta):
         try:
-            delta = round(normalize_delta(delta, self.volume_range.stop))
+            delta = round(self.volume_range.stop * delta)
             self.volume = clamp_value(self.volume + delta, self.volume_range)
             self.sonos_controller.volume = self.volume
 
             logger.debug("volume update delta: %s volume: %s", delta, self.volume)
 
-            matrix = matrices.light_bar(self.volume_range.stop, self.volume)
+            matrix = matrices.progress_bar(self.volume / self.volume_range.stop)
             self.nuimo.display_matrix(matrix, fading=True, ignore_duplicates=True)
 
         except SoCoException:

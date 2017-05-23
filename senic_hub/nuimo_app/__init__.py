@@ -114,7 +114,7 @@ class NuimoApp(NuimoControllerListener):
 
     def process_gesture(self, gesture, delta):
         if gesture == Gesture.ROTATION:
-            self.active_component.on_rotation(delta)
+            self.active_component.on_rotation(delta / 1800)  # 1800 is the amount of all ticks for a full ring rotation
 
         if gesture == Gesture.BUTTON_PRESS:
             self.active_component.on_button_press()
@@ -124,6 +124,15 @@ class NuimoApp(NuimoControllerListener):
 
         elif gesture == Gesture.SWIPE_RIGHT:
             self.active_component.on_swipe_right()
+
+        elif gesture == Gesture.LONGTOUCH_LEFT:
+            self.active_component.on_longtouch_left()
+
+        elif gesture == Gesture.LONGTOUCH_BOTTOM:
+            self.active_component.on_longtouch_bottom()
+
+        elif gesture == Gesture.LONGTOUCH_RIGHT:
+            self.active_component.on_longtouch_right()
 
         else:
             # TODO handle all remaining gestures...
@@ -162,10 +171,10 @@ class NuimoApp(NuimoControllerListener):
 
         if active_component:
             if self.active_component:
-                logger.debug("Stopping component: %s", self.active_component.name)
+                logger.debug("Stopping component: %s", self.active_component.component_id)
                 self.active_component.stop()
 
-            logger.debug("Activating component: %s", active_component.name)
+            logger.debug("Activating component: %s", active_component.component_id)
             self.active_component = active_component
             self.active_component.start()
 

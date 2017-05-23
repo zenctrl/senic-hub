@@ -12,6 +12,7 @@ from .network_discovery import NetworkDiscovery
 
 
 SUPPORTED_DEVICES = [
+    "bose_soundtouch",
     "philips_hue",
     "sonos",
 ]
@@ -92,17 +93,11 @@ def discover(discovery_class=NetworkDiscovery):
     return devices
 
 
-def read_json(file_path, default=None):
-    try:
-        with open(file_path) as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return default
-
-
 def get_device_description(device_type, device_info):
     if device_type == "philips_hue":
         device_class = PhilipsHueBridgeDeviceDescription
+    elif device_type == "bose_soundtouch":
+        device_class = SoundtouchDeviceDescription
     else:
         device_class = SonosSpeakerDeviceDescription
 
@@ -200,7 +195,25 @@ class PhilipsHueBridgeApiClient:
         return self._request(url)
 
 
-class SonosSpeakerDeviceDescription():
+class SoundtouchDeviceDescription:
+    def __init__(self, device_info):
+        self.ip_address, self.port = device_info
+        self.name = "Bose Soundtouch"
+
+    @property
+    def device_description(self):
+        return {
+            "id": self.ip_address.replace('.', '_'),
+            "type": "soundtouch",
+            "ip": self.ip_address,
+            "port": self.port,
+            "name": self.name,
+            "authenticationRequired": False,
+            "extra": {},
+        }
+
+
+class SonosSpeakerDeviceDescription:
     def __init__(self, device_info):
         self.ip_address = device_info
         response = requests.get('http://{}:1400/xml/device_description.xml'.format(self.ip_address))

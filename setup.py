@@ -14,7 +14,7 @@ def find_data(top):
 setup(
     name=name,
     version_format='{tag}.{commitcount}+{gitsha}',
-    url='https://github.com/getsenic/nuimo-hub-app',
+    url='https://github.com/getsenic/senic-hub',
     author='Senic GmbH',
     author_email='developers@senic.com',
     license="MIT",

@@ -49,6 +49,23 @@ def test_device_list_contains_devices(browser, url):
             "extra": {},
         },
         {
+            "id": "ph2",
+            "type": "philips_hue",
+            "ip": "127.0.0.2",
+            "authenticationRequired": True,
+            "authenticated": True,
+            "extra": {
+                "username": "light_bringer",
+                "lights": {
+                    "5": {},
+                    "7": {},
+                    "4": {},
+                    "8": {},
+                    "6": {}
+                }
+            }
+        },
+        {
             "id": "s1",
             "type": "sonos",
             "ip": "127.0.0.1",
@@ -56,6 +73,15 @@ def test_device_list_contains_devices(browser, url):
             "authenticated": True,
             "extra": {},
         },
+        {
+            "id": "soundtouch1",
+            "type": "soundtouch",
+            "ip": "127.0.0.1",
+            "port": "8090",
+            "authenticationRequired": False,
+            "authenticated": True,
+            "extra": {}
+        }
     ]
 
 

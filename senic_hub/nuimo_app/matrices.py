@@ -1,3 +1,6 @@
+from math import ceil
+
+
 LIGHT_OFF = \
     "         " \
     "         " \
@@ -131,14 +134,48 @@ LETTER_W = \
     "  ## ##  " \
     "         "
 
+STATION1 = \
+    "         " \
+    "     *   " \
+    "    **   " \
+    "   * *   " \
+    "     *   " \
+    "     *   " \
+    "     *   " \
+    "     *   " \
+    "         "
 
-def light_bar(max_value, value):
+STATION2 = \
+    "         " \
+    "   ***   " \
+    "      *  " \
+    "      *  " \
+    "   ***   " \
+    "  *      " \
+    "  *      " \
+    "   ***   " \
+    "         "
+
+STATION3 = \
+    "         " \
+    "   ***   " \
+    "      *  " \
+    "      *  " \
+    "    **   " \
+    "      *  " \
+    "      *  " \
+    "   ***   " \
+    "         "
+
+
+def progress_bar(progress):
     """
     Generates a light bar matrix to display volume / brightness level.
 
+    :param progress: value between 0..1
     """
     dots = list(" " * 81)
-    num_dots = int(value / max_value * 9)
+    num_dots = ceil(round(progress, 3) * 9)
     while num_dots > 0:
         dots[81 - ((num_dots - 1) * 9 + 5)] = "*"
         num_dots -= 1

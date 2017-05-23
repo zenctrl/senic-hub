@@ -17,6 +17,7 @@ default_settings = dict(
 )
 
 
+# TODO Rename to service_path() to not clash with os.path
 def path(service):
     """ Return path — or route pattern — for the given REST service. """
     return '/-/{0}'.format(service.lower())

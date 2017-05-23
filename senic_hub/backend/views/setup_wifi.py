@@ -44,7 +44,7 @@ wifi_connection = Service(
     accept='application/json')
 
 
-@wifi_connection.post(renderer='json', schema=JoinWifiSchema)
+@wifi_connection.post(schema=JoinWifiSchema)
 def join_network(request):
     ssid = request.validated['ssid']
     password = request.validated['password']
