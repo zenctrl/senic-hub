@@ -64,7 +64,12 @@ export default class SetupNuimo extends Component {
       },
       body: JSON.stringify({})
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.ok) {
+          return response.json()
+        }
+        throw new Error('Request failed: ' + JSON.stringify(response))
+      })
       .then((response) => {
         let controllers = response.connectedControllers
         if (controllers.length > 0) {
@@ -76,10 +81,7 @@ export default class SetupNuimo extends Component {
         }
       })
       .catch((error) => {
-        console.error(error)
-        // Try again to bootstrap
-        //TODO: Only retry after a few seconds after an error occurred. Cancel timer if component unmounted.
-        this.bootstrapNuimos()
+        alert(error)
       })
   }
 }
