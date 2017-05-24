@@ -33,7 +33,6 @@
     group: root
     mode: "0644"
     src: bluetooth.conf
-  notify: restart dbus
 
 - name: init virtualenv in deployment location
   command: "{{python_interpreter}} -m venv venv"
