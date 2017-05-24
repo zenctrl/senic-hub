@@ -47,7 +47,7 @@
     - name: "{{build_user}}"
       path: "/home/{{build_user}}"
     - name: root
-      path: /root
+      path: /home/root
 
 - name: Allow 'sudo' group to have passwordless sudo
   lineinfile:
