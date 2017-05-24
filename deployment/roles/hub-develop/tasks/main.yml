@@ -17,7 +17,7 @@
   become: true
   become_user: "{{item.name}}"
   copy:
-    dest: "{{item.path}}/.bash_aliases"
+    dest: "{{item.path}}/.bashrc"
     owner: "{{item.name}}"
     mode: "0700"
     content: |
@@ -26,8 +26,8 @@
       set +o allexport
       unset MANPATH
       alias g="git"
-      export LC_ALL=C.UTF-8
-      export LANG=C.UTF-8
+      export LC_ALL=en_GB.UTF-8
+      export LANG=en_GB.UTF-8
 
       # prompt
       function parse_git_branch {
