@@ -13,3 +13,13 @@
     - python3-pip
     - python3-venv
     - screen
+
+- name: install rsync
+  apt:
+    name: "{{item}}"
+    state: installed
+  become: true
+  when: source_transport == 'rsync'
+  with_items:
+    - rsync
+

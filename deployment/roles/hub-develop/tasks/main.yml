@@ -68,15 +68,6 @@
   when: configure_vim
   tags: vim
 
-- name: install rsync
-  apt:
-    name: "{{item}}"
-    state: installed
-  become: true
-  when: source_transport == 'rsync'
-  with_items:
-    - rsync
-
 - name: create hub sources destination
   file:
     dest: "/home/{{build_user}}/senic-hub/"
