@@ -1,11 +1,3 @@
-- name: install build dependencies
-  apt:
-    name: "{{item}}"
-    state: installed
-  become: true
-  with_items:
-    - git-core
-
 - name: enable github deploy access
   become: true
   become_user: "{{build_user}}"
@@ -88,11 +80,12 @@
 
 - name: checkout hub sources
   git:
-    repo: "git@github.com:tomster/senic-hub"
-    remote: tomster
+    repo: "git@github.com:{{gituser}}/senic-hub"
+    remote: "{{gituser}}"
     dest: "/home/{{build_user}}/senic-hub"
-    version: "deploy-monolith"
+    version: "{{gitbranch}}"
     accept_hostkey: true
+    ssh_opts: "-o StrictHostKeyChecking=no"
   become: true
   become_user: "{{build_user}}"
   tags:

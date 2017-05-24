@@ -23,3 +23,11 @@
   with_items:
     - rsync
 
+- name: install build dependencies
+  apt:
+    name: "{{item}}"
+    state: installed
+  become: true
+  with_items:
+    - git-core
+
