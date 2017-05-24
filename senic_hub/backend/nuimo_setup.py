@@ -26,6 +26,7 @@ class NuimoSetup(nuimo.ControllerManagerListener, nuimo.ControllerListener):  # 
         :return: MAC address of connected Nuimo controller or `None` if none connected
         """
         logger.debug("Discover and connect Nuimo controller with timeout = %f", timeout)
+        self._manager.is_adapter_powered = True
         # If there's already a connected Nuimo, take it and don't run discovery
         for controller in self._manager.controllers():
             if controller.is_connected():
