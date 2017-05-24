@@ -31,3 +31,11 @@
   with_items:
     - git-core
 
+- name: install dependencies
+  apt:
+    name: "{{item}}"
+    state: installed
+  become: true
+  with_items:
+    - vim-nox
+

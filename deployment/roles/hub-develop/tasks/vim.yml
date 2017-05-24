@@ -1,12 +1,4 @@
 ---
-- name: install dependencies
-  apt:
-    name: "{{item}}"
-    state: installed
-  become: true
-  with_items:
-    - vim-nox
-
 - name: configure vim
   become: true
   become_user: "{{build_user}}"
