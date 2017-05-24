@@ -140,13 +140,13 @@ def device_discovery(config):
     # install Ctrl+C handler
     signal.signal(signal.SIGINT, sigint_handler)
 
-    if exists(devices_path):
-        with open(devices_path, 'r') as f:
-            devices = json.load(f)
-    else:
-        devices = []
-
     while True:
+        if exists(devices_path):
+            with open(devices_path, 'r') as f:
+                devices = json.load(f)
+        else:
+            devices = []
+
         now = datetime.utcnow()
         devices = discover_devices(devices, now)
 
