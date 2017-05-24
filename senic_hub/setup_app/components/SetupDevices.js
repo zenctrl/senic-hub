@@ -2,12 +2,13 @@ import React, { Component } from 'react';
 import {
   ActivityIndicator,
   AppRegistry,
-  Button,
-  ListView,
+  FlatList,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+
+import { Button, List, ListItem } from 'react-native-elements'
 
 import { API_URL } from '../Config';
 
@@ -18,16 +19,12 @@ export default class SetupDevices extends Component {
 
   devicesPollInterval = 5000  // 5 seconds
   devicesPollTimer = null
-  dataSource = null
 
-  constructor() {
-    super()
-
-    dataSource = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
+  constructor(props) {
+    super(props)
 
     this.state = {
       devices: [],
-      dataSource: dataSource.cloneWithRows([]),
     }
   }
 
@@ -41,19 +38,26 @@ export default class SetupDevices extends Component {
           </Text>
         </View>
 
-        <View style={this.state.devices.length > 0 ? styles.hidden : ''}>
-          <ActivityIndicator size={96} />
-        </View>
+        <List>
+          <FlatList
+            data={this.state.devices}
+            renderItem={({item}) => (
+              <ListItem
+                title={item.name}
+                hideChevron={true}
+                subtitle={item.authenticated ? 'Authenticated' : 'Not Authenticated'} />
+            )}
+            keyExtractor={(item) => item.id}
+           />
+        </List>
 
-        <View style={this.state.devices.length > 0 ? '' : styles.hidden}>
-          <ListView
-            dataSource={this.state.dataSource}
-            renderRow={(rowData) => <Text style={styles.device}>{rowData}</Text>}
-          />
-        </View>
+        <ActivityIndicator animating={this.state.devices.length === 0} />
 
         <View>
-          <Button disabled={this.state.devices.length === 0} onPress={() => navigate('Completion')} title="Continue" />
+          <Button buttonStyle={styles.button} disabled={this.state.devices.length === 0} title="Continue" onPress={() => {
+            this.clearTimeouts()
+            navigate('Completion')
+          }} />
         </View>
       </View>
     );
@@ -63,27 +67,30 @@ export default class SetupDevices extends Component {
     this.pollDevices()
   }
 
-  componentWillUnmount() {
+  clearTimeouts() {
     if (this.devicesPollTimer) {
       clearTimeout(this.devicesPollTimer)
     }
   }
 
   pollDevices() {
-    //TODO: Promise chain doesn't get cancelled when component unmounts
-    fetch(API_URL + '/-/setup/devices')
-      //TODO: Write tests for all possible API call responses, server not available, etc.
-      .then((response) => response.json())
+    //TODO: Figure out why {cache: "no-cache"} doesn't work
+    fetch(API_URL + '/-/setup/devices?cache-bust=' + Date.now())
+      .then((response) => {
+        if (response.ok) {
+          return response.json()
+        }
+        throw new Error('Request failed: ' + JSON.stringify(response))
+      })
       .then((devices) => {
-        deviceNames = devices.map((d) => d.authenticationRequired && (d.authenticated ? d.name + ' - Authenticated' : d.name + ' - Not authenticated') || d.name)
-        this.setState({ devices: devices, dataSource: dataSource.cloneWithRows(deviceNames) })
+        this.setState({ devices: devices })
         devices
           .filter((device) => device.authenticationRequired && !device.authenticated)
           .forEach((device) => this.authenticateDevice(device))
 
           this.devicesPollTimer = setTimeout(this.pollDevices.bind(this), this.devicesPollInterval)
       })
-      .catch((error) => console.error(error))
+      .catch((error) => alert(error))
   }
 
   authenticateDevice(device) {
@@ -93,6 +100,7 @@ export default class SetupDevices extends Component {
         device.authenticated = response.authenticated
         this.forceUpdate()
       })
+      .catch((error) => alert(error))
   }
 }
 
@@ -101,17 +109,15 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'space-between',
+    padding: 10,
   },
   title: {
     fontSize: 18,
     textAlign: 'center',
     margin: 10,
   },
-  hidden: {
-    display: 'none',
-  },
-  device: {
-    fontSize: 18,
+  button: {
+    backgroundColor: '#397af8',
   }
 });
 

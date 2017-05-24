@@ -2,11 +2,12 @@ import React, { Component } from 'react';
 import {
   ActivityIndicator,
   AppRegistry,
-  Button,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+
+import { Button } from 'react-native-elements';
 
 import { API_URL } from '../Config';
 
@@ -17,8 +18,6 @@ export default class SetupNuimo extends Component {
 
   constructor() {
     super()
-
-    console.log(API_URL)
 
     this.state = {
       nuimos: [],
@@ -35,18 +34,16 @@ export default class SetupNuimo extends Component {
           </Text>
         </View>
 
-        <View style={this.state.nuimos.length > 0 ? styles.hidden : ''}>
-          <ActivityIndicator size={96} />
-        </View>
-
         <View style={this.state.nuimos.length > 0 ? '' : styles.hidden}>
           <Text style={styles.title}>
             Found your Nuimo {this.state.nuimos[0]}
           </Text>
         </View>
 
+        <ActivityIndicator animating={this.state.nuimos.length === 0} />
+
         <View>
-          <Button disabled={this.state.nuimos.length === 0} onPress={() => navigate('Devices')} title="Continue" />
+          <Button buttonStyle={styles.button} disabled={this.state.nuimos.length === 0} onPress={() => navigate('Devices')} title="Continue" />
         </View>
       </View>
     );
@@ -67,7 +64,12 @@ export default class SetupNuimo extends Component {
       },
       body: JSON.stringify({})
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.ok) {
+          return response.json()
+        }
+        throw new Error('Request failed: ' + JSON.stringify(response))
+      })
       .then((response) => {
         let controllers = response.connectedControllers
         if (controllers.length > 0) {
@@ -79,10 +81,7 @@ export default class SetupNuimo extends Component {
         }
       })
       .catch((error) => {
-        console.error(error)
-        // Try again to bootstrap
-        //TODO: Only retry after a few seconds after an error occurred. Cancel timer if component unmounted.
-        this.bootstrapNuimos()
+        alert(error)
       })
   }
 }
@@ -92,6 +91,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'space-between',
+    padding: 10,
   },
   title: {
     fontSize: 18,
@@ -100,6 +100,9 @@ const styles = StyleSheet.create({
   },
   hidden: {
     display: 'none',
+  },
+  button: {
+    backgroundColor: '#397af8',
   }
 });
 
