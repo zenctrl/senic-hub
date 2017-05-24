@@ -13,6 +13,14 @@
     groups: sudo
     append: yes
 
+- name: upload git completion and prompt
+  copy:
+    src: "{{item}}"
+    dest: "/usr/share/bash-completion/{{item}}"
+  with_items:
+    - git-completion.bash
+    - git-prompt.sh
+
 - name: configure shell
   become: true
   become_user: "{{item.name}}"
@@ -34,6 +42,9 @@
         ref=$(git-symbolic-ref HEAD 2> /dev/null) || return
         echo "("${ref#refs/heads/}")"
       }
+
+      source /usr/share/bash-completion/git-completion.bash
+      source /usr/share/bash-completion/git-prompt.sh
 
       export GIT_PS1_SHOWDIRTYSTATE=1
       export GIT_PS1_SHOWBRANCHREMOTE=1
