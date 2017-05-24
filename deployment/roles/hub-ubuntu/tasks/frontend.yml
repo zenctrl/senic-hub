@@ -1,0 +1,59 @@
+---
+- name: ensure document root
+  file:
+    dest: "{{frontend_document_root}}"
+    owner: "{{build_user}}"
+    group: "{{run_user}}"
+    mode: "0755"
+    state: directory
+  become: yes
+  tags: www
+
+- name: configure lighttpd
+  template:
+    src: lighttpd.conf
+    dest: /etc/lighttpd/lighttpd.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart httpd
+  tags: www
+
+- name: configure frontend website
+  template:
+    src: senic_hub.conf
+    dest: /etc/lighttpd/conf-available/senic_hub.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart httpd
+  tags: www
+
+- name: enable frontend website
+  file:
+    src: /etc/lighttpd/conf-available/senic_hub.conf
+    dest: /etc/lighttpd/conf-enabled/senic_hub.conf
+    owner: root
+    group: root
+    mode: "0755"
+    state: link
+  notify: restart httpd
+  tags: www
+
+- name: announce web UI via avahi
+  template:
+    src: hub_service.xml
+    dest: /etc/avahi/services/hub.service
+    owner: root
+    mode: "0644"
+  notify: restart avahi
+  tags: avahi
+
+- name: Make sure the hostname is available for local commands (i.e. sudo)
+  lineinfile:
+    dest: /etc/hosts
+    state: present
+    regexp: '{{hostname}}$'
+    line: '127.0.0.1  {{hostname}}.local {{hostname}}'
+  tags: avahi
+

@@ -1,21 +1,6 @@
 ---
 # a role that sets up an environment for developing the hub on a ubuntu machine
 # it requires that the roles `hub-backend` and `hub-ubuntu` have been applied already
-- name: install development dependencies
-  apt:
-    name: "{{item}}"
-    state: installed
-  become: true
-  with_items:
-    - bash-completion
-    - build-essential
-    - htop
-    - python3-dev
-    - python3-flake8
-    - python3-pip
-    - python3-venv
-    - screen
-
 - name: create user
   become: true
   user:
@@ -28,11 +13,19 @@
     groups: sudo
     append: yes
 
+- name: upload git completion and prompt
+  copy:
+    src: "{{item}}"
+    dest: "/usr/share/bash-completion/{{item}}"
+  with_items:
+    - git-completion.bash
+    - git-prompt.sh
+
 - name: configure shell
   become: true
   become_user: "{{item.name}}"
   copy:
-    dest: "{{item.path}}/.bash_aliases"
+    dest: "{{item.path}}/.bashrc"
     owner: "{{item.name}}"
     mode: "0700"
     content: |
@@ -41,14 +34,17 @@
       set +o allexport
       unset MANPATH
       alias g="git"
-      export LC_ALL=C.UTF-8
-      export LANG=C.UTF-8
+      export LC_ALL=en_US.UTF-8
+      export LANG=en_US.UTF-8
 
       # prompt
       function parse_git_branch {
         ref=$(git-symbolic-ref HEAD 2> /dev/null) || return
         echo "("${ref#refs/heads/}")"
       }
+
+      source /usr/share/bash-completion/git-completion.bash
+      source /usr/share/bash-completion/git-prompt.sh
 
       export GIT_PS1_SHOWDIRTYSTATE=1
       export GIT_PS1_SHOWBRANCHREMOTE=1
@@ -62,7 +58,7 @@
     - name: "{{build_user}}"
       path: "/home/{{build_user}}"
     - name: root
-      path: /root
+      path: /home/root
 
 - name: Allow 'sudo' group to have passwordless sudo
   lineinfile:
@@ -82,15 +78,6 @@
 - include: vim.yml
   when: configure_vim
   tags: vim
-
-- name: install rsync
-  apt:
-    name: "{{item}}"
-    state: installed
-  become: true
-  when: source_transport == 'rsync'
-  with_items:
-    - rsync
 
 - name: create hub sources destination
   file:

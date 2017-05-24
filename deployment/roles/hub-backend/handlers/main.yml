@@ -7,11 +7,6 @@
     name: senic_hub
     state: restarted
 
-- name: restart dbus
-  service:
-    name: dbus
-    state: restarted
-
 - name: restart wifi_setup
   supervisorctl:
     name: wifi_setup
