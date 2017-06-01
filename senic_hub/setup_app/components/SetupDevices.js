@@ -1,22 +1,16 @@
-import React, { Component } from 'react';
+import React from 'react';
 import {
   ActivityIndicator,
-  AppRegistry,
   FlatList,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-
 import { Button, List, ListItem } from 'react-native-elements'
-
+import Screen from './Screen'
 import { API_URL } from '../Config';
 
-export default class SetupDevices extends Component {
-  static navigationOptions = {
-    title: 'Device Discovery',
-  };
-
+export default class SetupDevices extends Screen {
   devicesPollInterval = 5000  // 5 seconds
   devicesPollTimer = null
 
@@ -26,10 +20,11 @@ export default class SetupDevices extends Component {
     this.state = {
       devices: [],
     }
+
+    this.setTitle("Devices")
   }
 
   render() {
-    const { navigate } = this.props.navigation;
     return (
       <View style={styles.container}>
         <View>
@@ -54,20 +49,21 @@ export default class SetupDevices extends Component {
         <ActivityIndicator animating={this.state.devices.length === 0} />
 
         <View>
-          <Button buttonStyle={styles.button} disabled={this.state.devices.length === 0} title="Continue" onPress={() => {
-            this.clearTimeouts()
-            navigate('Completion')
-          }} />
+          <Button
+            buttonStyle={styles.button}
+            disabled={this.state.devices.length === 0}
+            onPress={() => this.pushScreen('setup.completion')}
+            title="Continue" />
         </View>
       </View>
     );
   }
 
-  componentDidMount() {
+  didAppear() {
     this.pollDevices()
   }
 
-  clearTimeouts() {
+  willDisappear() {
     if (this.devicesPollTimer) {
       clearTimeout(this.devicesPollTimer)
     }
@@ -120,5 +116,3 @@ const styles = StyleSheet.create({
     backgroundColor: '#397af8',
   }
 });
-
-AppRegistry.registerComponent('SetupDevices', () => SetupDevices);

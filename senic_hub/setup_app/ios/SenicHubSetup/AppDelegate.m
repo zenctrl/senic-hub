@@ -9,6 +9,13 @@
 
 #import "AppDelegate.h"
 
+// We use wix's react-native-navigation See also: https://wix.github.io/react-native-navigation/#/installation-ios
+#define WIX_NAVIGATION
+
+#ifdef WIX_NAVIGATION
+#import "RCCManager.h"
+#endif
+
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
 
@@ -19,6 +26,14 @@
   NSURL *jsCodeLocation;
 
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
+
+  #ifdef WIX_NAVIGATION
+
+  self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+  self.window.backgroundColor = [UIColor whiteColor];
+  [[RCCManager sharedInstance] initBridgeWithBundleURL:jsCodeLocation];
+
+  #else
 
   RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
                                                       moduleName:@"SenicHubSetup"
@@ -31,6 +46,9 @@
   rootViewController.view = rootView;
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
+
+  #endif
+
   return YES;
 }
 

@@ -1,30 +1,29 @@
-import React, { Component } from 'react';
+import React from 'react';
 import {
-  AppRegistry,
   FlatList,
 } from 'react-native';
 
 import { List, ListItem } from 'react-native-elements';
 
+import Screen from './Screen'
 
-export default class DeviceSelection extends Component {
-  static navigationOptions = ({ navigation }) => ({
-    title: `${navigation.state.params.type}`,
-  });
 
+export default class DeviceSelection extends Screen {
   constructor(props) {
     super(props)
 
     this.state = {
-      component: props.navigation.state.params,
+      component: props.component,
     }
+
+    this.setTitle(props.component.type)
   }
 
   render() {
     return (
       <List>
         <FlatList
-          data={this.state.component.selected_devices}
+          data={this.state.component.device_ids}
           renderItem={({item}) => <ListItem title={item} hideChevron={true} />}
           keyExtractor={(device) => device}
         />
@@ -32,5 +31,3 @@ export default class DeviceSelection extends Component {
     );
   }
 }
-
-AppRegistry.registerComponent('DeviceSelection', () => DeviceSelection);

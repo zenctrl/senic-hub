@@ -1,22 +1,22 @@
-import React, { Component } from 'react';
+import React from 'react';
 import {
-  AppRegistry,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 
 import { Button } from 'react-native-elements';
-
+import Screen from './Screen'
 import { API_URL } from '../Config';
 
-export default class SetupCompletion extends Component {
-  static navigationOptions = {
-    title: 'Setup complete',
-  };
+export default class SetupCompletion extends Screen {
+  constructor(props) {
+    super(props)
+
+    this.setTitle("Completion")
+  }
 
   render() {
-    const { navigate } = this.props.navigation;
     return (
       <View style={styles.container}>
         <View>
@@ -29,13 +29,16 @@ export default class SetupCompletion extends Component {
         </View>
 
         <View>
-          <Button buttonStyle={styles.button} onPress={() => navigate('NuimoComponents')} title="Done" />
+          <Button
+            buttonStyle={styles.button}
+            onPress={() => this.pushScreen('app.nuimoComponents')}
+            title="Done" />
         </View>
       </View>
     );
   }
 
-  componentDidMount() {
+  didAppear() {
     fetch(API_URL + '/-/setup/config', {method: 'POST'})
   }
 }
@@ -56,5 +59,3 @@ const styles = StyleSheet.create({
     backgroundColor: '#397af8',
   }
 });
-
-AppRegistry.registerComponent('SetupCompletion', () => SetupCompletion);

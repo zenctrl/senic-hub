@@ -1,33 +1,28 @@
-import React, { Component } from 'react';
-import {
-  AppRegistry,
-  FlatList,
-} from 'react-native';
-
+import React from 'react';
+import { FlatList } from 'react-native';
 import { Button, List, ListItem } from 'react-native-elements';
-
+import Screen from './Screen'
 import { API_URL } from '../Config';
 
-
-export default class NuimoComponents extends Component {
-  static navigationOptions = ({ navigation }) => ({
-    title: 'Components',
-    headerLeft: null,
-    headerRight: <Button
-                    backgroundColor={'transparent'}
-                    icon={{name: 'add', color: '#397af8'}}
-                    onPress={() => navigation.navigate('AddComponent')} />,
-  });
-
-  constructor() {
-    super()
+export default class NuimoComponents extends Screen {
+  constructor(props) {
+    super(props)
 
     this.state = {
       components: [],
     }
+
+    this.setTitle("My Nuimo")
+    this.setNavigationButtons([], [
+      {
+        title: "Add",
+        id: 'add',
+        onPress: () => this.showModal('app.addComponent')
+      }
+    ])
   }
 
-  componentDidMount() {
+  willAppear() {
     this.fetchComponents()
   }
 
@@ -50,17 +45,13 @@ export default class NuimoComponents extends Component {
       <List>
         <FlatList
           data={this.state.components}
-          renderItem={({item}) => <ListItem title={item.type} onPress={() => this.onComponentSelected(item)} />}
+          renderItem={({item}) => <ListItem
+            title={item.type}
+            onPress={() => this.pushScreen('app.deviceSelection', {component: item})} />
+          }
           keyExtractor={(component) => component.id}
         />
       </List>
     );
   }
-
-  onComponentSelected(component) {
-    const { navigate } = this.props.navigation
-    navigate('DeviceSelection', component)
-  }
 }
-
-AppRegistry.registerComponent('NuimoComponents', () => NuimoComponents);

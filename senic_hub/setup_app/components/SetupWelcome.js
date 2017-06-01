@@ -1,39 +1,39 @@
-import React, { Component } from 'react';
-import { NetworkInfo } from 'react-native-network-info';
+import React from 'react';
+import { RNNetworkInfo } from 'react-native-network-info';
 import {
-  AppRegistry,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { Button } from 'react-native-elements';
+import Screen from './Screen.js';
 
-
-export default class SetupWelcome extends Component {
-  static navigationOptions = {
-    title: 'Welcome',
-  };
-
-  constructor() {
-    super()
+export default class SetupWelcome extends Screen {
+  constructor(props) {
+    super(props)
 
     this.state = {
-      currentSSID: '',
+      networkSSID: null,
     }
+
+    this.setTitle("Welcome")
   }
 
   componentDidMount() {
-    NetworkInfo.getSSID(ssid => {
-      console.log(ssid);
-
+    if (RNNetworkInfo === undefined) {
       this.setState({
-        currentSSID: ssid,
+        networkSSID: 'emulator',
+      })
+      return
+    }
+    RNNetworkInfo.getSSID(ssid => {
+      this.setState({
+        networkSSID: ssid,
       })
     });
   }
 
   render() {
-    const { navigate } = this.props.navigation;
     return (
       <View style={styles.container}>
 
@@ -43,10 +43,16 @@ export default class SetupWelcome extends Component {
           </Text>
         </View>
 
-        <View>
-          <Button buttonStyle={styles.button} onPress={() => navigate('Nuimo')} title="Continue" />
-        </View>
+        <Text>
+          Phone's WiFi SSID: {this.state.networkSSID}
+        </Text>
 
+        <View>
+          <Button
+            buttonStyle={styles.button}
+            onPress={ () => this.pushScreen('setup.nuimo') }
+            title="Continue" />
+        </View>
       </View>
     );
   }
@@ -68,5 +74,3 @@ const styles = StyleSheet.create({
     backgroundColor: '#397af8',
   }
 });
-
-AppRegistry.registerComponent('SetupWelcome', () => SetupWelcome);

@@ -1,27 +1,22 @@
-import React, { Component } from 'react'
-import {
-  AppRegistry,
-  Text,
-} from 'react-native'
-
+import React from 'react'
+import { Text } from 'react-native'
 import { Button } from 'react-native-elements'
+import Screen from './Screen'
+import { API_URL } from '../Config'
 
-import { API_URL } from '../Config';
-
-
-export default class AddComponent extends Component {
-  //TODO: Replace the dummy deviceId value
-  static navigationOptions = ({navigation}) => ({
-    title: 'Select devices',
-    headerRight: <Button title={'Save'} backgroundColor={'transparent'} color={'#397af8'}
-                    onPress={() => navigation.state.params.saveComponent('001788176885', navigation)} />,
-  })
-
+export default class AddComponent extends Screen {
   constructor(props) {
     super(props)
+
+    this.setNavigationButtons([], [{
+      'title': "Save",
+      'id': 'save',
+      //TODO: Replace the dummy deviceId value
+      'onPress': () => this.saveComponent('001788176885')
+    }])
   }
 
-  saveComponent(deviceId, navigation) {
+  saveComponent(deviceId) {
     let body = JSON.stringify({device_id: deviceId})
     let params = {
       method: 'POST',
@@ -31,12 +26,8 @@ export default class AddComponent extends Component {
       body: body,
     }
     fetch(API_URL + '/-/nuimos/0/components', params)
-      .then(() => navigation.navigate('NuimoComponents'))
+      .then(() => this.dismissAllModals())
       .catch((error) => console.error(error))
-  }
-
-  componentDidMount() {
-    this.props.navigation.setParams({saveComponent: this.saveComponent})
   }
 
   render() {
@@ -45,5 +36,3 @@ export default class AddComponent extends Component {
     )
   }
 }
-
-AppRegistry.registerComponent('SelectComponentDevices', () => SelectComponentDevices)

@@ -1,31 +1,26 @@
-import React, { Component } from 'react';
+import React from 'react';
 import {
   ActivityIndicator,
-  AppRegistry,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-
 import { Button } from 'react-native-elements';
-
+import Screen from './Screen'
 import { API_URL } from '../Config';
 
-export default class SetupNuimo extends Component {
-  static navigationOptions = {
-    title: 'Nuimo',
-  };
-
-  constructor() {
-    super()
+export default class SetupNuimo extends Screen {
+  constructor(props) {
+    super(props)
 
     this.state = {
       nuimos: [],
     }
+
+    this.setTitle("Nuimo")
   }
 
   render() {
-    const { navigate } = this.props.navigation;
     return (
       <View style={styles.container}>
         <View>
@@ -43,7 +38,11 @@ export default class SetupNuimo extends Component {
         <ActivityIndicator animating={this.state.nuimos.length === 0} />
 
         <View>
-          <Button buttonStyle={styles.button} disabled={this.state.nuimos.length === 0} onPress={() => navigate('Devices')} title="Continue" />
+          <Button
+            buttonStyle={styles.button}
+            disabled={this.state.nuimos.length === 0}
+            onPress={() => this.pushScreen('setup.devices')}
+            title="Continue" />
         </View>
       </View>
     );
@@ -105,5 +104,3 @@ const styles = StyleSheet.create({
     backgroundColor: '#397af8',
   }
 });
-
-AppRegistry.registerComponent('SetupNuimo', () => SetupNuimo);
