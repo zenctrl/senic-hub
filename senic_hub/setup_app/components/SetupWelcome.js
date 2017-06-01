@@ -50,7 +50,7 @@ export default class SetupWelcome extends Screen {
         <View>
           <Button
             buttonStyle={styles.button}
-            onPress={ () => this.pushScreen('setup.nuimo') }
+            onPress={ () => this.pushScreen('setup.hub') }
             title="Continue" />
         </View>
       </View>
