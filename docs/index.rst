@@ -1,8 +1,8 @@
 .. _index:
 
-***************
-:mod:`senic_hub
-***************
+****************
+:mod:`senic_hub`
+****************
 
 :Author: Senic GmbH
 :Version: |version|
