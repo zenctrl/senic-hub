@@ -1,33 +1,135 @@
 import React from 'react';
 import {
   FlatList,
+  Switch,
+  Text,
+  View
 } from 'react-native';
-
 import { List, ListItem } from 'react-native-elements';
-
 import Screen from './Screen'
-
+import { API_URL } from '../Config';
 
 export default class DeviceSelection extends Screen {
   constructor(props) {
     super(props)
 
+    //TODO: Only pass component's ID and fetch the component to get latest state
+
     this.state = {
       component: props.component,
+      devices: [],
     }
 
     this.setTitle(props.component.type)
+    this.setNavigationButtons([], [
+      {
+        title: "Save",
+        id: 'save',
+        onPress: () => {
+          try {
+            this.save()
+          }
+          catch (e) {
+            console.error(e)
+            return
+          }
+          this.popScreen()
+        }
+      }
+    ])
   }
 
   render() {
     return (
       <List>
         <FlatList
-          data={this.state.component.device_ids}
-          renderItem={({item}) => <ListItem title={item} hideChevron={true} />}
-          keyExtractor={(device) => device}
+          data={this.state.devices}
+          renderItem={({item}) =>
+            <View>
+              <Switch
+                value={item.selected}
+                onValueChange={(value) => this.onDeviceSelectionChanged(item, value)}
+                />
+              <Text>Device: {item.id}</Text>
+            </View>
+          }
+          keyExtractor={(device) => device.id}
         />
       </List>
     );
+  }
+
+  willAppear() {
+    let that = this;
+    //TODO: Promise usage can be probably simplified
+    (new Promise((res, rej) => res()))
+      .then(() => that.fetchComponent())
+      .then(() => that.fetchDevices())
+      .catch((error) => console.log('error:', error))
+  }
+
+  fetchComponent() {
+    let that = this
+    return fetch(API_URL + '/-/nuimos/0/components/' + that.state.component.id)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed fetching component with status: ' + response.status)
+        }
+        return response.json()
+      })
+      .then(component => {
+        that.setState({component: component})
+      })
+  }
+
+  fetchDevices() {
+    let that = this
+    return fetch(API_URL + '/-/devices')
+      .then(response => {
+        if (!response.ok) throw new Error('Request failed: ' + response)
+        return response.json()
+      })
+      .then(response => {
+        devices = response.devices
+          .filter(device => device.type == that.state.component.type)
+          .filter(device => !(device.virtual || false))
+        devices.forEach(device =>
+          device.selected = that.state.component.device_ids.indexOf(device.id) > -1
+        )
+        that.setState({devices: devices})
+      })
+  }
+
+  onDeviceSelectionChanged(device, selected) {
+    devices = this.state.devices.map((d) => {
+      if (d.id == device.id) {
+        d.selected = selected
+      }
+      return d
+    })
+    this.setState({devices: devices})
+  }
+
+  save() {
+    component = {}
+    component.device_ids = this.state.devices
+      .filter(device => device.selected)
+      .map(device => device.id)
+    let body = JSON.stringify(component)
+    let params = {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    }
+    url = API_URL + '/-/nuimos/0/components/' + this.state.component.id
+    console.log(url)
+    fetch(url, params)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Saving component failed with status: ' + response.status)
+        }
+      })
   }
 }

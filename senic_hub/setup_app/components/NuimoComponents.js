@@ -29,15 +29,15 @@ export default class NuimoComponents extends Screen {
   fetchComponents() {
     fetch(API_URL + '/-/nuimos/0/components')
       .then((response) => {
-        if (response.ok) {
-          return response.json()
+        if (!response.ok) {
+          throw new Error('Request failed: ' + JSON.stringify(response))
         }
-        throw new Error('Request failed: ' + JSON.stringify(response))
+        return response.json()
       })
       .then((components) => {
         this.setState({ components: components.components })
       })
-      .catch((error) => alert(error))
+      .catch((error) => console.error(error))
   }
 
   render() {
@@ -45,9 +45,12 @@ export default class NuimoComponents extends Screen {
       <List>
         <FlatList
           data={this.state.components}
-          renderItem={({item}) => <ListItem
-            title={item.type}
-            onPress={() => this.pushScreen('app.deviceSelection', {component: item})} />
+          renderItem={({item}) =>
+            <ListItem
+              title={item.type}
+              onPress={() => {
+                this.pushScreen('app.deviceSelection', {component: item})
+              }} />
           }
           keyExtractor={(component) => component.id}
         />
