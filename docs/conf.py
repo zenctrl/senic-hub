@@ -18,6 +18,6 @@ todo_include_todos = True
 autodoc_member_order = 'bysource'
 
 # general substitutions
-project = 'Nuimo Hub'
-copyright = '2016'
+project = 'Senic Hub'
+copyright = '2017'
 version = release = get_distribution('senic_hub').version
