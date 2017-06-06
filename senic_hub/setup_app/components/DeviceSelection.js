@@ -26,14 +26,9 @@ export default class DeviceSelection extends Screen {
         title: "Save",
         id: 'save',
         onPress: () => {
-          try {
-            this.save()
-          }
-          catch (e) {
-            console.error(e)
-            return
-          }
-          this.popScreen()
+          this.save()
+            .then(() => this.popScreen())
+            .catch(e => console.warn(e))
         }
       }
     ])
@@ -125,7 +120,7 @@ export default class DeviceSelection extends Screen {
     }
     url = API_URL + '/-/nuimos/0/components/' + this.state.component.id
     console.log(url)
-    fetch(url, params)
+    return fetch(url, params)
       .then(response => {
         if (!response.ok) {
           throw new Error('Saving component failed with status: ' + response.status)
