@@ -5,6 +5,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { isEmulator } from 'react-native-device-info';
 import { Button } from 'react-native-elements';
 import Screen from './Screen.js';
 
@@ -50,11 +51,22 @@ export default class SetupWelcome extends Screen {
         <View>
           <Button
             buttonStyle={styles.button}
-            onPress={ () => this.pushScreen('setup.nuimo') }
+            onPress={ () => this.onContinue() }
             title="Continue" />
         </View>
       </View>
     );
+  }
+
+  onContinue() {
+    // Bluetooth can't be used in simulators, so we just skip
+    // hub onboaring when app is run in the simulator
+    if (isEmulator()) {
+      this.pushScreen('setup.nuimo')
+    }
+    else {
+      this.pushScreen('setup.hub')
+    }
   }
 }
 
