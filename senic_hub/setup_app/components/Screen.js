@@ -81,6 +81,10 @@ export default class Screen extends Component {
     }
   }
 
+  resetTo(screen) {
+    this.props.navigator.resetTo({screen: screen})
+  }
+
   willAppear() {}
   didAppear() {}
   willDisappear() {}

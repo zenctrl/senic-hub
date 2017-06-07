@@ -1,8 +1,8 @@
 import React from 'react';
 import { FlatList } from 'react-native';
-import { Button, List, ListItem } from 'react-native-elements';
+import { List, ListItem } from 'react-native-elements';
 import Screen from './Screen'
-import { API_URL } from '../Config';
+import Settings from '../Settings'
 
 export default class NuimoComponents extends Screen {
   constructor(props) {
@@ -13,7 +13,15 @@ export default class NuimoComponents extends Screen {
     }
 
     this.setTitle("My Nuimo")
-    this.setNavigationButtons([], [
+    this.setNavigationButtons([{
+      title: 'Reset',
+      id: 'reset',
+      onPress: () => {
+        // Only useful for development to restart the onboarding
+        Settings.resetHubApiUrl()
+          .then(() => this.resetTo('setup.welcome'))
+      }
+    }], [
       {
         title: "Add",
         id: 'add',
@@ -27,7 +35,7 @@ export default class NuimoComponents extends Screen {
   }
 
   fetchComponents() {
-    fetch(API_URL + '/-/nuimos/0/components')
+    fetch(Settings.HUB_API_URL + 'nuimos/0/components')
       .then((response) => {
         if (!response.ok) {
           throw new Error('Request failed: ' + JSON.stringify(response))

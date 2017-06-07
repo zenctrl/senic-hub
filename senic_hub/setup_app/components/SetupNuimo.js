@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { Button } from 'react-native-elements';
 import Screen from './Screen'
-import { API_URL } from '../Config';
+import Settings from '../Settings'
 
 export default class SetupNuimo extends Screen {
   constructor(props) {
@@ -55,7 +55,7 @@ export default class SetupNuimo extends Screen {
   bootstrapNuimos() {
     //TODO: Promise chain doesn't get cancelled when component unmounts
     //TODO: Write tests for all possible API call responses, server not available, etc.
-    fetch(API_URL + '/-/setup/nuimo/bootstrap', {
+    fetch(Settings.HUB_API_URL + 'setup/nuimo/bootstrap', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',

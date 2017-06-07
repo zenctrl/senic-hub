@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Button, List, ListItem } from 'react-native-elements'
 import Screen from './Screen'
-import { API_URL } from '../Config';
+import Settings from '../Settings'
 
 export default class SetupDevices extends Screen {
   devicesPollInterval = 5000  // 5 seconds
@@ -71,7 +71,7 @@ export default class SetupDevices extends Screen {
 
   pollDevices() {
     //TODO: Figure out why {cache: "no-cache"} doesn't work
-    fetch(API_URL + '/-/setup/devices?cache-bust=' + Date.now())
+    fetch(Settings.HUB_API_URL + 'setup/devices?cache-bust=' + Date.now())
       .then((response) => {
         if (response.ok) {
           return response.json()
@@ -90,7 +90,7 @@ export default class SetupDevices extends Screen {
   }
 
   authenticateDevice(device) {
-    fetch(API_URL + '/-/setup/devices/' + device.id + '/authenticate', {method: 'POST'})
+    fetch(Settings.HUB_API_URL + 'setup/devices/' + device.id + '/authenticate', {method: 'POST'})
       .then((response) => response.json())
       .then((response) => {
         device.authenticated = response.authenticated

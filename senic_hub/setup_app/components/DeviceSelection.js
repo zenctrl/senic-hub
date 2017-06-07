@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { List, ListItem } from 'react-native-elements';
 import Screen from './Screen'
-import { API_URL } from '../Config';
+import Settings from '../Settings'
 
 export default class DeviceSelection extends Screen {
   constructor(props) {
@@ -65,7 +65,7 @@ export default class DeviceSelection extends Screen {
 
   fetchComponent() {
     let that = this
-    return fetch(API_URL + '/-/nuimos/0/components/' + that.state.component.id)
+    return fetch(Settings.HUB_API_URL + 'nuimos/0/components/' + that.state.component.id)
       .then(response => {
         if (!response.ok) {
           throw new Error('Failed fetching component with status: ' + response.status)
@@ -79,7 +79,7 @@ export default class DeviceSelection extends Screen {
 
   fetchDevices() {
     let that = this
-    return fetch(API_URL + '/-/devices')
+    return fetch(Settings.HUB_API_URL + 'devices')
       .then(response => {
         if (!response.ok) throw new Error('Request failed: ' + response)
         return response.json()
@@ -118,7 +118,7 @@ export default class DeviceSelection extends Screen {
       },
       body: body,
     }
-    url = API_URL + '/-/nuimos/0/components/' + this.state.component.id
+    url = Settings.HUB_API_URL + 'nuimos/0/components/' + this.state.component.id
     console.log(url)
     return fetch(url, params)
       .then(response => {

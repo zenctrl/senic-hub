@@ -1,3 +1,4 @@
+import BootScreen from './components/BootScreen';
 import SetupWelcome from './components/SetupWelcome';
 import SetupNuimo from './components/SetupNuimo';
 import SetupDevices from './components/SetupDevices';
@@ -16,6 +17,7 @@ Navigation.registerComponent('app.addComponent', () => AddComponent);
 Navigation.registerComponent('app.deviceSelection', () => DeviceSelection);
 Navigation.registerComponent('app.nuimoComponents', () => NuimoComponents);
 Navigation.registerComponent('app.selectComponentDevices', () => SelectComponentDevices);
+Navigation.registerComponent('setup.boot', () => BootScreen);
 Navigation.registerComponent('setup.completion', () => SetupCompletion);
 Navigation.registerComponent('setup.devices', () => SetupDevices);
 Navigation.registerComponent('setup.nuimo', () => SetupNuimo);
@@ -28,7 +30,6 @@ Navigation.registerComponent('setup.wifiPassword', () => SetupWifiPassword)
 
 Navigation.startSingleScreenApp({
   screen: {
-    screen: 'setup.welcome',
-    title: 'Welcome'
+    screen: 'setup.boot',
   }
-});
+})

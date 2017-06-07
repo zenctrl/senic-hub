@@ -2,7 +2,7 @@ import React from 'react'
 import { Text } from 'react-native'
 import { Button } from 'react-native-elements'
 import Screen from './Screen'
-import { API_URL } from '../Config'
+import Settings from '../Settings'
 
 export default class AddComponent extends Screen {
   constructor(props) {
@@ -25,7 +25,7 @@ export default class AddComponent extends Screen {
       },
       body: body,
     }
-    fetch(API_URL + '/-/nuimos/0/components', params)
+    fetch(Settings.HUB_API_URL + 'nuimos/0/components', params)
       .then(() => this.dismissAllModals())
       .catch((error) => console.error(error))
   }
