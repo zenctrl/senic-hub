@@ -92,7 +92,7 @@
   pip:
     virtualenv: "{{backend_deploy_location}}/venv/"
     requirements: "{{backend_deploy_location}}/requirements.txt"
-    extra_args: "--pre --upgrade -i {{devpi_index_url}}"
+    extra_args: "--process-dependency-links --pre --upgrade -i {{devpi_index_url}}"
   become: yes
   notify: restart senic_hub
   tags: update_backend
