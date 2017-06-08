@@ -63,6 +63,10 @@ setup(
         'websocket-client==0.40.0',
         'soco==0.12',
         'phue==0.9',
+        'lightify>=1.0.5',
+    ],
+    dependency_links=[
+        "https://github.com/tfriedel/python-lightify/archive/1bb1db0e7bd5b14304d7bb267e2398cd5160df46.zip#egg=lightify-1.0.5"
     ],
     extras_require={
         'development': [
