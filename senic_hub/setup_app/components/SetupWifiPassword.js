@@ -8,15 +8,19 @@ import {
 } from 'react-native';
 
 import HubOnboarding, { WifiConnectionState } from '../HubOnboarding'
+import Screen from './Screen';
+import Settings from '../Settings'
 
 
-export default class SetupWifiPassword extends Component {
+export default class SetupWifiPassword extends Screen {
   constructor(props) {
     super(props)
 
     this.state = {
       password: '',
     }
+
+    this.setTitle('Wi-Fi Password')
   }
 
   onSubmit() {
@@ -29,7 +33,8 @@ export default class SetupWifiPassword extends Component {
         alert('Wrong password! Try again please...')
       }
       else if (connectionState === WifiConnectionState.CONNECTION_STATE_CONNECTED) {
-        this.props.navigator.push({screen: 'setup.nuimo', title: 'Nuimo'})
+        Settings.setHubApiUrl(HubOnboarding.hubDevice.dnsName)
+          .then(() => this.pushScreen('setup.nuimo'))
       }
     })
     HubOnboarding.hubDevice.sendPassword(password)
