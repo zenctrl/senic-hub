@@ -13,20 +13,21 @@ export default class NuimoComponents extends Screen {
     }
 
     this.setTitle("My Nuimo")
-    this.setNavigationButtons([{
-      title: 'Reset',
-      id: 'reset',
-      onPress: () => {
-        // Only useful for development to restart the onboarding
-        Settings.resetHubApiUrl()
-          .then(() => this.resetTo('setup.welcome'))
-      }
-    }], [
+    this.setNavigationButtons([], [
       {
         title: "Add",
         id: 'add',
         onPress: () => this.showModal('app.addComponent')
-      }
+      },
+      {
+        title: 'Setup',
+        id: 'reset',
+        onPress: () => {
+          // Only useful for development to restart the onboarding
+          Settings.resetHubApiUrl()
+            .then(() => this.resetTo('setup.welcome'))
+        }
+      },
     ])
   }
 
