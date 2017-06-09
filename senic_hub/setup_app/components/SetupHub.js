@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Text,
   View,
-  Platform,
 } from 'react-native';
 
 import { BleManager } from 'react-native-ble-plx';
@@ -20,25 +19,39 @@ export default class SetupHub extends Screen {
     super(props)
 
     this.manager = new BleManager()
+    this.stateChangeListener = null
 
     this.state = {
       hubs: [],
+      bluetoothState: null,
     }
 
     this.setTitle("Hub")
   }
 
   willAppear() {
-    if (Platform.OS === 'ios') {
-      this.manager.onStateChange((state) => {
-        if (state === 'PoweredOn') this.startScanning()
-      })
-    } else {
+    this.stateChangeListener = this.manager.onStateChange((state) => {
+      console.log('BleManager.state:', state)
+
+      this.updateBluetoothState(state)
+    }, true)
+  }
+
+  updateBluetoothState(state) {
+    this.setState({bluetoothState: state})
+
+    if (state === 'PoweredOn') {
       this.startScanning()
+    } else {
+      this.manager.stopDeviceScan()
     }
   }
 
   willDisappear() {
+    if (this.stateChangeListener) {
+      this.stateChangeListener.remove()
+      this.stateChangeListener = null
+    }
     this.manager.stopDeviceScan()
   }
 
@@ -46,7 +59,6 @@ export default class SetupHub extends Screen {
     this.manager.startDeviceScan(null, null, (error, device) => {
       if (error) {
         alert("An error occurred while scanning: " + JSON.stringify(error))
-        console.error("An error occurred while scanning:", error)
         return
       }
 
@@ -61,7 +73,6 @@ export default class SetupHub extends Screen {
   }
 
   onHubSelected(device) {
-    console.log('device', device)
     this.manager.stopDeviceScan()
     
     HubOnboarding.hubDevice = new HubOnboarding(device)
@@ -72,28 +83,49 @@ export default class SetupHub extends Screen {
   render() {
     return (
       <View style={styles.container}>
-        <View>
-          <Text style={styles.title}>
-            Select your hub
-          </Text>
-          <List>
-            <FlatList
-              data={this.state.hubs}
-              renderItem={({item}) => (
-                <ListItem
-                  title={item.name}
-                  subtitle={item.id}
-                  onPress={() => this.onHubSelected(item)}
-                />
-              )}
-              keyExtractor={(item) => item.id}
-             />
-          </List>
-        </View>
-
-        <ActivityIndicator animating={this.state.hubs.length === 0} />
+        {this._renderContent()}
       </View>
-    );
+    )
+  }
+
+  _renderContent() {
+    if (this.state.bluetoothState === 'PoweredOn') {
+      if (this.state.hubs.length > 0) {
+        return (
+          <View>
+            <Text style={styles.title}>
+              Select your hub
+            </Text>
+            <List>
+              <FlatList
+                data={this.state.hubs}
+                renderItem={({item}) => (
+                  <ListItem
+                    title={item.name}
+                    subtitle={item.id}
+                    onPress={() => this.onHubSelected(item)}
+                  />
+                )}
+                keyExtractor={(item) => item.id}
+              />
+            </List>
+          </View>
+        )
+      }
+      else {
+        return (
+          <View>
+            <Text style={styles.title}>Searching for Senic Hub...</Text>
+            <ActivityIndicator size={"large"} />
+          </View>
+        )
+      }
+    }
+    else if (this.state.bluetoothState == 'PoweredOff') {
+      return (
+        <Text style={styles.title}>Looks like Bluetooth is turned off on your device. Senic Hub needs Bluetooth enabled to proceed with the Senic Hub onboarding...</Text>
+      )
+    }
   }
 }
 
