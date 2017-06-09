@@ -11,6 +11,7 @@ import { List, ListItem } from 'react-native-elements'
 
 import HubOnboarding, { WifiConnectionState } from '../HubOnboarding'
 import Screen from './Screen';
+import Settings from '../Settings'
 
 
 export default class SetupWifi extends Screen {
@@ -18,25 +19,22 @@ export default class SetupWifi extends Screen {
     super(props)
 
     this.state = {
-      networks: [],
+      ssids: [],
       currentSsid: null,
     }
 
     this.setTitle('Wi-Fi')
-
-    this.setNavigationButtons([], [{
-      title: 'Skip',
-      id: 'skip',
-      disabled: true,
-    }])
   }
 
   didAppear() {
     HubOnboarding.hubDevice.connect()
 
-    HubOnboarding.hubDevice.onNetworksChanged((networks) => {
-      console.log(networks)
-      this.setState({networks: networks})
+    HubOnboarding.hubDevice.onNetworksChanged((ssid) => {
+      console.log('Discovered new network:', ssid)
+
+      if (!this.state.ssids.find(s => s === ssid)) {
+        this.setState({ssids: this.state.ssids.concat([ssid])})
+      }
     })
 
     HubOnboarding.hubDevice.onConnectionStateChanged((connectionState, currentSsid) => {
@@ -44,14 +42,6 @@ export default class SetupWifi extends Screen {
 
       if (connectionState === WifiConnectionState.CONNECTION_STATE_CONNECTED) {
         this.setState({currentSsid: currentSsid})
-
-        // TODO check if it's possible to just update disabled state
-        this.setNavigationButtons([], [{
-          title: 'Skip',
-          id: 'skip',
-          disabled: false,
-          onPress: () => this.pushScreen('setup.nuimo')
-        }])
       }
     })
   }
@@ -62,40 +52,61 @@ export default class SetupWifi extends Screen {
 
   onNetworkSelected(ssid) {
     console.log("Network selected: " + ssid)
-    HubOnboarding.hubDevice.sendSsid(ssid)
-    this.pushScreen('setup.wifiPassword')
+
+    if (ssid == this.state.currentSsid) {
+      Settings.setHubApiUrl(HubOnboarding.hubDevice.dnsName)
+        .then(() => this.pushScreen('setup.nuimo'))
+    }
+    else {
+      HubOnboarding.hubDevice.sendSsid(ssid)
+      this.pushScreen('setup.wifiPassword') // TODO make it a modal
+    }
   }
 
   render() {
     return (
       <View style={styles.container}>
+        {this._renderContent()}
+      </View>
+    );
+  }
+
+  _renderContent() {
+    if (this.state.ssids.length > 0) {
+      return (
         <View>
           <Text style={styles.title}>
-            Select your Wifi network
+            Select your Wi-Fi network
           </Text>
           <List>
             <FlatList
-              data={this.state.networks}
+              data={this.state.ssids}
               renderItem={({item}) => (
-                <ListItem title={item} onPress={() => this.onNetworkSelected(item)} leftIcon={this.state.currentSsid == item ? {name: 'done'} : {}} />
+                <ListItem title={item}
+                  onPress={() => this.onNetworkSelected(item)}
+                  leftIcon={this.state.currentSsid == item ? {name: 'done'} : {name: 'wifi'}}
+                />
               )}
               keyExtractor={(item) => item}
             />
           </List>
         </View>
-      
-        <ActivityIndicator animating={this.state.networks.length === 0} />
-
-      </View>
-    );
+      )
+    }
+    else {
+      return (
+        <View>
+          <Text style={styles.title}>Searching for Wi-Fi networks...</Text>
+          <ActivityIndicator size={"large"} />
+        </View>
+      )
+    }
   }
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'space-between',
   },
   title: {
     fontSize: 18,
