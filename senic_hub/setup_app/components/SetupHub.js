@@ -19,7 +19,7 @@ export default class SetupHub extends Screen {
     super(props)
 
     this.manager = new BleManager()
-    this.stateChangeListener = null
+    this.bluetoothStateChangeListener = null
 
     this.state = {
       hubs: [],
@@ -30,14 +30,14 @@ export default class SetupHub extends Screen {
   }
 
   willAppear() {
-    this.stateChangeListener = this.manager.onStateChange((state) => {
+    this.bluetoothStateChangeListener = this.manager.onStateChange((state) => {
       console.log('BleManager.state:', state)
 
-      this.updateBluetoothState(state)
+      this.setBluetoothState(state)
     }, true)
   }
 
-  updateBluetoothState(state) {
+  setBluetoothState(state) {
     this.setState({bluetoothState: state})
 
     if (state === 'PoweredOn') {
@@ -48,9 +48,9 @@ export default class SetupHub extends Screen {
   }
 
   willDisappear() {
-    if (this.stateChangeListener) {
-      this.stateChangeListener.remove()
-      this.stateChangeListener = null
+    if (this.bluetoothStateChangeListener) {
+      this.bluetoothStateChangeListener.remove()
+      this.bluetoothStateChangeListener = null
     }
     this.manager.stopDeviceScan()
   }

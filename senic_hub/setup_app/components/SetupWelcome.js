@@ -1,5 +1,5 @@
 import React from 'react';
-import { RNNetworkInfo } from 'react-native-network-info';
+import { NetworkInfo } from 'react-native-network-info';
 import {
   StyleSheet,
   Text,
@@ -21,13 +21,7 @@ export default class SetupWelcome extends Screen {
   }
 
   componentDidMount() {
-    if (RNNetworkInfo === undefined) {
-      this.setState({
-        networkSSID: 'emulator',
-      })
-      return
-    }
-    RNNetworkInfo.getSSID(ssid => {
+    NetworkInfo.getSSID(ssid => {
       this.setState({
         networkSSID: ssid,
       })
