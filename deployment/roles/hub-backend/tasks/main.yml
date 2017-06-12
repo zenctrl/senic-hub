@@ -86,13 +86,14 @@
       WebOb==1.7.0rc2
       zope.deprecation==4.2.0
       zope.interface==4.3.3
+      https://github.com/tfriedel/python-lightify/archive/1bb1db0e7bd5b14304d7bb267e2398cd5160df46.zip
       senic_hub
 
 - name: install application
   pip:
     virtualenv: "{{backend_deploy_location}}/venv/"
     requirements: "{{backend_deploy_location}}/requirements.txt"
-    extra_args: "--process-dependency-links --pre --upgrade -i {{devpi_index_url}}"
+    extra_args: "--pre --upgrade -i {{devpi_index_url}}"
   become: yes
   notify: restart senic_hub
   tags: update_backend

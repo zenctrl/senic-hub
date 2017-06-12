@@ -35,7 +35,7 @@
 
 - name: upload custom bluez sources
   copy:
-    src: "{{item}}" 
+    src: "{{item}}"
     dest: "{{src_dest}}/"
   with_items:
     - "bluez-{{bluez_version}}.tar.xz"  # http://www.kernel.org/pub/linux/bluetooth/bluez-{{bluez_version}}.tar.xz
@@ -44,7 +44,7 @@
 - name: unpack custom bluez sources
   command: "tar xf bluez-{{bluez_version}}.tar.xz"
   args:
-    chdir: "{{src_dest}}" 
+    chdir: "{{src_dest}}"
     creates: "{{build_dir}}/README"
   tags: bluez
   become: true
