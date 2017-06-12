@@ -38,7 +38,6 @@ export default class HubOnboarding {
   constructor(device) {
     console.log("Hub: instance created for " + device.id + " - " + device.name)
     this.device = device
-    this.availableNetworks = []
     this.connectionState = WifiConnectionState.CONNECTION_STATE_UNKNOWN
     this.currentSsid = ''
     this.dnsName = ''
@@ -104,7 +103,7 @@ export default class HubOnboarding {
     })
   }
 
-  /** callback(availableNetworks: String[]) */
+  /** callback(availableNetworks: String) */
   onNetworksChanged(callback) {
     this.networksChangedCallback = callback
   }
@@ -170,11 +169,7 @@ export default class HubOnboarding {
     }
     let ssid = base64.decode(characteristic.value)
 
-    if (this.availableNetworks.indexOf(ssid) === -1) {
-      console.log("Hub: received new SSID: " + ssid)
-      this.availableNetworks.push(ssid)
-      this.networksChangedCallback(this.availableNetworks)
-    }
+    this.networksChangedCallback(ssid)
   }
 
   _updateConnectionState(error, characteristic) {
