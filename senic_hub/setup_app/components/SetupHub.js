@@ -126,6 +126,12 @@ export default class SetupHub extends Screen {
         <Text style={styles.title}>Looks like Bluetooth is turned off on your device. Senic Hub needs Bluetooth enabled to proceed with the Senic Hub onboarding...</Text>
       )
     }
+    else {
+      // HACK for Android: screen is not activated & willAppear doesn't get called if render() doesn't return any content "right away". Here we return an empty Text component to trigger the screen activation...
+      return (
+        <Text></Text>
+      )
+    }
   }
 }
 
