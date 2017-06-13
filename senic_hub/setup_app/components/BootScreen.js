@@ -26,17 +26,32 @@ export default class BootScreen extends Screen {
     Settings.getHubApiUrl()
       .then(hubApiUrl => {
         if (hubApiUrl) {
-          console.log('Hub', hubApiUrl, 'already onboarded...')
+          console.log('Stored Hub API URL:', hubApiUrl)
 
           fetch(hubApiUrl)
-            .then(() => {
+            .then(response => {
               Settings.HUB_API_URL = hubApiUrl  // TODO is there a better way?
-
               console.log('Host', Settings.HUB_API_URL, 'reachable...')
 
-              this.resetTo('app.nuimoComponents')
+              if (!response.ok) {
+                throw new Error('App info request led to unexpected response code')
+              }
+              return response.json()
             })
-            .catch(() => this.setState({hubUnreachable: true}))
+            .then(appInfo => {
+              console.log('Hub onboarded:', appInfo.onboarded)
+              if (appInfo.onboarded) {
+                this.resetTo('app.nuimoComponents')
+              }
+              else {
+                // We restart onboarding with Nuimo discovery if hub is reachable but not full onboarded
+                this.resetTo('setup.nuimo')
+              }
+            })
+            .catch(error => {
+              console.warn('Failed requesting app info:', error)
+              this.setState({hubUnreachable: true})
+            })
         }
         else {
           this.resetTo('setup.welcome')

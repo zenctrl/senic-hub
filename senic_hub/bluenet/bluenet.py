@@ -57,7 +57,7 @@ def bluenet_status(ctx):
 class BluenetDaemon(object):
     """
     Daemon to enable Wifi onboarding via Bluetooth Low Energy.
-    The run() method creates the Bluetooth GATT server and starts threads to listen for new networks 
+    The run() method creates the Bluetooth GATT server and starts threads to listen for new networks
     and changes in the connection status.
     """
 
@@ -182,12 +182,23 @@ class BluenetDaemon(object):
 
         print_status(status)
 
+        last_status_changed_time = time.time()
         while True:
             new_status = self.get_wifi_status()
             if new_status != status:
                 print_status(new_status)
-                self._gatt_service.set_connection_state(new_status, self._current_ssid)
-                status = new_status
+                if (self._is_joining_wifi and
+                        new_status == WifiConnectionState.DISCONNECTED and
+                        time.time() - last_status_changed_time < 5.0):
+                    # When WiFi adapter was already connected, the WiFi state will change
+                    # from `connecting` to `disconnected` to `connected`. To prevent
+                    # `disconnected` to be notified, we wait 5 seconds if we actually
+                    # succeed to connect after a intermediate disconnect step.
+                    logger.info("Ignoring state change to DISCONNECTED as we are trying to connect to a network")
+                else:
+                    self._gatt_service.set_connection_state(new_status, self._current_ssid)
+                    status = new_status
+                    last_status_changed_time = time.time()
             time.sleep(1)
 
     def _configure_wlan(self, ssid, password):

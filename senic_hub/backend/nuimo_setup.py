@@ -25,12 +25,12 @@ class NuimoSetup(nuimo.ControllerManagerListener, nuimo.ControllerListener):  # 
         :param timeout: Timeout in seconds after which we stop the discovery
         :return: MAC address of connected Nuimo controller or `None` if none connected
         """
-        logger.debug("Discover and connect Nuimo controller with timeout = %f", timeout)
+        logger.info("Discover and connect Nuimo controller with timeout = %f", timeout)
         self._manager.is_adapter_powered = True
         # If there's already a connected Nuimo, take it and don't run discovery
         for controller in self._manager.controllers():
             if controller.is_connected():
-                logger.debug("Returning already connected controller %s", controller.mac_address)
+                logger.info("Returning already connected controller %s", controller.mac_address)
                 return controller.mac_address
         # Start discovery
         self._required_mac_address = required_mac_address

@@ -44,9 +44,8 @@ def create_configuration_files_and_restart_apps_(settings):
     with open(settings['devices_path'], 'r') as f:
         devices = json.load(f)
 
-    homeassistant_data_path = settings['homeassistant_data_path']
-    hass_config_file_path = os.path.join(homeassistant_data_path, 'configuration.yaml')
-    with open(hass_config_file_path, 'w') as f:
+    homeassistant_config_path = settings['homeassistant_config_path']
+    with open(homeassistant_config_path, 'w') as f:
         yaml.dump(generate_hass_configuration(devices), f, default_flow_style=False)
 
     supervisor.restart_program('homeassistant')
