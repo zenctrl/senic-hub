@@ -20,5 +20,6 @@
   with_items:
     - device_discovery
     - nuimo_app
+    - bluenet
 #  notify: reload supervisord
   tags: wifi
