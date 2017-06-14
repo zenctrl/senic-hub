@@ -1,9 +1,0 @@
-.SetupWifiConnection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.SetupWifiConnection > *:not(:last-child) {
-  margin-bottom: 20px;
-}

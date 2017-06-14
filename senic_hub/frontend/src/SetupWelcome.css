@@ -1,9 +1,0 @@
-.SetupWelcome {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.SetupWelcome > *:not(:last-child) {
-  margin-bottom: 20px;
-}
