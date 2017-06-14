@@ -13,11 +13,6 @@ bin/ploy bin/ploy-ssh: bin/pip requirements.txt
 bin/python bin/pip:
 	virtualenv --system-site-packages --python=python2.7 --clear .
 
-download-pine64: downloads/pine64-image-ubuntubase-31065bsp-longsleep.img.xz
-downloads/pine64-image-ubuntubase-31065bsp-longsleep.img.xz:
-	wget -P downloads/ https://www.pine64.pro/download/ubuntu/image/pine64-image-ubuntubase-31065bsp-longsleep.img.xz
-
-download-nanopi: downloads/Armbian_5.25_Nanopiair_Ubuntu_xenial_default_3.4.113.7z
 downloads/Armbian_5.25_Nanopiair_Ubuntu_xenial_default_3.4.113.7z:
 	wget -P downloads/ https://dl.armbian.com/nanopiair/archive/Armbian_5.25_Nanopiair_Ubuntu_xenial_default_3.4.113.7z
 
@@ -26,13 +21,10 @@ download-pi3: downloads/$(notdir $(raspbian_lite_image))
 downloads/$(notdir $(raspbian_lite_image)):
 	wget -P downloads/ http://director.downloads.raspberrypi.org/raspbian_lite/images/$(raspbian_lite_image)
 
-bootstrap: bin/ploy
-	bin/ploy do $(target) bootstrap boot_ip=$(boot_ip) authorized_keys=$(authorized_keys) configure_ethernet=$(configure_ethernet)
-
 osx-deps:
 	brew install python openssl libffi
 
 clean:
 	git clean -fXd
 
-.PHONY: install clean bootstrap
+.PHONY: install clean
