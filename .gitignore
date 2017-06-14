@@ -10,3 +10,6 @@ lib/
 /build/
 /dist/
 /docs/htdocs/
+/senic_hub/setup_app/android/app/setupapp-release-key.keystore
+.idea
+/senic_hub/setup_app/android/fastlane/report.xml

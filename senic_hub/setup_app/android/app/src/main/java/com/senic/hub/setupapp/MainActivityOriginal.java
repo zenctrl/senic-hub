@@ -1,4 +1,4 @@
-package com.senichubsetup;
+package com.senic.hub.setupapp;
 
 import com.facebook.react.ReactActivity;
 
