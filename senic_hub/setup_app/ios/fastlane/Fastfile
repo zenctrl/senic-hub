@@ -1,0 +1,30 @@
+fastlane_version "2.38.0"
+
+generated_fastfile_id "b2217ca0-6074-48b7-8bbe-05d2469de0e8"
+
+default_platform :ios
+
+platform :ios do
+  desc "Runs all the tests"
+  lane :test do
+    scan
+  end
+
+  lane :beta do
+    match(
+      type: "adhoc",
+      git_url: "git@github.com:getsenic/senic-hub-certs.git"
+    )
+    gym(
+      scheme: "SenicHubSetup",
+      export_method: "ad-hoc",
+      configuration: "Release"
+    )
+
+    # upload to Beta by Crashlytics
+    crashlytics(
+      api_token: "bf8d03baf646d8880e7c4ed98b9b9785503609f6",
+      # build_secret has to be provided throught environment variable CRASHLYTICS_BUILD_SECURE
+    )
+  end
+end
