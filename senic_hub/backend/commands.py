@@ -51,14 +51,9 @@ def create_configuration_files_and_restart_apps_(settings):
     supervisor.restart_program('homeassistant')
 
     # generate nuimo app config & restart supervisor app
-    nuimo_controller_mac_address_file_path = settings['nuimo_mac_address_filepath']
-    with open(nuimo_controller_mac_address_file_path, 'r') as f:
-        nuimo_controller_mac_address = f.readline().strip()
-
     nuimo_app_config_file_path = settings['nuimo_app_config_path']
-    bluetooth_adapter_name = settings['bluetooth_adapter_name']
     with open(nuimo_app_config_file_path, 'w') as f:
-        config = generate_nuimo_app_configuration(devices, nuimo_controller_mac_address, bluetooth_adapter_name)
+        config = generate_nuimo_app_configuration(devices)
         config.write(f)
 
     supervisor.restart_program('nuimo_app')
@@ -105,14 +100,8 @@ def phue_bridge_config(bridge):
     }
 
 
-def generate_nuimo_app_configuration(devices, nuimo_controller_mac_address, bluetooth_adapter_name):
+def generate_nuimo_app_configuration(devices):
     config = configparser.ConfigParser()
-    config['DEFAULT'] = {
-        'ha_api_url': 'localhost:8123',
-        'logging_level': 'DEBUG',
-        'controller_mac_address': nuimo_controller_mac_address,
-        'bluetooth_adapter_name': bluetooth_adapter_name,
-    }
     authenticated_devices = [d for d in devices if d["authenticated"]]
     for device in authenticated_devices:
         component = component_to_app_config_component(create_component(device))
