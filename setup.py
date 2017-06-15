@@ -64,6 +64,7 @@ setup(
         'soco==0.12',
         'phue==0.9',
         'lightify>=1.0.5',
+        'raven',
     ],
     extras_require={
         'development': [

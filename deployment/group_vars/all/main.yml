@@ -8,3 +8,4 @@ devpi_index_url: "{{devpi_proto}}://{{devpi_base_url}}{{devpi_index}}/+simple/"
 build_user: senic
 run_user: nuimo
 locale: en_US.UTF-8
+sentry_dsn: "{{sentry_dsn_secret}}"
