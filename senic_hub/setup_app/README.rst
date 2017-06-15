@@ -31,9 +31,18 @@ For each release
 ----------------
 
 * Increase version numbers in ``senic_hub/setup_app/android/app/build.gradle`` file
-* Run ``CRASHLYTICS_BUILD_SECRET=secret_goes_here fastlane beta`` from ``senic_hub/setup_app/android`` directory. ``CRASHLYTICS_BUILD_SECRET`` is available in 1Password entry ``Software/Crashlytics Android Secret build key
+* Run ``CRASHLYTICS_BUILD_SECRET=secret_goes_here fastlane beta`` from ``senic_hub/setup_app/android`` directory. The value for ``CRASHLYTICS_BUILD_SECRET`` is available in 1Password entry ``Software/Crashlytics Android Secret build key``.
 
 iOS
 ---
 
-TODO
+One time setup
+--------------
+
+* From the ``senic_hub/setup_app/ios`` direcotry run ``fastlane match adhoc`` to download signing certificates & profiles. You will be asked for encryption passphrase which you can find in 1Password entry ``Software/fastlane-match Git repository encryption passphrase``. You might be asked a password for Apple ID ``developers@senic.com``, it can be found in the 1Password entry ``Shared/Apple ID for developers@senic.com``.
+
+For each release
+----------------
+
+* Increase version numbers in ``senic_hub/setup_app/ios/SenicHubSetup/Info.plist`` file
+* Run ``CRASHLYTICS_BUILD_SECRET=secret_goes_here fastlane beta`` from ``senic_hub/setup_app/ios`` directory. The value for ``CRASHLYTICS_BUILD_SECRET`` is available in 1Password entry ``Software/Crashlytics iOS Secret build key``.
