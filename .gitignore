@@ -16,3 +16,4 @@ lib/
 /senic_hub/setup_app/ios/SenicHubSetup.app.dSYM.zip
 /senic_hub/setup_app/ios/SenicHubSetup.ipa
 /senic_hub/setup_app/ios/fastlane/report.xml
+/senic_hub/setup_app/android/app/fabric.properties
