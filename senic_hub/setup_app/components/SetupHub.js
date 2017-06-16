@@ -32,18 +32,18 @@ export default class SetupHub extends Screen {
   willAppear() {
     this.bluetoothStateChangeListener = this.manager.onStateChange((state) => {
       console.log('BleManager.state:', state)
-
-      this.setBluetoothState(state)
+      this.setState({bluetoothState: state})
+      if (state === 'PoweredOn') {
+        this.startScanning()
+      } else {
+        this.manager.stopDeviceScan()
+      }
     }, true)
-  }
 
-  setBluetoothState(state) {
-    this.setState({bluetoothState: state})
-
-    if (state === 'PoweredOn') {
-      this.startScanning()
-    } else {
-      this.manager.stopDeviceScan()
+    // Disconnect hub it was connected in the meanwhile (i.e. by a following onboarding step),
+    // otherwise it wouldn't be discovered in connected state
+    if (HubOnboarding.hubDevice) {
+      HubOnboarding.hubDevice.disconnect()
     }
   }
 
@@ -56,6 +56,10 @@ export default class SetupHub extends Screen {
   }
 
   startScanning() {
+    //TODO: We need to retrieve all already via BLE connected hubs to the phone
+    //      We might be in a state where a hub is still connected to us, it will
+    //      thus not be discovered.
+
     this.manager.startDeviceScan(null, null, (error, device) => {
       if (error) {
         alert("An error occurred while scanning: " + JSON.stringify(error))
@@ -74,7 +78,7 @@ export default class SetupHub extends Screen {
 
   onHubSelected(device) {
     this.manager.stopDeviceScan()
-    
+
     HubOnboarding.hubDevice = new HubOnboarding(device)
 
     this.pushScreen('setup.wifi')

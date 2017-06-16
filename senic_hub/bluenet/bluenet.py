@@ -77,7 +77,7 @@ class BluenetDaemon(object):
         # prepare BLE GATT Service:
         peripheral = Peripheral(bluetooth_alias, self._bluetooth_adapter)
         gatt_service = BluenetService(peripheral.bus, 0, hostname, "1.0")
-        gatt_service.set_callback_to_join_network(self.join_network)
+        gatt_service.set_credentials_received_callback(self.join_network)
         self._gatt_service = gatt_service
         peripheral.add_service(gatt_service)
         peripheral.add_advertised_service_uuid(BluenetUuids.SERVICE)
@@ -93,6 +93,9 @@ class BluenetDaemon(object):
         peripheral.run()
 
     def join_network(self, ssid, credentials):
+        # TODO: Join Wi-Fi on a separate thread as otherwise the Bluetooth
+        #       thread gets block and no write response is sent for the
+        #       crendentials characteristic.
         logger.info("Trying to join network: %s, Credentials: %s" % (ssid, credentials))
         self._configure_wlan(ssid, credentials)
 
@@ -189,7 +192,7 @@ class BluenetDaemon(object):
                 print_status(new_status)
                 if (self._is_joining_wifi and
                         new_status == WifiConnectionState.DISCONNECTED and
-                        time.time() - last_status_changed_time < 5.0):
+                        time.time() - last_status_changed_time < 10.0):
                     # When WiFi adapter was already connected, the WiFi state will change
                     # from `connecting` to `disconnected` to `connected`. To prevent
                     # `disconnected` to be notified, we wait 5 seconds if we actually
@@ -210,11 +213,20 @@ class BluenetDaemon(object):
         if ssid and password:
             logger.info("=> nmcli dev wifi con %s password %s ifname %s name %s" %
                         (ssid, password, self._wlan_adapter, NM_CONNECTION_NAME))
-            call(['nmcli', 'dev', 'wifi', 'con', ssid, 'password', password, 'ifname', self._wlan_adapter, 'name', NM_CONNECTION_NAME])
+            call([
+                'nmcli', 'dev', 'wifi',
+                'con', ssid,
+                'password', password,
+                'ifname', self._wlan_adapter,
+                'name', NM_CONNECTION_NAME])
         elif ssid:
             logger.info("=> nmcli dev wifi con %s ifname %s name %s" %
                         (ssid, self._wlan_adapter, NM_CONNECTION_NAME))
-            call(['nmcli', 'dev', 'wifi', 'con', ssid, 'ifname', self._wlan_adapter, 'name', NM_CONNECTION_NAME])
+            call([
+                'nmcli', 'dev', 'wifi',
+                'con', ssid,
+                'ifname', self._wlan_adapter,
+                'name', NM_CONNECTION_NAME])
 
         self._is_joining_wifi = False
 

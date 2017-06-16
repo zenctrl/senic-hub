@@ -52,46 +52,26 @@ export default class HubOnboarding {
   }
 
   connect() {
-    // only connect if not already connected:
-    this.device.isConnected()
-      .then((connected) => {
-        if (!connected) {
-          this._connect()
-        }
-      })
-  }
-
-  _connect(retry = true) {
     console.log("Hub: connecting")
-    this.device.connect()
-      .then((device) => {
+    return this.device
+      .connect()
+      .then(device => {
         console.log("Hub: discovering services and characteristics")
         return device.discoverAllServicesAndCharacteristics()
-      }, (error) => {
-        console.log("Hub: error while trying to connect: " + error.message)
-        if (retry) {
-          console.log("Hub: trying again to connect")
-          this.connect(retry=false)
-        }
       })
-      .then((device) => {
+      .then(device => {
         console.log("Hub: setting up notifications")
         return this._setupNotifications()
-      }, (error) => {
-        console.log("Hub: error while discovering services")
       })
       .then(() => {
         console.log("Hub: connected")
         this._retrieveInitialValues()
-      }, (error) => {
-        console.log("Hub: error while setting up notifications: " + error.message)
-        if (error instanceof BleGattException) {
-          // -> often BleGattException{status=133, bleGattOperation=BleGattOperation{description='CONNECTION_STATE'}}
-          // retry can help
-          if (retry) {
-            console.log("Hub: trying again to connect")
-            this.connect(retry=false)
-          }
+      })
+      .catch(error => {
+        console.log("Hub: error while trying to connect: " + error.message)
+        if (retry) {
+          console.log("Hub: trying again to connect")
+          return this.connect(retry=false)
         }
       })
   }
@@ -115,14 +95,26 @@ export default class HubOnboarding {
 
   sendSsid(ssid) {
     console.log("Hubs: sending SSID: " + ssid)
-    this.device.writeCharacteristicWithResponseForService(OnboardingUuids.SERVICE, OnboardingUuids.SSID, base64.encode(ssid))
-    this.lastSsidSent = ssid
+    return this.device
+      .writeCharacteristicWithResponseForService(
+        OnboardingUuids.SERVICE,
+        OnboardingUuids.SSID,
+        base64.encode(ssid))
+      .then(() => {
+        this.lastSsidSent = ssid
+      })
   }
 
   sendPassword(password) {
     console.log("Hub: sending password: " + password)
-    this.device.writeCharacteristicWithResponseForService(OnboardingUuids.SERVICE, OnboardingUuids.CREDENTIALS, base64.encode(password))
-    this.lastPasswordSent = password
+    return this.device
+      .writeCharacteristicWithResponseForService(
+        OnboardingUuids.SERVICE,
+        OnboardingUuids.CREDENTIALS,
+        base64.encode(password))
+      .then(() => {
+        this.lastPasswordSent = password
+      })
   }
 
   getConnectionStateString() {

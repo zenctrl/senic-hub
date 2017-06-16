@@ -27,27 +27,35 @@ export default class SetupWifi extends Screen {
   }
 
   didAppear() {
-    HubOnboarding.hubDevice.connect()
+    let subscribeForWifiEvents = () => {
+      HubOnboarding.hubDevice.onNetworksChanged((ssid) => {
+        if (!this.state.ssids.find(s => s === ssid)) {
+          this.setState({ssids: this.state.ssids.concat([ssid])})
+        }
+      })
 
-    HubOnboarding.hubDevice.onNetworksChanged((ssid) => {
-      console.log('Discovered new network:', ssid)
+      HubOnboarding.hubDevice.onConnectionStateChanged((connectionState, currentSsid) => {
+        if (connectionState === WifiConnectionState.CONNECTION_STATE_CONNECTED) {
+          this.setState({currentSsid: currentSsid})
+        }
+      })
+    }
 
-      if (!this.state.ssids.find(s => s === ssid)) {
-        this.setState({ssids: this.state.ssids.concat([ssid])})
-      }
-    })
-
-    HubOnboarding.hubDevice.onConnectionStateChanged((connectionState, currentSsid) => {
-      console.log("ssid:", currentSsid, "state:", connectionState)
-
-      if (connectionState === WifiConnectionState.CONNECTION_STATE_CONNECTED) {
-        this.setState({currentSsid: currentSsid})
-      }
-    })
+    HubOnboarding.hubDevice
+      .connect()
+      .then(() => {
+        subscribeForWifiEvents()
+      })
+      .catch((error) => {
+        alert("Could not connect to the Hub. Please try again.")
+        //TODO: Present error message on screen with a "retry" button that connects again
+      })
   }
 
   willDisappear() {
-    // TODO unsubscribe from ssid notifications
+    //TODO: Setting an empty callback isn't clean – use proper approach.
+    HubOnboarding.hubDevice.onNetworksChanged(() => {})
+    HubOnboarding.hubDevice.onConnectionStateChanged(() => {})
   }
 
   onNetworkSelected(ssid) {

@@ -56,7 +56,7 @@ class Application(dbus.service.Object):
 class Service(dbus.service.Object):
     """
     org.bluez.GattService1 interface implementation
-    
+
     This is intended to be subclassed with a concrete implementation.
     """
 
@@ -117,7 +117,7 @@ class Service(dbus.service.Object):
 class Characteristic(dbus.service.Object):
     """
     org.bluez.GattCharacteristic1 interface implementation
-    
+
     This is intended to be subclassed with a concrete implementation.
     """
 
@@ -189,10 +189,12 @@ class Characteristic(dbus.service.Object):
 
     def remote_disconnected(self):
         """
-        This is a newly introduced method that should be called when the remote device disconnected.
-        This is necessary to be able to stop notifying (BlueZ doesn't call StopNotify when device disconnects).
-        It doesn't call _stop_notify() directly because it can not know if this characteristic supports notifying at all.
+        Called when the remote device disconnected.
+        Should be overridden to stop notifying characteristic changes,
+        because BlueZ doesn't call StopNotify when the remote device disconnects.
         """
+
+        # TODO: We can call _stop_notify() for all characteristics here.
         pass
 
     @dbus.service.method(DBUS_PROP_IFACE, in_signature='s', out_signature='a{sv}')
@@ -226,7 +228,7 @@ class Characteristic(dbus.service.Object):
 class Descriptor(dbus.service.Object):
     """
     org.bluez.GattDescriptor1 interface implementation
-    
+
     This is intended to be subclassed with a concrete implementation.
     """
 

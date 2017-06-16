@@ -48,7 +48,7 @@ export default class SetupNuimo extends Screen {
     );
   }
 
-  componentDidMount() {
+  willAppear() {
     this.bootstrapNuimos()
   }
 

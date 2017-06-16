@@ -36,18 +36,16 @@ class BluenetService(Service):
     """
     Concrete implementation of a GATT service that can be used for Wifi onboarding.
     """
-    
+
     def __init__(self, bus, index, host_name, version):
         super().__init__(bus, index, BluenetUuids.SERVICE, True)
-        self._join_callback = None
+        self._credentials_received_callback = None
         self._available_networks_characteristic = AvailableNetworksCharacteristic(bus, 0, self)
         self._connection_state_characteristic = ConnectionStateCharacteristic(bus, 1, self)
         self._host_name_characteristic = HostNameCharacteristic(bus, 2, self, host_name)
         self._version_characteristic = VersionCharacteristic(bus, 3, self, version)
         self._ssid_characteristic = SsidCharacteristic(bus, 4, self)
         self._credentials_characteristic = CredentialsCharacteristic(bus, 5, self)
-
-        self._credentials_characteristic.set_callback_on_change(self._credentials_received)
 
         self.add_characteristic(self._available_networks_characteristic)
         self.add_characteristic(self._connection_state_characteristic)
@@ -62,23 +60,25 @@ class BluenetService(Service):
     def set_connection_state(self, state, current_ssid):
         self._connection_state_characteristic.set_connection_state(state, current_ssid)
 
-    def set_callback_to_join_network(self, cb):
+    def set_credentials_received_callback(self, cb):
         """
         The provided callback will be called when the credentials for a network were received.
         It must have the signature callback(ssid, credentials).
         """
-        self._join_callback = cb
+        self._credentials_received_callback = cb
 
     def _credentials_received(self):
-        if callable(self._join_callback):
-            self._join_callback(
-                self._ssid_characteristic.ssid, self._credentials_characteristic.credentials)
-        
-        
+        if not callable(self._credentials_received_callback):
+            return
+        self._credentials_received_callback(
+            self._ssid_characteristic.ssid,
+            self._credentials_characteristic.credentials)
+
+
 class AvailableNetworksCharacteristic(Characteristic):
     """
     GATT characteristic sending a list of network names.
-    
+
     Possible operations: Notify
     Sends one SSID at a time with each notify signal.
     After all SSIDs have been sent it waits for 3s and starts from begin.
@@ -153,7 +153,7 @@ class AvailableNetworksCharacteristic(Characteristic):
 class ConnectionStateCharacteristic(Characteristic):
     """
     GATT characteristic sending the current Wifi connection status.
-    
+
     Possible operations: Read + Notify
     First byte  is the connection status (0: Down 1: Disconnected, 2: Connecting, 3: Connected)
     In case of Connecting or Connected the remaining bytes are the currently used SSID.
@@ -190,11 +190,14 @@ class ConnectionStateCharacteristic(Characteristic):
         logger.info("Disabled notification about connection state.")
         self._notifying = False
 
+    def remote_disconnected(self):
+        self._stop_notify()
+
 
 class HostNameCharacteristic(Characteristic):
     """
     GATT characteristic providing the host name of the server.
-    
+
     Possible operations: Read
     Content: host name as array of characters
     """
@@ -211,7 +214,7 @@ class HostNameCharacteristic(Characteristic):
 class VersionCharacteristic(Characteristic):
     """
     GATT characteristic providing the version of this GATT service.
-    
+
     Possible operations: Read
     Content: Version as a string (array of characters)
     """
@@ -224,12 +227,12 @@ class VersionCharacteristic(Characteristic):
         logger.info("Sending Version Value")
         return string_to_dbus_array(self.version)
 
-        
+
 class SsidCharacteristic(Characteristic):
     """
     GATT characteristic for setting the SSID to connect with.
     An attempt to join the network is made when the credentials are received.
-    
+
     Possible operations: Write
     Content: SSID as array of characters
     """
@@ -241,13 +244,13 @@ class SsidCharacteristic(Characteristic):
     def _write_value(self, value, options):
         self.ssid = bytes(value).decode()
         logger.info("Received SSID: %s" % self.ssid)
-        
-        
+
+
 class CredentialsCharacteristic(Characteristic):
     """
     GATT characteristic for providing the credentials needed to join a network.
     When this characteristic is written an attempt is made to join the specified network.
-    
+
     Possible operations: Write
     Content: Credentials (i.e. Wifi password) as array of characters
     """
@@ -255,13 +258,8 @@ class CredentialsCharacteristic(Characteristic):
     def __init__(self, bus, index, service):
         super().__init__(bus, index, BluenetUuids.CREDENTIALS, ['write'], service)
         self.credentials = None
-        self.callback = None
-
-    def set_callback_on_change(self, cb):
-        self.callback = cb
 
     def _write_value(self, value, options):
         self.credentials = bytes(value).decode()
         logger.info("Received password: %s" % self.credentials)
-        if callable(self.callback):
-            self.callback()
+        self.service._credentials_received()

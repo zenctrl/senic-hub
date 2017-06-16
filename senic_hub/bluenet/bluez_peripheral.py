@@ -178,8 +178,10 @@ class Peripheral(object):
         In this case it calls the remote_disconnected() method of all services.
         """
         if 'Connected' in changed_props.keys():
-            if not changed_props['Connected']:
-                logger.info("Remote device was disconnected.")
+            if changed_props['Connected']:
+                logger.info("Remote device connected")
+            else:
+                logger.info("Remote device was disconnected")
                 for service in self._app.services:
                     service.remote_disconnected()
 
@@ -249,7 +251,7 @@ class Peripheral(object):
 
 
 class BleNotSupportedException(Exception):
-    """ 
+    """
     Raised when a required Bluetooth Low Energy function is not
     supported by the system.
     """
