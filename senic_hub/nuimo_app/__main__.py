@@ -3,44 +3,45 @@ import logging
 import sys
 
 from importlib import import_module
+from os.path import abspath
+
+import click
+
+from pyramid.paster import get_app, setup_logging
 
 from . import NuimoApp
-
-
-# TODO: Read from main ini file
-DEFAULT_BLE_ADAPTER_NAME = "hci0"
-# TODO: Read path to `nuimo_app.cfg` from main ini file
-DEFAULT_CONFIG_FILE_PATH = "/srv/senic_hub/data/nuimo_app.cfg"
-# TODO: Read value from main ini file
-DEFAULT_LOGGING_LEVEL = "WARNING"
 
 
 logger = logging.getLogger(__name__)
 
 
-# TODO: Remove default argument so this app needs to be called with a path to an ini file
-def main(config_file_path=DEFAULT_CONFIG_FILE_PATH):
-    if len(sys.argv) > 1:
-        config_file_path = sys.argv[-1]
+@click.command(help="confifguration file for the Nuimo app")
+@click.option('--config', '-c', required=True, type=click.Path(exists=True), help="app configuration file")
+def main(config):
+    app = get_app(abspath(config), name='senic_hub_backend')
+    setup_logging(config)
 
-    config, component_config = read_config(config_file_path)
-
-    log_level = getattr(logging, config.get("logging_level", DEFAULT_LOGGING_LEVEL), DEFAULT_LOGGING_LEVEL)
-    log_format = "%(asctime)s %(levelname)s %(name)s %(message)s"
-    logging.basicConfig(level=log_level, format=log_format)
+    # urllib3 logger is very verbose so we hush it down
     logging.getLogger("urllib3.connectionpool").setLevel(logging.CRITICAL)
 
-    logger.info("Using configuration from: %s", config_file_path)
+    config, component_config = read_config(app.registry.settings['nuimo_app_config_path'])
+    logger.info("Using configuration from: %s", app.registry.settings['nuimo_app_config_path'])
 
-    controller_mac_address = config.get("controller_mac_address")
-    if not controller_mac_address:
+    nuimo_controller_mac_address_file_path = app.registry.settings['nuimo_mac_address_filepath']
+    try:
+        with open(nuimo_controller_mac_address_file_path, 'r') as f:
+            nuimo_controller_mac_address = f.readline().strip()
+    except IOError:
+        nuimo_controller_mac_address = None
+
+    if not nuimo_controller_mac_address:
         logger.error("Nuimo controller MAC address not configured")
         sys.exit(1)
 
-    ha_api_url = config.get("ha_api_url", "localhost:8123")
-    ble_adapter_name = config.get("ble_adapter_name", DEFAULT_BLE_ADAPTER_NAME)
+    ha_api_url = app.registry.settings['homeassistant_api_url']
+    ble_adapter_name = app.registry.settings['bluetooth_adapter_name']
     component_instances = get_component_instances(component_config)
-    nuimo_app = NuimoApp(ha_api_url, ble_adapter_name, controller_mac_address, component_instances)
+    nuimo_app = NuimoApp(ha_api_url, ble_adapter_name, nuimo_controller_mac_address, component_instances)
 
     try:
         nuimo_app.start()

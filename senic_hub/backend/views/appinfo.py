@@ -30,7 +30,9 @@ def is_hub_onboarded(request):
     nuimo_app_config_path = request.registry.settings['nuimo_app_config_path']
     devices_path = request.registry.settings['devices_path']
     homeassistant_config_path = request.registry.settings['homeassistant_config_path']
+    nuimo_mac_address_filepath = request.registry.settings['nuimo_mac_address_filepath']
 
     return (exists(nuimo_app_config_path) and
             exists(devices_path) and
-            exists(homeassistant_config_path))
+            exists(homeassistant_config_path) and
+            exists(nuimo_mac_address_filepath))
