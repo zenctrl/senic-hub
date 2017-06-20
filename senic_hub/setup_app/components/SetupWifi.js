@@ -30,7 +30,12 @@ export default class SetupWifi extends Screen {
     let subscribeForWifiEvents = () => {
       HubOnboarding.hubDevice.onNetworksChanged((ssid) => {
         if (!this.state.ssids.find(s => s === ssid)) {
-          this.setState({ssids: this.state.ssids.concat([ssid])})
+          this.setState({ssids: this.state.ssids
+            .concat([ssid])
+            .sort(function (a, b) {
+              return a.toLowerCase().localeCompare(b.toLowerCase());
+            })
+          })
         }
       })
 
