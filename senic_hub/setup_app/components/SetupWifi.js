@@ -23,14 +23,19 @@ export default class SetupWifi extends Screen {
       currentSsid: null,
     }
 
-    this.setTitle('Wi-Fi')
+    this.setTitle('Select your Wi-Fi')
   }
 
   didAppear() {
     let subscribeForWifiEvents = () => {
       HubOnboarding.hubDevice.onNetworksChanged((ssid) => {
         if (!this.state.ssids.find(s => s === ssid)) {
-          this.setState({ssids: this.state.ssids.concat([ssid])})
+          this.setState({ssids: this.state.ssids
+            .concat([ssid])
+            .sort(function (a, b) {
+              return a.toLowerCase().localeCompare(b.toLowerCase());
+            })
+          })
         }
       })
 
@@ -82,23 +87,18 @@ export default class SetupWifi extends Screen {
   _renderContent() {
     if (this.state.ssids.length > 0) {
       return (
-        <View>
-          <Text style={styles.title}>
-            Select your Wi-Fi network
-          </Text>
-          <List>
-            <FlatList
-              data={this.state.ssids}
-              renderItem={({item}) => (
-                <ListItem title={item}
-                  onPress={() => this.onNetworkSelected(item)}
-                  leftIcon={this.state.currentSsid == item ? {name: 'done'} : {name: 'wifi'}}
-                />
-              )}
-              keyExtractor={(item) => item}
-            />
-          </List>
-        </View>
+        <List>
+          <FlatList
+            data={this.state.ssids}
+            renderItem={({item}) => (
+              <ListItem title={item}
+                onPress={() => this.onNetworkSelected(item)}
+                leftIcon={this.state.currentSsid == item ? {name: 'done'} : {name: 'wifi'}}
+              />
+            )}
+            keyExtractor={(item) => item}
+          />
+        </List>
       )
     }
     else {
