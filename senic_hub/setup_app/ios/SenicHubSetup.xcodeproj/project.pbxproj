@@ -1062,7 +1062,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Senic Developer (HPWBKD7PSP)";
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = NO;
 				DEVELOPMENT_TEAM = 326587HQT3;
@@ -1087,8 +1087,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.senic.hub.setupapp;
 				PRODUCT_NAME = SenicHubSetup;
-				PROVISIONING_PROFILE = "f14cb255-3fd8-4d08-ae73-2faf83de1544";
-				PROVISIONING_PROFILE_SPECIFIER = "match Development com.senic.hub.setupapp 1497451517";
+				PROVISIONING_PROFILE = "2984ba35-6823-44f5-829a-413493bf84ea";
+				PROVISIONING_PROFILE_SPECIFIER = "match Development com.senic.hub.setupapp";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -1098,7 +1098,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: senic GmbH (326587HQT3)";
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 326587HQT3;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1122,8 +1122,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.senic.hub.setupapp;
 				PRODUCT_NAME = SenicHubSetup;
-				PROVISIONING_PROFILE = "f42e961e-8524-403c-a1fe-d85e5bed8a0b";
-				PROVISIONING_PROFILE_SPECIFIER = "match AdHoc com.senic.hub.setupapp 1497451425";
+				PROVISIONING_PROFILE = "aa64e7e2-1bd8-47b2-b081-b14c3c93251c";
+				PROVISIONING_PROFILE_SPECIFIER = "match AdHoc com.senic.hub.setupapp";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;

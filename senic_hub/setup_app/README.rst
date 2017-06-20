@@ -39,7 +39,7 @@ iOS
 One time setup
 --------------
 
-* From the ``senic_hub/setup_app/ios`` direcotry run ``fastlane match adhoc`` to download signing certificates & profiles. You will be asked for encryption passphrase which you can find in 1Password entry ``Software/fastlane-match Git repository encryption passphrase``. You might be asked a password for Apple ID ``developers@senic.com``, it can be found in the 1Password entry ``Shared/Apple ID for developers@senic.com``.
+* From the ``senic_hub/setup_app/ios`` directory run ``fastlane match`` to download signing certificates & profiles. You will be asked for encryption passphrase which you can find in 1Password entry ``Software/fastlane-match Git repository encryption passphrase``. You might be asked a password for Apple ID ``developers@senic.com``, it can be found in the 1Password entry ``Shared/Apple ID for developers@senic.com``.
 
 For each release
 ----------------

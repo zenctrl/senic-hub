@@ -5,15 +5,14 @@ generated_fastfile_id "b2217ca0-6074-48b7-8bbe-05d2469de0e8"
 default_platform :ios
 
 platform :ios do
-  desc "Runs all the tests"
-  lane :test do
-    scan
-  end
-
   lane :beta do
+    disable_automatic_code_signing(
+      path: "SenicHubSetup.xcodeproj"
+    )
     match(
       type: "adhoc",
-      git_url: "git@github.com:getsenic/senic-hub-certs.git"
+      git_url: "git@github.com:getsenic/senic-hub-certs.git",
+      force_for_new_devices: true
     )
     gym(
       scheme: "SenicHubSetup",
