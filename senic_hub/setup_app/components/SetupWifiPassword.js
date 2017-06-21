@@ -20,19 +20,12 @@ export default class SetupWifiPassword extends Screen {
 
     this.state = {
       password: '',
-      isSendingPassword: false,
-      didSendPassword: false,
-      connectionState: WifiConnectionState.CONNECTION_STATE_DISCONNECTED,
+      isJoining: false,
+      isJoined: false,
+      didJoinFail: false,
     }
 
     this.setTitle('Wi-Fi Password')
-    this.setNavigationButtons([], [
-      {
-        title: "Join",
-        id: 'join',
-        onPress: () => this.joinWifi()
-      },
-    ])
   }
 
   render() {
@@ -40,7 +33,7 @@ export default class SetupWifiPassword extends Screen {
       <View style={styles.container}>
         <View>
           <Text style={styles.title}>
-            Password for WiFi network {HubOnboarding.hubDevice.lastSsidSent}:
+            Password for WiFi network {this.props.ssid}:
           </Text>
         </View>
 
@@ -60,7 +53,7 @@ export default class SetupWifiPassword extends Screen {
           onPress={() => this.continue()}
           buttonStyle={styles.button}
           title="Continue"
-          disabled={this.state.connectionState != WifiConnectionState.CONNECTION_STATE_CONNECTED}
+          disabled={!this.state.isJoined}
         />
       </View>
     );
@@ -68,7 +61,7 @@ export default class SetupWifiPassword extends Screen {
 
   renderConnectionState() {
     //TODO: Include name of Wi-Fi network in rendered labels
-    if (this.state.isSendingPassword || this.state.connectionState == WifiConnectionState.CONNECTION_STATE_CONNECTING) {
+    if (this.state.isJoining) {
       return (
         <View>
           <Text>The Hub is trying to connect to the Wi-Fi network...</Text>
@@ -76,12 +69,12 @@ export default class SetupWifiPassword extends Screen {
         </View>
       )
     }
-    else if (this.state.connectionState == WifiConnectionState.CONNECTION_STATE_CONNECTED) {
+    else if (this.state.isJoined) {
       return (
         <Text>Successfully connected to the Wi-Fi network</Text>
       )
     }
-    else if (this.state.didSendPassword) {
+    else if (this.state.didJoinFail) {
       return (
         <Text>Failed connecting the Hub to the Wi-Fi network. Please check the password.</Text>
       )
@@ -95,36 +88,37 @@ export default class SetupWifiPassword extends Screen {
 
   joinWifi() {
     Keyboard.dismiss()
-    //TODO: Unsubscribe from state changes when screen disappears
-    HubOnboarding.hubDevice.onConnectionStateChanged((connectionState, currentSsid) => {
-      console.log("ssid:", currentSsid, "state:", connectionState)
-      this.setState({connectionState: connectionState})
-    })
-    console.log('Sending Wi-Fi password')
+
+    console.log('Sending Wi-Fi password ' + this.state.password)
     this.setState({
-      isSendingPassword: true,
-      didSendPassword: true,
+      isJoining: true,
+      isJoined: false,
+      didJoinFail: false,
     })
-    //TODO: Make `sendPassword` should become a Promise that succeeds when the wifi could be connected
-    //      This said, this component shouldn't observe wifi connection state changes
+
+    //TODO: Pass `ssid` from previous component to this component and pass `ssid` to `joinWifi()`
     HubOnboarding.hubDevice
-      .sendPassword(this.state.password)
+      .joinWifi(this.props.ssid, this.state.password)
+      .then((apiUrl) => Settings.setHubApiUrl(apiUrl))
       .then(() => {
-        this.setState({isSendingPassword: false})
+        this.setState({
+          isJoining: false,
+          isJoined: true,
+        })
       })
       .catch((error) => {
-        this.setState({isSendingPassword: false})
-        console.error(error)
+        this.setState({
+          isJoining: false,
+          didJoinFail: true,
+        })
+        //TODO: Handle all different errors, such as Bluetooth connection lost
+        console.log(error)
       })
   }
 
   continue() {
-    // TODO: We have to read hub's host name from the hub only after it connected
-    //       to wi-fi network, because the hostname depends on which IP address it got
-    Settings
-      .setHubApiUrl(HubOnboarding.hubDevice.dnsName)
-      .then(() => this.pushScreen('setup.nuimo'))
     HubOnboarding.hubDevice.disconnect()
+    this.pushScreen('setup.nuimo')
   }
 }
 

@@ -15,7 +15,7 @@ const OnboardingUuids = {
 
   AVAILABLE_NETWORKS: 'FBE51524-B3E6-4F68-B6DA-410C0BBA1A78',
   CONNECTION_STATE: 'FBE51525-B3E6-4F68-B6DA-410C0BBA1A78',
-  DNS_NAME: 'FBE51526-B3E6-4F68-B6DA-410C0BBA1A78',
+  API_URL: 'FBE51526-B3E6-4F68-B6DA-410C0BBA1A78',
   VERSION: 'FBE51527-B3E6-4F68-B6DA-410C0BBA1A78',
 
   SSID: 'FBE51528-B3E6-4F68-B6DA-410C0BBA1A78',
@@ -40,12 +40,9 @@ export default class HubOnboarding {
     this.device = device
     this.connectionState = WifiConnectionState.CONNECTION_STATE_UNKNOWN
     this.currentSsid = ''
-    this.dnsName = ''
     this.version = ''
-    this.lastSsidSent = ''
-    this.lastPasswordSent = ''
     this.networksChangedCallback = () => {}
-    this.connectionStateChangedCallback = () => {}
+    this.onConnectionStateChanged = null
     // TODO add a way to unsubscribe from notifications
     this.availableNetworksSubscription = null
     this.connectionStateSubscription = null
@@ -88,32 +85,33 @@ export default class HubOnboarding {
     this.networksChangedCallback = callback
   }
 
-  /** callback(connectionState: Integer, currentSsid: String) */
-  onConnectionStateChanged(callback) {
-    this.connectionStateChangedCallback = callback
-  }
-
-  sendSsid(ssid) {
-    console.log("Hubs: sending SSID: " + ssid)
+  joinWifi(ssid, password) {
     return this.device
-      .writeCharacteristicWithResponseForService(
-        OnboardingUuids.SERVICE,
-        OnboardingUuids.SSID,
-        base64.encode(ssid))
+      .writeCharacteristicWithResponseForService(OnboardingUuids.SERVICE, OnboardingUuids.SSID, base64.encode(ssid))
+      .then(() => this.device.writeCharacteristicWithResponseForService(OnboardingUuids.SERVICE, OnboardingUuids.CREDENTIALS, base64.encode(password)))
       .then(() => {
-        this.lastSsidSent = ssid
+        let that = this
+        return new Promise(function(resolve, reject) {
+          that.onConnectionStateChanged = (connectionState, currentSsid) => {
+            console.log("ssid:", currentSsid, "state:", connectionState)
+            if (connectionState == WifiConnectionState.CONNECTION_STATE_CONNECTED) {
+              that.onConnectionStateChanged = null
+              resolve()
+            }
+            else if (connectionState == WifiConnectionState.CONNECTION_STATE_DISCONNECTED) {
+              that.onConnectionStateChanged = null
+              reject(new Error("Failed to connect to wifi network"))
+            }
+          }
+        })
       })
-  }
-
-  sendPassword(password) {
-    console.log("Hub: sending password: " + password)
-    return this.device
-      .writeCharacteristicWithResponseForService(
-        OnboardingUuids.SERVICE,
-        OnboardingUuids.CREDENTIALS,
-        base64.encode(password))
-      .then(() => {
-        this.lastPasswordSent = password
+      .then(() => this.device.readCharacteristicForService(OnboardingUuids.SERVICE, OnboardingUuids.API_URL))
+      .then((characteristic) => {
+        let apiUrl = base64.decode(characteristic.value))
+        if (!apiUrl) {
+          throw new Error("Failed to retrieve hub's API URL")
+        }
+        return apiUrl
       })
   }
 
@@ -143,15 +141,12 @@ export default class HubOnboarding {
 
   _retrieveInitialValues() {
     console.log("Hub: retrieving initial values")
-    this.device.readCharacteristicForService(OnboardingUuids.SERVICE, OnboardingUuids.CONNECTION_STATE)
-      .then((characteristic) => { this._updateConnectionState(null, characteristic) })
-      .catch(error => console.log("Hub: read connection state error: " + error.message))
-    this.device.readCharacteristicForService(OnboardingUuids.SERVICE, OnboardingUuids.DNS_NAME)
-      .then((characteristic) => { this._updateDnsName(null, characteristic) })
-      .catch(error => console.log("Hub: read dns name error: " + error.message))
-    this.device.readCharacteristicForService(OnboardingUuids.SERVICE, OnboardingUuids.VERSION)
-      .then((characteristic) => { this._updateVersion(null, characteristic) })
-      .catch(error => console.log("Hub: read version error: " + error.message))
+    return this.device
+      .readCharacteristicForService(OnboardingUuids.SERVICE, OnboardingUuids.CONNECTION_STATE)
+      .then((characteristic) => this._updateConnectionState(null, characteristic))
+      .then(() => this.device.readCharacteristicForService(OnboardingUuids.SERVICE, OnboardingUuids.VERSION))
+      .then((characteristic) => this._updateVersion(null, characteristic))
+      .catch(error => console.log("Hub: reading initial values failed: " + error.message))
   }
 
   _updateAvailableNetworks(error, characteristic) {
@@ -184,15 +179,9 @@ export default class HubOnboarding {
       console.log("Hub: received connection state: " + this.getConnectionStateString())
     }
 
-    this.connectionStateChangedCallback(this.connectionState, this.currentSsid)
-  }
-
-  _updateDnsName(error, characteristic) {
-    if (error) {
-      console.log("Hub: error from DNS name chrc: " + error.message)
-      return
+    if (this.onConnectionStateChanged) {
+      this.onConnectionStateChanged(this.connectionState, this.currentSsid)
     }
-    this.dnsName = base64.decode(characteristic.value)
   }
 
   _updateVersion(error, characteristic) {

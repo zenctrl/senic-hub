@@ -39,11 +39,11 @@ export default class SetupWifi extends Screen {
         }
       })
 
-      HubOnboarding.hubDevice.onConnectionStateChanged((connectionState, currentSsid) => {
+      HubOnboarding.hubDevice.onConnectionStateChanged = (connectionState, currentSsid) => {
         if (connectionState === WifiConnectionState.CONNECTION_STATE_CONNECTED) {
           this.setState({currentSsid: currentSsid})
         }
-      })
+      }
     }
 
     HubOnboarding.hubDevice
@@ -60,20 +60,11 @@ export default class SetupWifi extends Screen {
   willDisappear() {
     //TODO: Setting an empty callback isn't clean – use proper approach.
     HubOnboarding.hubDevice.onNetworksChanged(() => {})
-    HubOnboarding.hubDevice.onConnectionStateChanged(() => {})
+    HubOnboarding.hubDevice.onConnectionStateChanged = null
   }
 
   onNetworkSelected(ssid) {
-    console.log("Network selected: " + ssid)
-
-    if (ssid == this.state.currentSsid) {
-      Settings.setHubApiUrl(HubOnboarding.hubDevice.dnsName)
-        .then(() => this.pushScreen('setup.nuimo'))
-    }
-    else {
-      HubOnboarding.hubDevice.sendSsid(ssid)
-      this.pushScreen('setup.wifiPassword') // TODO make it a modal
-    }
+    this.pushScreen('setup.wifiPassword', {ssid: ssid}) // TODO make it a modal
   }
 
   render() {
