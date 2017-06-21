@@ -44,6 +44,7 @@ class Peripheral(object):
         self._device_properties_changed_signal = None
         self._adapter_properties_changed_signal = None
         self._main_loop = None
+        self._remote_disconnected_callback = None
 
         self._adapter_props = dbus.Interface(
             self.bus.get_object(BLUEZ_SERVICE_NAME, self._adapter_path), DBUS_PROP_IFACE)
@@ -52,8 +53,8 @@ class Peripheral(object):
 
         self.alias = alias
         self.is_powered = True
-        self.is_discoverable = True
         self.discoverable_timeout = 0
+        self.is_advertising = False
 
         # Prepare Managers:
 
@@ -106,6 +107,30 @@ class Peripheral(object):
 
     def add_advertised_service_uuid(self, uuid):
         self._advertisement.add_service_uuid(uuid)
+
+    def on_remote_disconnected(self, cb):
+        self._remote_disconnected_callback = cb
+
+    def start_advertising(self):
+        logger.info('Registering Advertisement...')
+        self.is_discoverable = True
+        self._ad_manager.RegisterAdvertisement(
+            self._advertisement.get_path(), {},
+            reply_handler=lambda: logger.info("Advertisement registered"),
+            error_handler=self._register_advertisement_failed)
+        self.is_advertising = True
+
+    def stop_advertising(self):
+        logger.info('Unregistering Advertisement...')
+        try:
+            self._ad_manager.UnregisterAdvertisement(
+                self._advertisement.get_path(),
+                reply_handler=lambda: logger.info("Advertisement unregistered"),
+                error_handler=lambda error: logger.info("Couldn't unregister advertisement"))
+        except dbus.exceptions.DBusException:
+            logger.warning("Couldn't unregister advertisement, maybe it wasn't created.")
+        self.is_discoverable = False
+        self.is_advertising = False
 
     def _find_adapter(self):
         """
@@ -170,7 +195,14 @@ class Peripheral(object):
 
     @property
     def is_connected(self):
-        return self._adapter_props.Get('org.bluez.Device1', 'Connected') == 1
+        object_manager = dbus.Interface(self.bus.get_object(BLUEZ_SERVICE_NAME, '/'), DBUS_OM_IFACE)
+        objects = object_manager.GetManagedObjects()
+
+        for object_path, properties in objects.items():
+            if 'org.bluez.Device1' in properties.keys():
+                if properties['org.bluez.Device1'].get('Connected', False):
+                    return True
+        return False
 
     def _device_properties_changed(self, interface, changed_props, invalidated, path):
         """
@@ -184,14 +216,13 @@ class Peripheral(object):
                 logger.info("Remote device was disconnected")
                 for service in self._app.services:
                     service.remote_disconnected()
+                if callable(self._remote_disconnected_callback):
+                    self._remote_disconnected_callback()
 
     def _adapter_properties_changed(self, interface, changed_props, invalidated, path):
         """
-        Sets Powered and Discoverable adapter properties to True when they were changed.
+        Sets Powered to True and DiscoverableTimout to 0 when they were changed.
         """
-        if 'Discoverable' in changed_props.keys():
-            if not self.is_discoverable:
-                self.is_discoverable = True
         if 'Powered' in changed_props.keys():
             if not self.is_powered:
                 self.is_powered = True
@@ -201,17 +232,11 @@ class Peripheral(object):
                 self.discoverable_timeout = 0
 
     def _register(self):
-        logger.info('Registering Advertisement...')
-        self._ad_manager.RegisterAdvertisement(
-            self._advertisement.get_path(), {},
-            reply_handler=lambda: logger.info("Advertisement registered"),
-            error_handler=self._register_ad_error_cb)
-
         logger.info('Registering GATT application...')
         self._gatt_manager.RegisterApplication(
             self._app.get_path(), {},
             reply_handler=lambda: logger.info("GATT application registered"),
-            error_handler=self._register_app_error_cb)
+            error_handler=self._register_application_failed)
 
         self._device_properties_changed_signal = self.bus.add_signal_receiver(
             self._device_properties_changed,
@@ -227,22 +252,23 @@ class Peripheral(object):
             arg0='org.bluez.Adapter1',
             path_keyword='path')
 
-    def _register_app_error_cb(self, error):
+    def _register_application_failed(self, error):
         logger.error("Failed to register application: %s" % error)
         self._main_loop.quit()
 
-    def _register_ad_error_cb(self, error):
+    def _register_advertisement_failed(self, error):
         logger.error("Failed to register advertisement: %s" % error)
         logger.error("Make sure no device is connected before registering an advertisement!")
-        self._main_loop.quit()
+        if self.is_connected:
+            logger.info("Trying to start advertising again after disconnecting all devices")
+            self._disconnect_all()
+            self.start_advertising()
 
     def _unregister(self):
         self._device_properties_changed_signal.remove()
         self._adapter_properties_changed_signal.remove()
-        try:
-            self._ad_manager.UnregisterAdvertisement(self._advertisement.get_path())
-        except dbus.exceptions.DBusException:
-            logger.warning("Couldn't unregister advertisement, maybe it wasn't created.")
+        if self.is_advertising:
+            self.stop_advertising()
         try:
             self._gatt_manager.UnregisterApplication(self._app.get_path())
         except dbus.exceptions.DBusException:

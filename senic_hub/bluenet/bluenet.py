@@ -9,7 +9,7 @@ from threading import Thread
 from .bluez_peripheral import Peripheral
 from .bluenet_gatt_service import BluenetService, BluenetUuids, WifiConnectionState
 
-#: Name of the NetworkManager connection to use for BLE onboarding
+#: Name of the NetworkManager connection to use for BLE provisioning
 #: It will be created on first attempt to join a network
 #: or overwritten if it already exists.
 NM_CONNECTION_NAME = 'Bluenet'
@@ -30,14 +30,17 @@ def bluenet_cli(ctx, wlan, bluetooth):
 @bluenet_cli.command(name='start', help="start GATT service and scan for networks")
 @click.option('--hostname', '-h', required=True, help="Host Name of Hub")
 @click.option('--alias', '-a', required=True, help="Bluetooth Alias Name")
-@click.option('--verbose', '-v', is_flag=True, help="Print verbose messages (log level DEBUG)")
+@click.option('--verbose', '-v', count=True, help="Print info messages (-vv for debug messages)")
+@click.option('--auto-advertise', is_flag=True, help="Disable BLE advertising when not needed")
 @click.pass_context
-def bluenet_start(ctx, hostname, alias, verbose):
-    if verbose:
+def bluenet_start(ctx, hostname, alias, verbose, auto_advertise):
+    if verbose >= 2:
         logging.basicConfig(level=logging.DEBUG)
+    elif verbose >= 1:
+        logging.basicConfig(level=logging.INFO)
     else:
         logging.basicConfig(level=logging.WARNING)
-    ctx.obj.run(hostname, alias)
+    ctx.obj.run(hostname, alias, auto_advertise)
 
 
 @bluenet_cli.command(name='join', help="only join Wifi")
@@ -56,8 +59,8 @@ def bluenet_status(ctx):
 
 class BluenetDaemon(object):
     """
-    Daemon to enable Wifi onboarding via Bluetooth Low Energy.
-    The run() method creates the Bluetooth GATT server and starts threads to listen for new networks
+    Daemon to enable Wifi provisioning via Bluetooth Low Energy.
+    The run() method creates the Bluetooth GATT server and starts threads to listen for new networks 
     and changes in the connection status.
     """
 
@@ -70,17 +73,27 @@ class BluenetDaemon(object):
         self._wlan_adapter = wlan_adapter
         self._bluetooth_adapter = bluetooth_adapter
         self._gatt_service = None
+        self._ble_peripheral = None
         self._current_ssid = None
         self._is_joining_wifi = False
+        self._auto_advertise = False
+        self._hostname = None
+        self._join_thread = None
 
-    def run(self, hostname, bluetooth_alias):
+    def run(self, hostname, bluetooth_alias, auto_advertise):
+        self._hostname = hostname
+        self._auto_advertise = auto_advertise
+
         # prepare BLE GATT Service:
-        peripheral = Peripheral(bluetooth_alias, self._bluetooth_adapter)
-        gatt_service = BluenetService(peripheral.bus, 0, hostname, "1.0")
+        self._ble_peripheral = Peripheral(bluetooth_alias, self._bluetooth_adapter)
+        gatt_service = BluenetService(self._ble_peripheral.bus, 0, self._get_hostname(), "1.0")
         gatt_service.set_credentials_received_callback(self.join_network)
         self._gatt_service = gatt_service
-        peripheral.add_service(gatt_service)
-        peripheral.add_advertised_service_uuid(BluenetUuids.SERVICE)
+        self._ble_peripheral.add_service(gatt_service)
+        self._ble_peripheral.add_advertised_service_uuid(BluenetUuids.SERVICE)
+        self._ble_peripheral.on_remote_disconnected(self._update_advertising_state)
+
+        self._update_advertising_state()
 
         # create thread to scan for networks:
         scan_thread = Thread(target=self._scan_wifi_loop, daemon=True)
@@ -90,14 +103,18 @@ class BluenetDaemon(object):
         connection_state_thread = Thread(target=self._run_wifi_status_loop, daemon=True)
         connection_state_thread.start()
 
-        peripheral.run()
+        self._ble_peripheral.run()
 
     def join_network(self, ssid, credentials):
-        # TODO: Join Wi-Fi on a separate thread as otherwise the Bluetooth
-        #       thread gets block and no write response is sent for the
-        #       crendentials characteristic.
-        logger.info("Trying to join network: %s, Credentials: %s" % (ssid, credentials))
-        self._configure_wlan(ssid, credentials)
+        logger.info("Trying to join network: %s" % ssid)
+        logger.debug("Password: %s" % credentials)
+        if self._join_thread and self._join_thread.is_alive():
+            logger.warning("Cannot join network while previous joining is still in process")
+        else:
+            # using a new thread to join the network because this is a blocking operation
+            # and would otherwise prevent Bluetooth from sending the characteristic write response
+            self._join_thread = Thread(target=self._configure_wlan, args=(ssid, credentials))
+            self._join_thread.start()
 
     def get_wifi_status(self):
         # get current SSID:
@@ -166,10 +183,21 @@ class BluenetDaemon(object):
                     logger.info("Network disappeared: %s" % ssid)
                     del found_ssids[ssid]
 
+            if (self._current_ssid in found_ssids and
+                    self.get_wifi_status() == WifiConnectionState.DISCONNECTED):
+                logger.info("Known network reappeared, trying to reconnect to it.")
+                # Actually this should be done by NetworkManager automatically (because
+                # 'autoconnect' flag is true by default) but this doesn't work reliable
+                # (see for example https://bugs.launchpad.net/ubuntu/+source/network-manager/+bug/1354924)
+                try:
+                    call(['nmcli', 'con', 'up', NM_CONNECTION_NAME])
+                except CalledProcessError as e:
+                    logger.warning("Error while trying to bring network back up: %s" % e)
+
             self._gatt_service.set_available_networks(found_ssids.keys())
 
         while True:
-            if not self._is_joining_wifi:
+            if self._ble_peripheral.is_advertising and not self._is_joining_wifi:
                 scan_wifi_networks()
             time.sleep(waitsec)
 
@@ -199,10 +227,17 @@ class BluenetDaemon(object):
                     # succeed to connect after a intermediate disconnect step.
                     logger.info("Ignoring state change to DISCONNECTED as we are trying to connect to a network")
                 else:
-                    self._gatt_service.set_connection_state(new_status, self._current_ssid)
                     status = new_status
+                    self._on_wifi_status_changed(status)
                     last_status_changed_time = time.time()
-            time.sleep(1)
+            if self._ble_peripheral.is_connected:
+                time.sleep(1)
+            else:
+                # NetworkManager is slow at detecting connection changes
+                # -> checking every 30s is enough while setup app is not connected
+                # (when Wifi router is turned off connection status will be "Connecting"
+                # for 2 minutes before going to "Disconnected")
+                time.sleep(30)
 
     def _configure_wlan(self, ssid, password):
         self._is_joining_wifi = ssid is not None
@@ -211,8 +246,8 @@ class BluenetDaemon(object):
         call(['nmcli', 'con', 'delete', NM_CONNECTION_NAME])
 
         if ssid and password:
-            logger.info("=> nmcli dev wifi con %s password %s ifname %s name %s" %
-                        (ssid, password, self._wlan_adapter, NM_CONNECTION_NAME))
+            logger.info("=> nmcli dev wifi con %s password *** ifname %s name %s" %
+                        (ssid, self._wlan_adapter, NM_CONNECTION_NAME))
             call([
                 'nmcli', 'dev', 'wifi',
                 'con', ssid,
@@ -229,6 +264,57 @@ class BluenetDaemon(object):
                 'name', NM_CONNECTION_NAME])
 
         self._is_joining_wifi = False
+
+    def _on_wifi_status_changed(self, new_status):
+        self._gatt_service.set_connection_state(new_status, self._current_ssid)
+        if new_status == WifiConnectionState.CONNECTED:
+            self._update_hostname()
+        self._update_advertising_state(new_status)
+
+    def _update_advertising_state(self, wifi_status=None):
+        if not wifi_status:
+            wifi_status = self.get_wifi_status()
+        if (self._auto_advertise and
+                wifi_status == WifiConnectionState.CONNECTED and
+                not self._ble_peripheral.is_connected and
+                self._ble_peripheral.is_advertising):
+            # re-enabling advertisement is not possible while a device is connected
+            # because of that we are not disabling it in the first place when a device is connected
+            logging.info("Wifi connected. Stopping BLE advertisement.")
+            self._ble_peripheral.stop_advertising()
+        elif (not self._ble_peripheral.is_advertising and
+                (not self._auto_advertise or wifi_status == WifiConnectionState.DISCONNECTED)):
+            logging.info("Starting BLE advertisement to be able to "
+                         "use the setup app to reconfigure Wifi.")
+            self._ble_peripheral.start_advertising()
+
+    def _update_hostname(self):
+        hostname = self._get_hostname()
+        logger.info("New hostname: %s" % hostname)
+        self._gatt_service.set_hostname(hostname)
+
+    def _get_hostname(self):
+        if '%IP' in self._hostname:
+            ip = self._get_ip_address()
+            if ip:
+                return self._hostname.replace('%IP', ip)
+            else:
+                return ''
+        else:
+            return self._hostname
+
+    def _get_ip_address(self):
+        try:
+            ifconfig_output = check_output(['ifconfig', self._wlan_adapter]).decode()
+        except CalledProcessError as e:
+            logger.warning("ifconfig error: %s" % e)
+            return None
+
+        if 'addr:' not in ifconfig_output:
+            return None
+
+        ip = ifconfig_output.split('addr:', 1)[1].split(' ', 1)[0]
+        return ip
 
 
 if __name__ == '__main__':
