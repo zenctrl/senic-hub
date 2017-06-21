@@ -12,7 +12,7 @@
 Overview
 ========
 
-The *senic_hub* appliation is the RESTful backend running on the nuimo hub device. It sits between clients (mainly a web frontend) and the low-level drivers that manage the actual connection to the nuimo devices.
+The *senic_hub* appliation is the RESTful backend running on Senic COVI and the Senic Hub device. It sits between clients (mainly a web frontend) and the low-level drivers that manage the actual connection to the connected devices the Nuimo smart home controllers.
 
 Its main purpose is to provide a bootstrapping experience when users set up the hub for the first time, to connect and manage nuimos and integrations.
 
