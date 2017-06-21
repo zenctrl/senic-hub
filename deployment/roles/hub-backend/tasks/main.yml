@@ -1,4 +1,7 @@
 ---
+# these are the platform independent steps to setup the hub
+# they should work on any *NIX platfform, provided that the
+# platform specific dependencies have been installed
 - name: set default locale
   lineinfile:
     dest: "/etc/profile"

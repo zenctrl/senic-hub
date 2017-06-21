@@ -1,4 +1,6 @@
 ---
+# thsee are the platform specific setup steps for the hub on 
+# an ubuntu or debian like system
 # - include: dhcp.yml
 #   tags: dhcp
 
