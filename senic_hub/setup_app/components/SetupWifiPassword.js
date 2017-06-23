@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import {
     ActivityIndicator,
     Keyboard,
@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Button } from 'react-native-elements'
 
-import HubOnboarding, { WifiConnectionState } from '../HubOnboarding'
+import HubOnboarding from '../HubOnboarding'
 import Screen from './Screen';
 import Settings from '../Settings'
 
@@ -37,16 +37,7 @@ export default class SetupWifiPassword extends Screen {
           </Text>
         </View>
 
-        <TextInput
-          style={{height: 40, borderColor: 'gray', borderWidth: 1}}
-          onChangeText={(password) => this.setState({password})}
-          value={this.state.password}
-          placeholder="Password"
-          returnKeyType='send'
-          secureTextEntry={true}
-          onSubmitEditing={() => this.joinWifi()}
-        />
-
+        { this.renderPasswordInput() }
         { this.renderConnectionState() }
 
         <Button
@@ -57,6 +48,24 @@ export default class SetupWifiPassword extends Screen {
         />
       </View>
     );
+  }
+
+  renderPasswordInput() {
+    if (this.state.isJoining || this.state.isJoined) {
+      return
+    }
+
+    return (
+      <TextInput
+        style={{height: 40, borderColor: 'gray', borderWidth: 1}}
+        onChangeText={(password) => this.setState({password})}
+        value={this.state.password}
+        placeholder="Password"
+        returnKeyType='send'
+        secureTextEntry={true}
+        onSubmitEditing={() => this.joinWifi()}
+       />
+    )
   }
 
   renderConnectionState() {

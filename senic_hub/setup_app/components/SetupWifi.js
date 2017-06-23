@@ -8,11 +8,11 @@ import {
 } from 'react-native';
 
 import { List, ListItem } from 'react-native-elements'
+import { NetworkInfo } from 'react-native-network-info';
 
 import HubOnboarding, { WifiConnectionState } from '../HubOnboarding'
 import Screen from './Screen';
 import Settings from '../Settings'
-
 
 export default class SetupWifi extends Screen {
   constructor(props) {
@@ -20,10 +20,20 @@ export default class SetupWifi extends Screen {
 
     this.state = {
       ssids: [],
-      currentSsid: null,
+      currentHubSsid: null,
+      currentPhoneSsid: null,
+      scanningSpinnerVisible: true,
     }
 
-    this.setTitle('Select your Wi-Fi')
+    NetworkInfo.getSSID(ssid => {
+      this.setState({
+        currentPhoneSsid: ssid,
+      })
+    });
+
+    this.scanTimoutId = null
+
+    this.setTitle('Wi-Fi')
   }
 
   didAppear() {
@@ -37,11 +47,18 @@ export default class SetupWifi extends Screen {
             })
           })
         }
+
+        if (this.state.scanningSpinnerVisible && this.state.currentPhoneSsid === ssid) {
+          if (this.scanTimoutId) {
+            clearTimeout(this.scanTimeoutId)
+          }
+          this.onNetworkSelected(this.state.currentPhoneSsid)
+        }
       })
 
-      HubOnboarding.hubDevice.onConnectionStateChanged = (connectionState, currentSsid) => {
+      HubOnboarding.hubDevice.onConnectionStateChanged = (connectionState, currentHubSsid) => {
         if (connectionState === WifiConnectionState.CONNECTION_STATE_CONNECTED) {
-          this.setState({currentSsid: currentSsid})
+          this.setState({currentHubSsid: currentHubSsid})
         }
       }
     }
@@ -50,9 +67,14 @@ export default class SetupWifi extends Screen {
       .connect()
       .then(() => {
         subscribeForWifiEvents()
+        this.scanTimoutId = setTimeout(() => {
+          this.setState({scanningSpinnerVisible: false})
+          this.setTitle('Select your Wi-Fi')
+        }, 5000)
       })
       .catch((error) => {
         alert("Could not connect to the Hub. Please try again.")
+        console.warn(error)
         //TODO: Present error message on screen with a "retry" button that connects again
       })
   }
@@ -64,7 +86,14 @@ export default class SetupWifi extends Screen {
   }
 
   onNetworkSelected(ssid) {
-    this.pushScreen('setup.wifiPassword', {ssid: ssid}) // TODO make it a modal
+    if (this.state.currentHubSsid === ssid) {
+      HubOnboarding.hubDevice.readApiUrl()
+        .then(apiUrl => Settings.setHubApiUrl(apiUrl))
+        .then(() => this.pushScreen('setup.nuimo'))
+    }
+    else {
+      this.pushScreen('setup.wifiPassword', {ssid: ssid})
+    }
   }
 
   render() {
@@ -76,7 +105,7 @@ export default class SetupWifi extends Screen {
   }
 
   _renderContent() {
-    if (this.state.ssids.length > 0) {
+    if (!this.state.scanningSpinnerVisible && this.state.ssids.length > 0) {
       return (
         <List>
           <FlatList
@@ -84,7 +113,7 @@ export default class SetupWifi extends Screen {
             renderItem={({item}) => (
               <ListItem title={item}
                 onPress={() => this.onNetworkSelected(item)}
-                leftIcon={this.state.currentSsid == item ? {name: 'done'} : {name: 'wifi'}}
+                leftIcon={this.state.currentHubSsid == item ? {name: 'done'} : {name: 'wifi'}}
               />
             )}
             keyExtractor={(item) => item}

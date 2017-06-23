@@ -1,5 +1,4 @@
 import React from 'react';
-import { NetworkInfo } from 'react-native-network-info';
 import {
   StyleSheet,
   Text,
@@ -20,14 +19,6 @@ export default class SetupWelcome extends Screen {
     this.setTitle("Welcome")
   }
 
-  componentDidMount() {
-    NetworkInfo.getSSID(ssid => {
-      this.setState({
-        networkSSID: ssid,
-      })
-    });
-  }
-
   render() {
     return (
       <View style={styles.container}>
@@ -37,10 +28,6 @@ export default class SetupWelcome extends Screen {
             Welcome to Senic Hub
           </Text>
         </View>
-
-        <Text>
-          Phone's WiFi SSID: {this.state.networkSSID}
-        </Text>
 
         <View>
           <Button

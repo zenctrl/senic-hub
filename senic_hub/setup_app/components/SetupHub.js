@@ -105,7 +105,7 @@ export default class SetupHub extends Screen {
                 data={this.state.hubs}
                 renderItem={({item}) => (
                   <ListItem
-                    title={item.name}
+                    title={item.name || "Senic Hub"}
                     subtitle={item.id}
                     onPress={() => this.onHubSelected(item)}
                   />

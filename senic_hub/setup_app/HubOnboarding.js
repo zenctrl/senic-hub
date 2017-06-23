@@ -105,7 +105,11 @@ export default class HubOnboarding {
           }
         })
       })
-      .then(() => this.device.readCharacteristicForService(OnboardingUuids.SERVICE, OnboardingUuids.API_URL))
+      .then(() => this.readApiUrl())
+  }
+
+  readApiUrl() {
+    return this.device.readCharacteristicForService(OnboardingUuids.SERVICE, OnboardingUuids.API_URL)
       .then((characteristic) => {
         let apiUrl = base64.decode(characteristic.value)
         if (!apiUrl) {
