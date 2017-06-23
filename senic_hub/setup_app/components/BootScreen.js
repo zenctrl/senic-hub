@@ -25,41 +25,41 @@ export default class BootScreen extends Screen {
   pingHub() {
     Settings.getHubApiUrl()
       .then(hubApiUrl => {
-        if (hubApiUrl) {
-          console.log('Stored Hub API URL:', hubApiUrl)
+        console.log('Stored Hub API URL:', hubApiUrl)
 
-          fetch(hubApiUrl)
-            .then(response => {
-              Settings.HUB_API_URL = hubApiUrl  // TODO is there a better way?
-              console.log('Host', Settings.HUB_API_URL, 'reachable...')
-
-              if (!response.ok) {
-                throw new Error('App info request led to unexpected response code')
-              }
-              return response.json()
-            })
-            .then(appInfo => {
-              console.log('Hub onboarded:', appInfo.onboarded)
-              if (appInfo.onboarded) {
-                this.resetTo('app.nuimoComponents')
-              }
-              else {
-                // We restart onboarding with Nuimo discovery if hub is reachable but not full onboarded
-                this.resetTo('setup.nuimo')
-              }
-            })
-            .catch(error => {
-              console.warn('Failed requesting app info:', error)
-              this.setState({hubUnreachable: true})
-            })
-        }
-        else {
+        if (!hubApiUrl) {
           this.resetTo('setup.welcome')
+          return
         }
+
+        fetch(hubApiUrl)
+          .then(response => {
+            console.log('Host', hubApiUrl, 'reachable...')
+
+            Settings.HUB_API_URL = hubApiUrl
+
+            if (!response.ok) {
+              throw new Error('App info request led to unexpected response code')
+            }
+            return response.json()
+          })
+          .then(appInfo => {
+            console.log('Hub onboarded:', appInfo.onboarded)
+            if (appInfo.onboarded) {
+              this.resetTo('app.nuimoComponents')
+            }
+            else {
+              // We restart onboarding with Nuimo discovery if hub is reachable but not full onboarded
+              this.resetTo('setup.nuimo')
+            }
+          })
+          .catch(error => {
+            console.warn('Failed requesting app info:', error)
+            this.setState({hubUnreachable: true})
+          })
       })
       .catch(error => {
         console.warn(error)
-
         this.resetTo('setup.welcome')
       })
   }
@@ -87,8 +87,11 @@ export default class BootScreen extends Screen {
             </Text>
           </View>
           <View>
-            <Button title={"Try again to connect to the hub"} onPress={() => this.setState({hubUnreachable: false})} />
-            <Button title={"Restart onboarding"} onPress={() => this.resetTo('setup.welcome')} />
+            <Button title={"Try again to connect to the hub"} onPress={() => {
+              this.setState({hubUnreachable: false})
+              this.pingHub()
+             }} />
+            <Button title={"Restart onboarding"} onPress={() => this.restartOnboarding()} />
           </View>
         </View>
       )
@@ -100,6 +103,11 @@ export default class BootScreen extends Screen {
         <ActivityIndicator size={"large"} />
       )
     }
+  }
+
+  restartOnboarding() {
+    Settings.resetHubApiUrl()
+      .then(() => this.resetTo('setup.welcome'))
   }
 }
 
