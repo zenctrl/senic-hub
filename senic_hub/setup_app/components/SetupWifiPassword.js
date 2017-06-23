@@ -25,7 +25,7 @@ export default class SetupWifiPassword extends Screen {
       didJoinFail: false,
     }
 
-    this.setTitle('Wi-Fi Password')
+    this.setTitle("Wi-Fi Password")
   }
 
   render() {
@@ -105,7 +105,6 @@ export default class SetupWifiPassword extends Screen {
       didJoinFail: false,
     })
 
-    //TODO: Pass `ssid` from previous component to this component and pass `ssid` to `joinWifi()`
     HubOnboarding.hubDevice
       .joinWifi(this.props.ssid, this.state.password)
       .then((apiUrl) => Settings.setHubApiUrl(apiUrl))

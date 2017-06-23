@@ -20,13 +20,9 @@ export default class NuimoComponents extends Screen {
         onPress: () => this.showModal('app.addComponent')
       },
       {
-        title: 'Setup',
+        title: 'Settings',
         id: 'reset',
-        onPress: () => {
-          // Only useful for development to restart the onboarding
-          Settings.resetHubApiUrl()
-            .then(() => this.resetTo('setup.welcome'))
-        }
+        onPress: () => this.showModal('settings'),
       },
     ])
   }

@@ -43,7 +43,7 @@ export default class SetupWelcome extends Screen {
     // Bluetooth can't be used in simulators, so we just skip
     // hub onboaring when app is run in the simulator
     if (isEmulator()) {
-      this.pushScreen('setup.nuimo')
+      this.pushScreen('setup.hubApiUrl')
     }
     else {
       this.pushScreen('setup.hub')

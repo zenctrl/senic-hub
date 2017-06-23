@@ -111,7 +111,8 @@ export default class SetupWifi extends Screen {
           <FlatList
             data={this.state.ssids}
             renderItem={({item}) => (
-              <ListItem title={item}
+              <ListItem
+                title={item}
                 onPress={() => this.onNetworkSelected(item)}
                 leftIcon={this.state.currentHubSsid == item ? {name: 'done'} : {name: 'wifi'}}
               />

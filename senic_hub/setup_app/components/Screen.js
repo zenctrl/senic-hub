@@ -44,11 +44,11 @@ export default class Screen extends Component {
     this.props.navigator.showModal({screen: screen})
   }
 
-  dismissModal(screen) {
+  dismissModal() {
     this.props.navigator.dismissModal()
   }
 
-  dismissAllModals(screen) {
+  dismissAllModals() {
     this.props.navigator.dismissAllModals()
   }
 
