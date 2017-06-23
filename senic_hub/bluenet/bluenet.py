@@ -34,12 +34,13 @@ def bluenet_cli(ctx, wlan, bluetooth):
 @click.option('--auto-advertise', is_flag=True, help="Disable BLE advertising when not needed")
 @click.pass_context
 def bluenet_start(ctx, hostname, alias, verbose, auto_advertise):
+    log_format = '%(asctime)s %(levelname)-5.5s [%(name)s] %(message)s'
     if verbose >= 2:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.DEBUG, format=log_format)
     elif verbose >= 1:
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.INFO, format=log_format)
     else:
-        logging.basicConfig(level=logging.WARNING)
+        logging.basicConfig(level=logging.WARNING, format=log_format)
     ctx.obj.run(hostname, alias, auto_advertise)
 
 
@@ -91,7 +92,7 @@ class BluenetDaemon(object):
         self._gatt_service = gatt_service
         self._ble_peripheral.add_service(gatt_service)
         self._ble_peripheral.add_advertised_service_uuid(BluenetUuids.SERVICE)
-        self._ble_peripheral.on_remote_disconnected(self._update_advertising_state)
+        self._ble_peripheral.on_remote_disconnected = self._update_advertising_state
 
         self._update_advertising_state()
 

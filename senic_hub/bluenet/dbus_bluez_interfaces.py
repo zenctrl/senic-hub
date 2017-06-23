@@ -195,7 +195,7 @@ class Characteristic(dbus.service.Object):
         Calls _stop_notify() to stop notifying characteristic changes,
         because BlueZ doesn't call StopNotify when the remote device disconnects.
         """
-        self._on_stop_notifying()
+        self.StopNotify()
 
     @dbus.service.method(DBUS_PROP_IFACE, in_signature='s', out_signature='a{sv}')
     def GetAll(self, interface):

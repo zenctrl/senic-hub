@@ -44,7 +44,7 @@ class Peripheral(object):
         self._device_properties_changed_signal = None
         self._adapter_properties_changed_signal = None
         self._main_loop = None
-        self._remote_disconnected_callback = None
+        self.on_remote_disconnected = None
 
         self._adapter_props = dbus.Interface(
             self.bus.get_object(BLUEZ_SERVICE_NAME, self._adapter_path), DBUS_PROP_IFACE)
@@ -108,10 +108,9 @@ class Peripheral(object):
     def add_advertised_service_uuid(self, uuid):
         self._advertisement.add_service_uuid(uuid)
 
-    def on_remote_disconnected(self, cb):
-        self._remote_disconnected_callback = cb
-
     def start_advertising(self):
+        if self.is_advertising:
+            return
         logger.info('Registering Advertisement...')
         self.is_discoverable = True
         self._ad_manager.RegisterAdvertisement(
@@ -198,11 +197,11 @@ class Peripheral(object):
         object_manager = dbus.Interface(self.bus.get_object(BLUEZ_SERVICE_NAME, '/'), DBUS_OM_IFACE)
         objects = object_manager.GetManagedObjects()
 
-        for object_path, properties in objects.items():
-            if 'org.bluez.Device1' in properties.keys():
-                if properties['org.bluez.Device1'].get('Connected', False):
-                    return True
-        return False
+        connected_devices = [
+            object_path for object_path, properties in objects.items()
+            if properties.get('org.bluez.Device1', {}).get('Connected', False)
+        ]
+        return len(connected_devices) > 0
 
     def _device_properties_changed(self, interface, changed_props, invalidated, path):
         """
@@ -216,8 +215,8 @@ class Peripheral(object):
                 logger.info("Remote device was disconnected")
                 for service in self._app.services:
                     service.remote_disconnected()
-                if callable(self._remote_disconnected_callback):
-                    self._remote_disconnected_callback()
+                if callable(self.on_remote_disconnected):
+                    self.on_remote_disconnected()
 
     def _adapter_properties_changed(self, interface, changed_props, invalidated, path):
         """
