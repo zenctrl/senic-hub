@@ -75,6 +75,7 @@ setup(
         [paste.app_factory]
         main = senic_hub.backend:main
         [console_scripts]
+        netwatch = senic_hub.backend.netwatch:netwatch_cli
         bluenet = senic_hub.bluenet.bluenet:bluenet_cli
         device_discovery = senic_hub.backend.commands:device_discovery
         nuimo_app = senic_hub.nuimo_app.__main__:main

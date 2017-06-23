@@ -5,6 +5,8 @@ import logging
 import time
 from subprocess import call, CalledProcessError, check_output, STDOUT, TimeoutExpired
 from threading import Thread
+from xmlrpc.server import SimpleXMLRPCServer
+from xmlrpc.server import SimpleXMLRPCRequestHandler
 
 from .bluez_peripheral import Peripheral
 from .bluenet_gatt_service import BluenetService, BluenetUuids, WifiConnectionState
@@ -103,6 +105,10 @@ class BluenetDaemon(object):
         # create thread to poll for connection status:
         connection_state_thread = Thread(target=self._run_wifi_status_loop, daemon=True)
         connection_state_thread.start()
+
+        # create thread for rpc server:
+        rpc_thread = Thread(target=self._start_rpc_server, daemon=True)
+        rpc_thread.start()
 
         self._ble_peripheral.run()
 
@@ -316,6 +322,19 @@ class BluenetDaemon(object):
 
         ip = ifconfig_output.split('addr:', 1)[1].split(' ', 1)[0]
         return ip
+
+    def _start_rpc_server(self):
+        def bluenet_is_connected():
+            return self._ble_peripheral.is_connected
+
+        server = SimpleXMLRPCServer(('127.0.0.1', 6459), requestHandler=RequestHandler)
+        server.register_function(bluenet_is_connected)
+        logger.info("Starting RPC server")
+        server.serve_forever()
+
+
+class RequestHandler(SimpleXMLRPCRequestHandler):
+    rpc_paths = ('/RPC2',)
 
 
 if __name__ == '__main__':
