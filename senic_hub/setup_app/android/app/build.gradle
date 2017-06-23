@@ -125,8 +125,8 @@ android {
         applicationId "com.senic.hub.setupapp"
         minSdkVersion 18
         targetSdkVersion 22
-        versionCode 3
-        versionName "0.1.6"
+        versionCode 8
+        versionName "0.1.8"
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }
