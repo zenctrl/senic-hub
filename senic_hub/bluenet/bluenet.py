@@ -1,12 +1,19 @@
 #!/usr/bin/python3
 
 import click
+import dbus
+import dbus.mainloop.glib
 import logging
 import time
-from subprocess import call, CalledProcessError, check_output, STDOUT, TimeoutExpired
 from threading import Thread
 from xmlrpc.server import SimpleXMLRPCServer
 from xmlrpc.server import SimpleXMLRPCRequestHandler
+
+import NetworkManager
+try:
+    from gi.repository import GObject
+except ImportError:
+    import gobject as GObject
 
 from .bluez_peripheral import Peripheral
 from .bluenet_gatt_service import BluenetService, BluenetUuids, WifiConnectionState
@@ -51,13 +58,21 @@ def bluenet_start(ctx, hostname, alias, verbose, auto_advertise):
 @click.option('--password', '-p', required=True, help="Wifi password")
 @click.pass_context
 def bluenet_join(ctx, ssid, password):
+    log_format = '%(asctime)s %(levelname)-5.5s [%(name)s] %(message)s'
+    logging.basicConfig(level=logging.INFO, format=log_format)
     ctx.obj.join_network(ssid, password)
 
 
 @bluenet_cli.command(name='status', help="print Wifi status")
-@click.pass_context
-def bluenet_status(ctx):
-    print(ctx.obj.get_wifi_status())
+def bluenet_status():
+    nm_state = NetworkManager.NetworkManager.State
+    if nm_state >= NetworkManager.NM_STATE_CONNECTED_GLOBAL:
+        status = WifiConnectionState.CONNECTED
+    elif nm_state > NetworkManager.NM_STATE_DISCONNECTING:
+        status = WifiConnectionState.CONNECTING
+    else:
+        status = WifiConnectionState.DISCONNECTED
+    print(status)
 
 
 class BluenetDaemon(object):
@@ -82,6 +97,7 @@ class BluenetDaemon(object):
         self._auto_advertise = False
         self._hostname = None
         self._join_thread = None
+        self._wifi_status = WifiConnectionState.DOWN
 
     def run(self, hostname, bluetooth_alias, auto_advertise):
         self._hostname = hostname
@@ -96,14 +112,12 @@ class BluenetDaemon(object):
         self._ble_peripheral.add_advertised_service_uuid(BluenetUuids.SERVICE)
         self._ble_peripheral.on_remote_disconnected = self._update_advertising_state
 
-        self._update_advertising_state()
-
         # create thread to scan for networks:
         scan_thread = Thread(target=self._scan_wifi_loop, daemon=True)
         scan_thread.start()
 
-        # create thread to poll for connection status:
-        connection_state_thread = Thread(target=self._run_wifi_status_loop, daemon=True)
+        # create thread to listen for connection state changes:
+        connection_state_thread = Thread(target=self._listen_for_wifi_state_changes, daemon=True)
         connection_state_thread.start()
 
         # create thread for rpc server:
@@ -123,60 +137,16 @@ class BluenetDaemon(object):
             self._join_thread = Thread(target=self._configure_wlan, args=(ssid, credentials))
             self._join_thread.start()
 
-    def get_wifi_status(self):
-        # get current SSID:
-        try:
-            connection_status = check_output(
-                ['nmcli', '-f', '802-11-wireless.ssid', 'connection', 'show', NM_CONNECTION_NAME],
-                timeout=5, stderr=STDOUT).decode()
-        except CalledProcessError as e:
-            if e.returncode == 10:
-                # means connection NM_CONNECTION_NAME doesn't exist
-                connection_status = ''
-            else:
-                logger.warning("Wifi status error: %s" % e)
-                return WifiConnectionState.DOWN
-        except TimeoutExpired as e:
-            logger.warning("Wifi status error: %s" % e)
-            return WifiConnectionState.DOWN
-
-        if '802-11-wireless.ssid:' in connection_status:
-            self._current_ssid = connection_status.split("ssid:")[1].strip()
-        else:
-            self._current_ssid = ''
-
-        # get connection status:
-        try:
-            device_status = check_output(
-                ['nmcli', '-f', 'general.state', 'device', 'show', self._wlan_adapter],
-                timeout=5, stderr=STDOUT).decode()
-        except (CalledProcessError, TimeoutExpired) as e:
-            logger.warning("Wifi status error: %s" % e)
-            return WifiConnectionState.DOWN
-
-        if '100' in device_status:
-            return WifiConnectionState.CONNECTED
-        elif '50' in device_status:
-            return WifiConnectionState.CONNECTING
-        else:
-            return WifiConnectionState.DISCONNECTED
-
     def _scan_wifi_loop(self, waitsec=20, discard_time=60):
         found_ssids = {}
 
         def scan_wifi_networks():
-            try:
-                iw_scan_result = check_output(['iw', 'dev', self._wlan_adapter, 'scan']).decode()
-            except CalledProcessError as e:
-                logger.warning("Scanning wifi networks failed: %s" % e)
-                return
-
             ssids = []
-            for line in iw_scan_result.split('\n'):
-                if 'SSID: ' in line:
-                    ssid = line.split('SSID: ', 1)[1]
-                    if ssid:
-                        ssids.append(ssid)
+            for dev in NetworkManager.NetworkManager.GetDevices():
+                if dev.DeviceType != NetworkManager.NM_DEVICE_TYPE_WIFI:
+                    continue
+                for ap in dev.GetAccessPoints():
+                    ssids.append(ap.Ssid)
 
             for ssid in ssids:
                 if ssid not in found_ssids:
@@ -191,15 +161,15 @@ class BluenetDaemon(object):
                     del found_ssids[ssid]
 
             if (self._current_ssid in found_ssids and
-                    self.get_wifi_status() == WifiConnectionState.DISCONNECTED):
+                    self._wifi_status == WifiConnectionState.DISCONNECTED):
                 logger.info("Known network reappeared, trying to reconnect to it.")
                 # Actually this should be done by NetworkManager automatically (because
                 # 'autoconnect' flag is true by default) but this doesn't work reliable
                 # (see for example https://bugs.launchpad.net/ubuntu/+source/network-manager/+bug/1354924)
-                try:
-                    call(['nmcli', 'con', 'up', NM_CONNECTION_NAME])
-                except CalledProcessError as e:
-                    logger.warning("Error while trying to bring network back up: %s" % e)
+                connection = self._get_nm_connection()
+                device = self._get_nm_device()
+                if connection and device:
+                    NetworkManager.NetworkManager.ActivateConnection(connection, device, "/")
 
             self._gatt_service.set_available_networks(found_ssids.keys())
 
@@ -208,81 +178,108 @@ class BluenetDaemon(object):
                 scan_wifi_networks()
             time.sleep(waitsec)
 
-    def _run_wifi_status_loop(self):
-        status = self.get_wifi_status()
-        self._gatt_service.set_connection_state(status, self._current_ssid)
+    def _listen_for_wifi_state_changes(self):
+        dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
-        def print_status(status):
+        def print_status(status, nm_state):
             if status in (WifiConnectionState.CONNECTING, WifiConnectionState.CONNECTED):
-                logger.info("Wifi status changed: %s to %s" % (status, self._current_ssid))
+                logger.info("Wifi status changed: %s (%d) to %s" % (status, nm_state, self._current_ssid))
             else:
-                logger.info("Wifi status changed: %s" % status)
+                logger.info("Wifi status changed: %s (%d)" % (status, nm_state))
 
-        print_status(status)
+        def on_state_changed(nm_instance, nm_state, **kwargs):
 
-        last_status_changed_time = time.time()
-        while True:
-            new_status = self.get_wifi_status()
-            if new_status != status:
-                print_status(new_status)
-                if (self._is_joining_wifi and
-                        new_status == WifiConnectionState.DISCONNECTED and
-                        time.time() - last_status_changed_time < 10.0):
-                    # When WiFi adapter was already connected, the WiFi state will change
-                    # from `connecting` to `disconnected` to `connected`. To prevent
-                    # `disconnected` to be notified, we wait 5 seconds if we actually
-                    # succeed to connect after a intermediate disconnect step.
-                    logger.info("Ignoring state change to DISCONNECTED as we are trying to connect to a network")
-                else:
-                    status = new_status
-                    self._on_wifi_status_changed(status)
-                    last_status_changed_time = time.time()
-            if self._ble_peripheral.is_connected:
-                time.sleep(1)
+            if nm_state >= NetworkManager.NM_STATE_CONNECTED_GLOBAL:
+                new_status = WifiConnectionState.CONNECTED
+            elif nm_state > NetworkManager.NM_STATE_DISCONNECTING:
+                new_status = WifiConnectionState.CONNECTING
             else:
-                # NetworkManager is slow at detecting connection changes
-                # -> checking every 30s is enough while setup app is not connected
-                # (when Wifi router is turned off connection status will be "Connecting"
-                # for 2 minutes before going to "Disconnected")
-                time.sleep(30)
+                new_status = WifiConnectionState.DISCONNECTED
+
+            self._update_current_ssid()
+
+            if new_status == self._wifi_status:
+                return
+
+            print_status(new_status, nm_state)
+            self._wifi_status = new_status
+            self._on_wifi_status_changed()
+
+        # check initial status:
+        initial_state = NetworkManager.NetworkManager.State
+        on_state_changed(None, initial_state)
+
+        # listen for changes:
+        NetworkManager.NetworkManager.OnStateChanged(on_state_changed)
+        logger.debug("Start listening to network status changes")
+        # Attention: a GObject.MainLoop() is required for this to work
+        # in this case it is started by the BLE Peripheral object
+
+    def _update_current_ssid(self):
+        connection = self._get_nm_connection()
+        if connection:
+            self._current_ssid = connection.GetSettings().get('802-11-wireless', {}).get('ssid', '')
+        else:
+            self._current_ssid = ''
 
     def _configure_wlan(self, ssid, password):
+        device = self._get_nm_device()
+        if not device:
+            logger.error("Couldn't find the requested network adapter")
+            return
+
         self._is_joining_wifi = ssid is not None
 
-        logger.info("=> nmcli con delete %s" % NM_CONNECTION_NAME)
-        call(['nmcli', 'con', 'delete', NM_CONNECTION_NAME])
+        # delete connection if it already exists:
+        connection = self._get_nm_connection()
+        if connection:
+            logger.info("Deleting connection %s" % NM_CONNECTION_NAME)
+            connection.Delete()
 
         if ssid and password:
-            logger.info("=> nmcli dev wifi con %s password *** ifname %s name %s" %
+            logger.info("Creating connection to %s with %s named %s" %
                         (ssid, self._wlan_adapter, NM_CONNECTION_NAME))
-            call([
-                'nmcli', 'dev', 'wifi',
-                'con', ssid,
-                'password', password,
-                'ifname', self._wlan_adapter,
-                'name', NM_CONNECTION_NAME])
+            connection_params = {
+                'connection': {
+                    'id': NM_CONNECTION_NAME,
+                    'type': '802-11-wireless',
+                },
+                '802-11-wireless': {
+                    'mode': 'infrastructure',
+                    'ssid': ssid,
+                },
+                '802-11-wireless-security': {
+                    'key-mgmt': 'wpa-psk',
+                    'psk': password,
+                },
+            }
+            NetworkManager.NetworkManager.AddAndActivateConnection(connection_params, device, "/")
         elif ssid:
-            logger.info("=> nmcli dev wifi con %s ifname %s name %s" %
+            logger.info("Creating passwordless connection to %s with %s named %s" %
                         (ssid, self._wlan_adapter, NM_CONNECTION_NAME))
-            call([
-                'nmcli', 'dev', 'wifi',
-                'con', ssid,
-                'ifname', self._wlan_adapter,
-                'name', NM_CONNECTION_NAME])
+            connection_params = {
+                'connection': {
+                    'id': NM_CONNECTION_NAME,
+                    'type': '802-11-wireless',
+                },
+                '802-11-wireless': {
+                    'mode': 'infrastructure',
+                    'ssid': ssid,
+                },
+            }
+            NetworkManager.NetworkManager.AddAndActivateConnection(connection_params, device, "/")
 
         self._is_joining_wifi = False
 
-    def _on_wifi_status_changed(self, new_status):
-        self._gatt_service.set_connection_state(new_status, self._current_ssid)
-        if new_status == WifiConnectionState.CONNECTED:
+    def _on_wifi_status_changed(self):
+        self._gatt_service.set_connection_state(self._wifi_status, self._current_ssid)
+        if self._wifi_status == WifiConnectionState.CONNECTED:
             self._update_hostname()
-        self._update_advertising_state(new_status)
+        self._update_advertising_state()
 
-    def _update_advertising_state(self, wifi_status=None):
-        if not wifi_status:
-            wifi_status = self.get_wifi_status()
+    def _update_advertising_state(self):
         if (self._auto_advertise and
-                wifi_status == WifiConnectionState.CONNECTED and
+                self._wifi_status == WifiConnectionState.CONNECTED and
                 not self._ble_peripheral.is_connected and
                 self._ble_peripheral.is_advertising):
             # re-enabling advertisement is not possible while a device is connected
@@ -290,7 +287,7 @@ class BluenetDaemon(object):
             logging.info("Wifi connected. Stopping BLE advertisement.")
             self._ble_peripheral.stop_advertising()
         elif (not self._ble_peripheral.is_advertising and
-                (not self._auto_advertise or wifi_status == WifiConnectionState.DISCONNECTED)):
+                (not self._auto_advertise or self._wifi_status == WifiConnectionState.DISCONNECTED)):
             logging.info("Starting BLE advertisement to be able to "
                          "use the setup app to reconfigure Wifi.")
             self._ble_peripheral.start_advertising()
@@ -311,24 +308,42 @@ class BluenetDaemon(object):
             return self._hostname
 
     def _get_ip_address(self):
+        device = self._get_nm_device()
+        if not device:
+            logger.error("Couldn't find the requested network adapter")
+            return None
+
+        if not device.Ip4Config:
+            return None
+
+        addresses = device.Ip4Config.AddressData
+        if addresses:
+            return addresses[0].get('address', None)
+
+    def _get_nm_connection(self):
         try:
-            ifconfig_output = check_output(['ifconfig', self._wlan_adapter]).decode()
-        except CalledProcessError as e:
-            logger.warning("ifconfig error: %s" % e)
+            connections = NetworkManager.Settings.ListConnections()
+            connections_by_name = dict([(x.GetSettings()['connection']['id'], x) for x in connections])
+        except AttributeError as e:
+            logger.warning("Error while trying to get NetworkManager connection: %s" % e)
             return None
+        return connections_by_name.get(NM_CONNECTION_NAME, None)
 
-        if 'addr:' not in ifconfig_output:
+    def _get_nm_device(self):
+        try:
+            devices = NetworkManager.NetworkManager.GetDevices()
+            devices_by_name = dict([(d.Interface, d) for d in devices])
+        except AttributeError as e:
+            logger.warning("Error while trying to get NetworkManager device: %s" % e)
             return None
-
-        ip = ifconfig_output.split('addr:', 1)[1].split(' ', 1)[0]
-        return ip
+        return devices_by_name.get(self._wlan_adapter, None)
 
     def _start_rpc_server(self):
-        def bluenet_is_connected():
+        def is_bluenet_connected():
             return self._ble_peripheral.is_connected
 
         server = SimpleXMLRPCServer(('127.0.0.1', 6459), requestHandler=RequestHandler)
-        server.register_function(bluenet_is_connected)
+        server.register_function(is_bluenet_connected)
         logger.info("Starting RPC server")
         server.serve_forever()
 

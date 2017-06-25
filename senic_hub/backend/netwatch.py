@@ -90,7 +90,7 @@ class NetwatchSupervisor(object):
             logger.debug("Staying in provisioning mode because connection is lost again")
             return
 
-        logger.debug("Normal mode: Stopping Bluenet and starting nuimo_app")
+        logger.debug("Normal mode: Stopping Bluenet and starting Nuimo App")
         try:
             stop_program('bluenet')
         except xmlrpc.client.Fault as e:
@@ -103,14 +103,14 @@ class NetwatchSupervisor(object):
                 logger.debug("nuimo_app is already running")
                 pass
             else:
-                logger.warning("Error while starting nuimo_app: %s" % str(e))
+                logger.warning("Error while starting Nuimo App: %s" % str(e))
 
     def _switch_to_provisioning_mode(self):
-        logger.debug("Provisioning mode:  Stopping nuimo_app and starting Bluenet")
+        logger.debug("Provisioning mode:  Stopping Nuimo App and starting Bluenet")
         try:
             stop_program('nuimo_app')
         except xmlrpc.client.Fault as e:
-            logger.warning("Error while stopping nuimo_app: %s" % str(e))
+            logger.warning("Error while stopping Nuimo App: %s" % str(e))
 
         try:
             start_program('bluenet')
