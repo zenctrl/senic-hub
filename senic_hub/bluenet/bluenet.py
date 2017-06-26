@@ -324,11 +324,11 @@ class BluenetDaemon(object):
         return ip
 
     def _start_rpc_server(self):
-        def bluenet_is_connected():
+        def is_bluenet_connected():
             return self._ble_peripheral.is_connected
 
         server = SimpleXMLRPCServer(('127.0.0.1', 6459), requestHandler=RequestHandler)
-        server.register_function(bluenet_is_connected)
+        server.register_function(is_bluenet_connected)
         logger.info("Starting RPC server")
         server.serve_forever()
 
