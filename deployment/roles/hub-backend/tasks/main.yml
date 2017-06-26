@@ -113,17 +113,3 @@
     group: "{{run_user}}"
     mode: "0644"
 
-# - name: ensure supervisord is running
-#   service:
-#     name: supervisor
-#     state: running
-#     enabled: true
-
-- name: make sure we enter wifi setup mode when we boot
-  file:
-    path: "{{backend_data_location}}/wifi_setup_required"
-    owner: "{{ run_user }}"
-    group: "{{ run_user }}"
-    state: touch
-  when: enter_wifi_setup_mode is defined and enter_wifi_setup_mode
-  notify: restart wifi_setup
