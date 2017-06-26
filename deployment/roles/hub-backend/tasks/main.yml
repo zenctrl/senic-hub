@@ -2,24 +2,6 @@
 # these are the platform independent steps to setup the hub
 # they should work on any *NIX platfform, provided that the
 # platform specific dependencies have been installed
-- name: create deployment location
-  become: true
-  file:
-    dest: "{{backend_deploy_location}}"
-    owner: "{{build_user}}"
-    group: "{{run_user}}"
-    mode: "0755"
-    state: directory
-
-- name: create data location
-  become: true
-  file:
-    dest: "{{backend_data_location}}"
-    owner: "{{run_user}}"
-    group: "{{run_user}}"
-    mode: "0750"
-    state: directory
-
 - name: give {{run_user}} access to bluez dbus
   become: true
   template:
@@ -130,24 +112,6 @@
     owner: "{{run_user}}"
     group: "{{run_user}}"
     mode: "0644"
-
-- name: configure supervisor
-  become: yes
-  template:
-    src: supervisor.conf
-    dest: /etc/supervisor/conf.d/senic_hub.conf
-    mode: "0644"
-  notify: reload supervisord
-
-- name: create configuration file
-  become: yes
-  template:
-    src: production.ini
-    dest: "{{backend_deploy_location}}/production.ini"
-    owner: "{{build_user}}"
-    group: "{{run_user}}"
-    mode: "0644"
-  notify: restart senic_hub
 
 # - name: ensure supervisord is running
 #   service:
