@@ -59,16 +59,14 @@ class NuimoApp(NuimoControllerListener):
 
         self.controller = Controller(mac_address, self.manager)
         self.controller.listener = self
-        self.controller.connect()
 
         for component in self.components:
             component.nuimo = self
 
-        component = self.get_next_component()
-        if component:
-            self.set_active_component(component)
-
     def start(self):
+        self.set_active_component()
+        logger.info("Connecting to Nuimo controller", self.controller.mac_address)
+        self.controller.connect()
         self.manager.run()
 
     def stop(self):
