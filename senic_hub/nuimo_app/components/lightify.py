@@ -74,7 +74,7 @@ class Component(ThreadComponent):
         prev_sync_time = time()
         prev_update_time = time()
 
-        while not self.stopping:
+        while not self.stopped:
             now = time()
 
             if (self.brightness_delta != 0 or self.on != self.prev_on) and now - prev_update_time >= 0.1:

@@ -46,7 +46,7 @@ class Component(ThreadComponent):
             self.unsubscribe_from_events()
 
     def run_loop(self):
-        while not self.stopping:
+        while not self.stopped:
             try:
                 event = self.av_transport_subscription.events.get(timeout=0.1)
 

@@ -316,9 +316,8 @@ class Component(ThreadComponent):
     def run(self):
         prev_sync_time = time()
         prev_update_time = time()
-        self.stopping = False
 
-        while not self.stopping:
+        while not self.stopped:
             now = time()
 
             if self.delta and now - prev_update_time >= self.lights.update_interval:
