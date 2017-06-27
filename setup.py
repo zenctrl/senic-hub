@@ -58,7 +58,6 @@ setup(
         'pyramid_tm',
         'pytz',
         'requests',
-        'wifi',
         # nuimo_app
         'websocket-client==0.40.0',
         'soco==0.12',
@@ -75,9 +74,7 @@ setup(
         [paste.app_factory]
         main = senic_hub.backend:main
         [console_scripts]
-        wifi_setup = senic_hub.backend.wifi_setup:wifi_setup
         bluenet = senic_hub.bluenet.bluenet:bluenet_cli
-        scan_wifi = senic_hub.backend.wifi_setup:scan_wifi
         create_configurations = senic_hub.backend.commands:create_configuration_files_and_restart_apps
         device_discovery = senic_hub.backend.commands:device_discovery
         nuimo_app = senic_hub.nuimo_app.__main__:main
