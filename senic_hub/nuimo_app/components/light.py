@@ -44,7 +44,10 @@ class Component(HomeAssistantComponent):
             self.brightness = 1
         else:
             self.brightness = min(max(int(self.brightness + 255 * delta), 0), 255)
-        self.send_brightness()
+        if self.brightness == 0:
+            self.turn_off()
+        else:
+            self.send_brightness()
         self.nuimo.display_matrix(matrices.progress_bar(self.brightness / 255.0), fading=True, ignore_duplicates=True)
 
     def on_button_press(self):
@@ -53,11 +56,17 @@ class Component(HomeAssistantComponent):
         if self.is_on is None:
             self.nuimo.display_matrix(matrices.ERROR)
         elif self.is_on:
-            self.nuimo.display_matrix(matrices.LIGHT_OFF)
-            self.call_ha_service("turn_off")
+            self.turn_off()
         else:
-            self.nuimo.display_matrix(matrices.LIGHT_ON)
-            self.call_ha_service("turn_on")
+            self.turn_on()
+
+    def turn_on(self):
+        self.nuimo.display_matrix(matrices.LIGHT_ON)
+        self.call_ha_service("turn_on")
+
+    def turn_off(self):
+        self.nuimo.display_matrix(matrices.LIGHT_OFF)
+        self.call_ha_service("turn_off")
 
     def on_swipe_right(self):
         logger.debug("swipe right")
