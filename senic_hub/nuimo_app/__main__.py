@@ -23,7 +23,7 @@ def main(config):
     # urllib3 logger is very verbose so we hush it down
     logging.getLogger("urllib3.connectionpool").setLevel(logging.CRITICAL)
 
-    app = get_app(abspath(config))
+    app = get_app(abspath(config), name='senic_hub')
     config, component_config = read_config(app.registry.settings['nuimo_app_config_path'])
     logger.info("Using configuration from: %s", app.registry.settings['nuimo_app_config_path'])
 
