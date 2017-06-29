@@ -40,19 +40,28 @@ class ThreadComponent(BaseComponent):
         self.stopped = True
         self.thread = None
 
+    def start(self):
+        self.stopped = False
+        self.thread = Thread(target=self._run)
+        self.thread.start()
+
+    def stop(self):
+        self.stopped = True
+
+    def _run(self):
+        try:
+            self.run()
+        except Exception as e:
+            logger.error("Failure while running component '%s'")
+            logger.exception(e)
+        finally:
+            self.stopped = True
+
     def run(self):
         """
         Concrete components must implement run() method
         """
         raise NotImplementedError()
-
-    def start(self):
-        self.stopped = False
-        self.thread = Thread(target=self.run)
-        self.thread.start()
-
-    def stop(self):
-        self.stopped = True
 
 
 class HomeAssistantComponent(BaseComponent):

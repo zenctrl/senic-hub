@@ -88,7 +88,12 @@ class NuimoApp(NuimoControllerListener):
             return
 
         if not self.active_component:
-            logger.warn("Ignoring event, no active component...")
+            logger.warn("Ignoring event, no active component")
+            self.show_error_matrix()
+            return
+
+        if self.active_component.stopped:
+            logger.warn("Ignoring event, component is not running")
             self.show_error_matrix()
             return
 
