@@ -18,12 +18,12 @@ logger = logging.getLogger(__name__)
 @click.command(help="confifguration file for the Nuimo app")
 @click.option('--config', '-c', required=True, type=click.Path(exists=True), help="app configuration file")
 def main(config):
-    app = get_app(abspath(config), name='senic_hub_backend')
     setup_logging(config)
 
     # urllib3 logger is very verbose so we hush it down
     logging.getLogger("urllib3.connectionpool").setLevel(logging.CRITICAL)
 
+    app = get_app(abspath(config))
     config, component_config = read_config(app.registry.settings['nuimo_app_config_path'])
     logger.info("Using configuration from: %s", app.registry.settings['nuimo_app_config_path'])
 

@@ -37,7 +37,7 @@ class BaseComponent:
 class ThreadComponent(BaseComponent):
     def __init__(self, component_id, config):
         super().__init__(component_id, config)
-        self.stopping = True
+        self.stopped = True
         self.thread = None
 
     def run(self):
@@ -47,12 +47,12 @@ class ThreadComponent(BaseComponent):
         raise NotImplementedError()
 
     def start(self):
-        self.stopping = False
+        self.stopped = False
         self.thread = Thread(target=self.run)
         self.thread.start()
 
     def stop(self):
-        self.stopping = True
+        self.stopped = True
 
 
 class HomeAssistantComponent(BaseComponent):
