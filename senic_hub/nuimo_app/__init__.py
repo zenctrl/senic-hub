@@ -65,7 +65,7 @@ class NuimoApp(NuimoControllerListener):
 
     def start(self):
         self.set_active_component()
-        logger.info("Connecting to Nuimo controller", self.controller.mac_address)
+        logger.info("Connecting to Nuimo controller %s", self.controller.mac_address)
         self.controller.connect()
         self.manager.run()
 
