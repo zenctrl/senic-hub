@@ -30,7 +30,6 @@ setup(
     ],
     packages=[name],
     include_package_data=True,
-    data_files=sorted(find_data('senic_hub/frontend/distribution')),
     package_dir={name: 'senic_hub'},
     package_data={
         name: [
@@ -38,7 +37,6 @@ setup(
             'senic_hub/backend/tests/*.py',
             'senic_hub/backend/tests/data/*.*',
             'senic_hub/backend/views/*.*',
-            'senic_hub/frontend/distribution',
         ],
     },
     zip_safe=False,
