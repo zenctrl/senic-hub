@@ -88,7 +88,7 @@ class HomeAssistant(Thread):
 
         self.reconnection_interval = 5  # seconds
 
-        self.stopping = False
+        self.stopped = False
 
         self.result_callbacks = None
         self.state_listeners = defaultdict(list)  # entity_id: [callback1, ...]
@@ -138,7 +138,7 @@ class HomeAssistant(Thread):
         if on_disconnect_listener:
             on_disconnect_listener()
 
-        if self.stopping:
+        if self.stopped:
             return
 
         logger.warn("Home Assistant connection lost! Trying to reconnect in %s seconds...", self.reconnection_interval)
@@ -177,7 +177,7 @@ class HomeAssistant(Thread):
     def run(self):
         self.connect()
 
-        while not self.stopping:
+        while not self.stopped:
             if not (self.connection and self.connection.connected):
                 if time() >= self.next_reconnect_time:
                     self.connect()
@@ -230,7 +230,7 @@ class HomeAssistant(Thread):
         return next((x for x in states if x["entity_id"] == entity_id), None)
 
     def stop(self):
-        self.stopping = True
+        self.stopped = True
 
         if self.connection:
             self.connection.stop()

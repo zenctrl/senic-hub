@@ -30,25 +30,23 @@ class Component(ThreadComponent):
         super().__init__(component_id, config)
 
         self.sonos_controller = SoCo(config['ip_address'])
-
         self.volume_range = range(0, 100)
-
         self.event_listener = event_listener  # comes from global scope
-
-        # TODO: Subscribe only when component is active, i.e. "running", unsubscribe when stopped
-        self.subscribe_to_events()
-
         self.state = None
         self.volume = None
-        self.update_state()
-
         self.nuimo = None
-
-        self.stopping = False
         self.last_request_time = time()
 
     def run(self):
-        while not self.stopping:
+        self.subscribe_to_events()
+        self.update_state()
+        try:
+            self.run_loop()
+        finally:
+            self.unsubscribe_from_events()
+
+    def run_loop(self):
+        while not self.stopped:
             try:
                 event = self.av_transport_subscription.events.get(timeout=0.1)
 
@@ -68,9 +66,12 @@ class Component(ThreadComponent):
                 pass
 
     def subscribe_to_events(self):
-        # TODO: `subscribe` throws if the Speaker is offline
         self.av_transport_subscription = self.sonos_controller.avTransport.subscribe()
         self.rendering_control_subscription = self.sonos_controller.renderingControl.subscribe()
+
+    def unsubscribe_from_events(self):
+        self.rendering_control_subscription.unsubscribe()
+        self.av_transport_subscription.unsubscribe()
 
     def update_state(self):
         self.state = self.sonos_controller.get_current_transport_info()['current_transport_state']
@@ -144,14 +145,3 @@ class Component(ThreadComponent):
             self.nuimo.display_matrix(matrices.ERROR)
 
         self.last_request_time = time()
-
-    def stop(self):
-        try:
-            self.rendering_control_subscription.unsubscribe()
-            self.av_transport_subscription.unsubscribe()
-        except Exception:
-            # TODO figure out why it's not SoCoException
-            logger.exception("Unsubscribe failed")
-
-        self.event_listener.stop()
-        super().stop()
