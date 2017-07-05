@@ -87,9 +87,12 @@ export default class SetupWifi extends Screen {
 
   onNetworkSelected(ssid) {
     if (this.state.currentHubSsid === ssid) {
+      // The Hub is already connected to the network the user just selected
+      // In the case we can directly jump to the boot screen where we try
+      // to locate the Hub at its API URL.
       HubOnboarding.hubDevice.readApiUrl()
         .then(apiUrl => Settings.setHubApiUrl(apiUrl))
-        .then(() => this.pushScreen('setup.nuimo'))
+        .then(() => this.pushScreen('setup.boot'))
     }
     else {
       this.pushScreen('setup.wifiPassword', {ssid: ssid})

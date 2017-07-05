@@ -53,23 +53,25 @@ export default class SetupNuimo extends Screen {
   }
 
   bootstrapNuimos() {
-    //TODO: Promise chain doesn't get cancelled when component unmounts
-    //TODO: Write tests for all possible API call responses, server not available, etc.
-    fetch(Settings.HUB_API_URL + 'setup/nuimo/bootstrap', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({})
-    })
-      .then((response) => {
-        if (response.ok) {
-          return response.json()
+    Promise
+      .race([
+        fetch(Settings.HUB_API_URL + 'setup/nuimo/bootstrap', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({})
+        }),
+        new Promise((resolve, reject) => setTimeout(reject, 30000, 'Bootstrapping Nuimos request timed out')),
+      ])
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Request failed: ' + JSON.stringify(response))
         }
-        throw new Error('Request failed: ' + JSON.stringify(response))
+        return response.json()
       })
-      .then((response) => {
+      .then(response => {
         let controllers = response.connectedControllers
         if (controllers.length > 0) {
           this.setState({ nuimos: controllers })
@@ -79,8 +81,9 @@ export default class SetupNuimo extends Screen {
           this.bootstrapNuimos()
         }
       })
-      .catch((error) => {
-        alert(error)
+      .catch(error => {
+        console.log('Failed to bootstrap nuimos:', error)
+        this.resetTo('setup.boot')
       })
   }
 }

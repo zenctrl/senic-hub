@@ -125,8 +125,11 @@ export default class SetupWifiPassword extends Screen {
   }
 
   continue() {
-    HubOnboarding.hubDevice.disconnect()
-    this.pushScreen('setup.nuimo')
+    // Now that we know the Hub's API URL we can go back to the boot screen and check
+    // if we can reach Hub via its HTTP API. If that's the case then we will
+    // automatically continue with the onboarding of Nuimo if the Hub isn't yet
+    // fully onboarded.
+    this.resetTo('setup.boot')
   }
 }
 

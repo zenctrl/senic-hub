@@ -36,7 +36,7 @@ export default class HubOnboarding {
   }
 
   constructor(device) {
-    console.log("Hub: instance created for " + device.id + " - " + device.name)
+    console.log("Hub Bluetooth: instance created for " + device.id + " - " + device.name)
     this.device = device
     this.connectionState = WifiConnectionState.CONNECTION_STATE_UNKNOWN
     this.currentSsid = ''
@@ -49,34 +49,34 @@ export default class HubOnboarding {
   }
 
   connect() {
-    console.log("Hub: connecting")
+    console.log("Hub Bluetooth: connecting...")
     return this.device
       .connect()
       .then(device => {
-        console.log("Hub: discovering services and characteristics")
+        console.log("Hub Bluetooth: discovering services and characteristics")
         return device.discoverAllServicesAndCharacteristics()
       })
       .then(device => {
-        console.log("Hub: setting up notifications")
+        console.log("Hub Bluetooth: setting up notifications")
         return this._setupNotifications()
       })
       .then(() => {
-        console.log("Hub: connected")
+        console.log("Hub Bluetooth: connected")
         this._retrieveInitialValues()
       })
       .catch(error => {
-        console.log("Hub: error while trying to connect: " + error.message)
+        console.log("Hub Bluetooth: error while trying to connect: " + error.message)
         if (retry) {
-          console.log("Hub: trying again to connect")
+          console.log("Hub Bluetooth: trying again to connect")
           return this.connect(retry=false)
         }
       })
   }
 
   disconnect() {
-    console.log("Hub: disconnecting")
+    console.log("Hub Bluetooth: disconnecting...")
     this.device.cancelConnection().then((device) => {
-      console.log("Hub: disconnected successful")
+      console.log("Hub Bluetooth: disconnected")
     })
   }
 

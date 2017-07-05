@@ -55,7 +55,7 @@ export default class SetupHubApiUrl extends Screen {
     Keyboard.dismiss()
 
     Settings.setHubApiUrl('http://' + this.state.ip + ':6543/-/')
-      .then(() => this.pushScreen('setup.nuimo'))
+      .then(() => this.resetTo('setup.boot'))
   }
 }
 

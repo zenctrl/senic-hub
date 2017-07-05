@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import HubOnboarding from '../HubOnboarding'
 import Screen from './Screen.js';
 import Settings from '../Settings'
 
@@ -16,93 +17,123 @@ export default class BootScreen extends Screen {
     this.state = {
       hubUnreachable: false,
     }
+
+    this.updateTitle()
   }
 
   didAppear() {
-    this.pingHub()
+    // When this screen is entered we either (re-)start onboarding a Hub or we
+    // have just successfully provisioned the Hub with Wi-Fi. In both cases we
+    // need to disconnect from the Hub if it we previously connected to it via
+    // Bluetooth. In the case of (re-)starting onboarding we need to disconnect
+    // as otherwise the Hub wouldn't be discovered via the Bluetooth discovery
+    // that we are running. In case of successfully provisioning the Hub with
+    // Wi-Fi via Bluetooth we now need to disconnect the Bluetooth connection
+    // to the Hub as otherwise Nuimo controllers cannot be discovered and
+    // connected.
+    if (HubOnboarding.hubDevice) {
+      HubOnboarding.hubDevice.disconnect()
+    }
+    this.detectHubReachabilityAndResetToNextScreenOnSuccess()
   }
 
-  pingHub() {
-    Settings.getHubApiUrl()
-      .then(hubApiUrl => {
-        console.log('Stored Hub API URL:', hubApiUrl)
+  detectHubReachabilityAndResetToNextScreenOnSuccess() {
+    this.setState({ hubUnreachable: false })
 
-        if (!hubApiUrl) {
-          this.resetTo('setup.welcome')
-          return
-        }
-
-        fetch(hubApiUrl)
-          .then(response => {
-            console.log('Host', hubApiUrl, 'reachable...')
-
-            Settings.HUB_API_URL = hubApiUrl
-
-            if (!response.ok) {
-              throw new Error('App info request led to unexpected response code')
-            }
-            return response.json()
-          })
-          .then(appInfo => {
-            console.log('Hub onboarded:', appInfo.onboarded)
-            if (appInfo.onboarded) {
-              this.resetTo('app.nuimoComponents')
-            }
-            else {
-              // We restart onboarding with Nuimo discovery if hub is reachable but not full onboarded
-              this.resetTo('setup.nuimo')
-            }
-          })
-          .catch(error => {
-            console.warn('Failed requesting app info:', error)
-            this.setState({hubUnreachable: true})
+    Promise.resolve()
+      .then(() => {
+        return Settings.getHubApiUrl()
+          .catch(() => {
+            // No Hub API Url stored -> Start Hub onboarding
+            this.resetTo('setup.welcome')
+            throw new Error('No Hub API Url stored') // Cancel outer promise chain
           })
       })
-      .catch(error => {
-        console.warn(error)
-        this.resetTo('setup.welcome')
+      .then(hubApiUrl => {
+        console.log('Trying to fetch Hub info at', hubApiUrl)
+        // TODO: Try to fetch Hub Info a couple of times as user might have just restarted
+        //       the Hub thus it takes a while to boot and start the web server
+        return Promise
+          .race([
+            this.fetchHubInfoAndResetToNextScreenOnSuccess(hubApiUrl),
+            new Promise((resolve, reject) => setTimeout(reject, 3000, 'Fetching Hub info timed out')),
+          ])
+          .catch((error) => {
+            this.setState({ hubUnreachable: true })
+            throw new Error('Could not reach Hub') // Cancel outer promise chain
+          })
+      })
+      .catch(() => null /* Already handled by inner promise chains */)
+  }
+
+  fetchHubInfoAndResetToNextScreenOnSuccess(hubApiUrl) {
+    return fetch(hubApiUrl)
+      .then(response => {
+        console.log('Host', hubApiUrl, 'reachable...')
+
+        Settings.HUB_API_URL = hubApiUrl
+
+        if (!response.ok) {
+          throw new Error('App info request led to unexpected response code')
+        }
+        return response.json()
+      })
+      .then(hubInfo => {
+        console.log('Hub onboarded:', hubInfo.onboarded)
+        if (hubInfo.onboarded) {
+          this.resetTo('app.nuimoComponents')
+        }
+        else {
+          // We restart onboarding with Nuimo discovery if hub is reachable but not fully onboarded
+          this.resetTo('setup.nuimo')
+        }
       })
   }
 
   render() {
     return (
       <View style={styles.container}>
-        {this._renderContent()}
+        {
+          this.state.hubUnreachable
+            ? this.renderHubUnreachableView()
+            : <ActivityIndicator size={"large"} />
+        }
       </View>
     );
   }
 
-  _renderContent() {
-    if (this.state.hubUnreachable) {
-      this.setTitle('Oh, noes')
-
-      return (
+  renderHubUnreachableView() {
+    return (
+      <View>
         <View>
-          <View>
-            <Text>
-              We couldn't reach your Senic hub. Make sure it's connected to power and within reach of your Wi-Fi network.
-            </Text>
-            <Text>
-              In case the onboarding process fails, please try powering on/off the device. If that doesn't help, then perform the factory reset of the device.
-            </Text>
-          </View>
-          <View>
-            <Button title={"Try again to connect to the hub"} onPress={() => {
-              this.setState({hubUnreachable: false})
-              this.pingHub()
-             }} />
-            <Button title={"Restart onboarding"} onPress={() => this.restartOnboarding()} />
-          </View>
+          <Text>
+            We couldn't reach your Senic hub. Make sure it's connected to power and within reach of your Wi-Fi network.
+          </Text>
+          <Text>
+            In case the onboarding process fails, please try powering on/off the device. If that doesn't help, then perform the factory reset of the device.
+          </Text>
         </View>
-      )
-    }
-    else {
-      this.setTitle('Connecting to the hub...')
+        <View>
+          <Button
+            title="Try again to connect to the Hub"
+            onPress={() => this.detectHubReachabilityAndResetToNextScreenOnSuccess()}
+          />
+          <Button
+            title="Restart Hub Setup"
+            onPress={() => this.restartOnboarding()} />
+        </View>
+      </View>
+    )
+  }
 
-      return (
-        <ActivityIndicator size={"large"} />
-      )
-    }
+  componentDidUpdate() {
+    this.updateTitle()
+  }
+
+  updateTitle() {
+    this.setTitle(this.state.hubUnreachable
+      ? "Oh, noes"
+      : "Connecting to the Hub...")
   }
 
   restartOnboarding() {

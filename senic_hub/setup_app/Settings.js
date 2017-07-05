@@ -9,7 +9,11 @@ export default class Settings {
   static HUB_API_URL = null
 
   static async getHubApiUrl() {
-    return await AsyncStorage.getItem(this.SETTINGS_STORE_NAME + ':hubApiUrl')
+    url = await AsyncStorage.getItem(this.SETTINGS_STORE_NAME + ':hubApiUrl')
+    if (!url) {
+      throw new Error('No Hub API URL stored in settings')
+    }
+    return url
   }
 
   static async setHubApiUrl(value) {
