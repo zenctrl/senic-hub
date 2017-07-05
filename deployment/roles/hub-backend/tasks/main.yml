@@ -89,7 +89,7 @@
       WebOb==1.7.0rc2
       zope.deprecation==4.2.0
       zope.interface==4.3.3
-      https://github.com/tfriedel/python-lightify/archive/1bb1db0e7bd5b14304d7bb267e2398cd5160df46.zip
+      lightify==1.0.5
       raven==6.1.0
       senic_hub
 
