@@ -25,3 +25,6 @@
     - bluenet
 #  notify: reload supervisord
   tags: wifi
+
+- include: ntp.yml
+  tags: time
