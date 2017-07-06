@@ -6,7 +6,7 @@ import signal
 import sys
 import time
 
-from os.path import abspath, exists
+from os.path import abspath
 from datetime import datetime, timedelta
 from pyramid.paster import get_app, setup_logging
 from tempfile import mkstemp
@@ -129,10 +129,16 @@ def device_discovery(config):
     signal.signal(signal.SIGINT, sigint_handler)
 
     while True:
-        if exists(devices_path):
+        try:
             with open(devices_path, 'r') as f:
                 devices = json.load(f)
-        else:
+        except OSError as e:
+            logging.warning("Could not open devices file %s", devices_path)
+            logging.warning(e, exc_info=True)
+        except json.decoder.JSONDecodeError as e:
+            logging.warning("Could not JSON-decode devices file %s", devices_path)
+            logging.warning(e, exc_info=True)
+        finally:
             devices = []
 
         now = datetime.utcnow()
