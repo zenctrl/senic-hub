@@ -4,6 +4,7 @@ import dbus
 import dbus.exceptions
 import dbus.mainloop.glib
 import dbus.service
+from subprocess import call, CalledProcessError
 
 try:
     from gi.repository import GObject
@@ -48,6 +49,8 @@ class Peripheral(object):
 
         self._adapter_props = dbus.Interface(
             self.bus.get_object(BLUEZ_SERVICE_NAME, self._adapter_path), DBUS_PROP_IFACE)
+
+        self._disable_br_edr()
 
         logger.info("Creating BLE Peripheral with alias: %s" % alias)
 
@@ -273,6 +276,22 @@ class Peripheral(object):
         except dbus.exceptions.DBusException:
             logger.warning("Couldn't unregister application, maybe it wasn't created.")
         logger.info("Peripheral unregistered")
+
+    def _disable_br_edr(self):
+        # Android 5.1 tries to connect with BR/EDR and not with BLE
+        # this is a workaround to prevent this
+        # eventually this should be done in a configuration file as described in
+        # https://github.com/getsenic/senic-hub/issues/170#issuecomment-309068449
+        logger.info("Disabling BR/EDR...")
+        was_powered = self.is_powered
+        self.is_powered = False
+        try:
+            # TODO: the run_user needs the right to call btmgmt
+            # currently `user={{ run_user }}` is commented out in bluenet_supervisor.conf
+            call(['btmgmt', 'bredr', 'off'])
+        except CalledProcessError as e:
+            logger.warning("Error while trying to disable BR/EDR: %s" % e)
+        self.is_powered = was_powered
 
 
 class BleNotSupportedException(Exception):
