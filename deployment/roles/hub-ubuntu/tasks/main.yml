@@ -24,7 +24,7 @@
     - nuimo_app
     - bluenet
 #  notify: reload supervisord
-  tags: wifi
+  tags: supervisor
 
 - include: ntp.yml
   tags: time

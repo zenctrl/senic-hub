@@ -29,12 +29,15 @@ def bootstrap_nuimos(request):  # pragma: no cover,
     required_mac_address = request.registry.settings.get('nuimo_mac_address')
     setup = nuimo_setup.NuimoSetup(adapter_name=adapter_name)
     mac_address = setup.discover_and_connect_controller(required_mac_address=required_mac_address, timeout=20)
+
     logger.info("Discovered and connected Nuimo: %s", mac_address)
+
     if mac_address:
         output_filepath = request.registry.settings['nuimo_mac_address_filepath']
         logger.debug("Write MAC address to %s", output_filepath)
         with open(output_filepath, 'w') as output_file:
             output_file.write(mac_address + '\n')
+
     return get_connected_nuimos(request)
 
 

@@ -32,14 +32,7 @@ COMPONENT_FOR_TYPE = {
 logger = logging.getLogger(__name__)
 
 
-@click.command(help='create configuration files for nuimo app & hass and restart them')
-@click.option('--config', '-c', required=True, type=click.Path(exists=True), help='app configuration file')
-def create_configuration_files_and_restart_apps(config):
-    app = get_app(abspath(config), name='senic_hub')
-    create_configuration_files_and_restart_apps_(app.registry.settings)
-
-
-def create_configuration_files_and_restart_apps_(settings):
+def create_configuration_files_and_restart_apps(settings):
     # generate homeassistant config & restart supervisor app
     with open(settings['devices_path'], 'r') as f:
         devices = json.load(f)
