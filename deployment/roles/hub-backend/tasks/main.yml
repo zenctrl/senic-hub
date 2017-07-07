@@ -105,7 +105,7 @@
 - name: initialize cryptoyaml key
   become: true
   become_user: "{{build_user}}"
-  command: "{{backend_deploy_location}}/venv/bin/cryptoyaml generate_key {{backend_deploy_location}}/production.key"
+  command: "cryptoyaml generate_key {{backend_deploy_location}}/production.key"
   args:
     chdir: "{{backend_deploy_location}}"
     creates: "{{backend_deploy_location}}/production.key"
@@ -115,7 +115,7 @@
 
 - name: initialize cryptoyaml settings
   become: true
-  command: "{{backend_deploy_location}}/venv/bin/cryptoyaml create {{backend_deploy_location}}/production.yml.aes --keyfile {{backend_deploy_location}}/production.key"
+  command: "cryptoyaml create {{backend_deploy_location}}/production.yml.aes --keyfile {{backend_deploy_location}}/production.key"
   args:
     chdir: "{{backend_deploy_location}}"
     creates: "{{backend_deploy_location}}/production.yml.aes"
