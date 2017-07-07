@@ -30,7 +30,7 @@ One time setup
 Publish new beta app
 --------------------
 
-* Increase version numbers in ``senic_hub/setup_app/android/app/build.gradle`` file
+* Increase version code and version name in ``senic_hub/setup_app/android/app/build.gradle``
 * Run ``CRASHLYTICS_BUILD_SECRET=secret_goes_here fastlane beta`` from ``senic_hub/setup_app/android`` directory. ``CRASHLYTICS_BUILD_SECRET`` is available in 1Password entry ``Software/Crashlytics Android Secret build key``
 
 iOS
