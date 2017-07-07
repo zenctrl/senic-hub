@@ -122,6 +122,14 @@ def devices_details_view(request):
     device_list_path = request.registry.settings['devices_path']
     device = get_device(device_list_path, device_id)
 
+    # Only Philips Hue has device details at the moment
+    # TODO: In the future, each single Philips Hue light should be returned as a regular
+    #       device. Philips Hue bridges should be flagged with `virtual: True` since they
+    #       are not controlled by the user. However, all its lights should be returned as
+    #       well when requesting `/devices`.
+    if device['type'] != 'philips_hue':
+        return {}
+
     homeassistant_data_path = request.registry.settings["homeassistant_data_path"]
     phue_bridge_config = os.path.join(homeassistant_data_path, '{}.conf'.format(device["id"]))
     config = read_json(phue_bridge_config, {})

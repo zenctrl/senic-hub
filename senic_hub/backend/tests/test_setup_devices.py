@@ -186,29 +186,51 @@ def test_devices_authenticate_try_authenticate_when_username_has_expired(
 
 
 @fixture
-def details_url(route_url):
+def phue_details_url(route_url):
     return route_url('devices_details', device_id="ph1")
 
 
 @responses.activate
 def test_devices_details_returns_list_of_lights(
-        phue_config_file, browser, details_url, philips_hue_bridge_description):
+        phue_config_file, browser, phue_details_url, philips_hue_bridge_description):
     responses.add(responses.GET, 'http://127.0.0.1/description.xml', body=philips_hue_bridge_description, status=200)
     responses.add(responses.GET, 'http://127.0.0.1/api/23/lights', json={"0": {}}, status=200)
-    assert browser.get_json(details_url).json == {"0": {}}
+    assert browser.get_json(phue_details_url).json == {"0": {}}
 
 
 @responses.activate
 def test_devices_details_returns_502_if_philips_hue_bridge_returns_error(
-        phue_config_file, browser, details_url, philips_hue_bridge_description):
+        phue_config_file, browser, phue_details_url, philips_hue_bridge_description):
     response_payload = {"error": {"type": 12345}}
     responses.add(responses.GET, 'http://127.0.0.1/api/23/lights', json=response_payload, status=200)
     responses.add(responses.GET, 'http://127.0.0.1/description.xml', body=philips_hue_bridge_description, status=200)
-    assert browser.get_json(details_url, status=502)
+    assert browser.get_json(phue_details_url, status=502)
 
 
 @responses.activate
 def test_devices_details_returns_400_if_not_authenticated(
-        no_phue_config_file, browser, details_url, philips_hue_bridge_description):
+        no_phue_config_file, browser, phue_details_url, philips_hue_bridge_description):
     responses.add(responses.GET, 'http://127.0.0.1/description.xml', body=philips_hue_bridge_description, status=200)
-    assert browser.get_json(details_url, status=400)
+    assert browser.get_json(phue_details_url, status=400)
+
+
+@fixture
+def sonos_details_url(route_url):
+    return route_url('devices_details', device_id="s1")
+
+
+@responses.activate
+def test_devices_details_returns_empty_object_for_non_phue_devices(
+        phue_config_file, browser, sonos_details_url):
+    assert browser.get_json(sonos_details_url).json == {}
+
+
+@fixture
+def no_such_device_details_url(route_url):
+    return route_url('devices_details', device_id="deadbeef")
+
+
+@responses.activate
+def test_devices_details_returns_404_if_device_does_not_exist(
+        phue_config_file, browser, no_such_device_details_url):
+    assert browser.get_json(no_such_device_details_url, status=404)
