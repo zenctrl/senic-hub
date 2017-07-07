@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 
 from copy import deepcopy
 from enum import IntEnum
+from requests.exceptions import ConnectionError
 
 import requests
 
@@ -170,6 +171,8 @@ class PhilipsHueBridgeApiClient:
                 self.username = response["success"]["username"]
         except UnauthenticatedDeviceError:
             self.username = None
+        except ConnectionError:
+            pass
 
         return self.username
 

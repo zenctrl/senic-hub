@@ -9,7 +9,9 @@ from pytest import fixture
 
 import responses
 
-from senic_hub.backend.device_discovery import PhilipsHueBridgeError
+from requests.exceptions import ConnectionError
+
+from senic_hub.backend.device_discovery import PhilipsHueBridgeApiClient, PhilipsHueBridgeError
 
 
 @fixture
@@ -150,6 +152,13 @@ def test_devices_authenticate_view_returns_false_if_bad_response_from_bridge(
     assert browser.post_json(auth_url, {}).json == {"id": "ph1", "authenticated": False}
 
 
+@patch.object(PhilipsHueBridgeApiClient, '_request')
+def test_devices_authenticate_view_returns_false_if_hue_bridge_not_reachable(
+        request_mock, browser, auth_url):
+    request_mock.side_effect = [ConnectionError('Not reachable')]
+    assert browser.post_json(auth_url, {}).json == {"id": "ph1", "authenticated": False}
+
+
 def test_devices_authenticate_without_discovery_returns_404(
         no_device_file, browser, auth_url):
     assert browser.post_json(auth_url, {}, status=404)
@@ -195,7 +204,7 @@ def test_devices_details_returns_list_of_lights(
         phue_config_file, browser, phue_details_url, philips_hue_bridge_description):
     responses.add(responses.GET, 'http://127.0.0.1/description.xml', body=philips_hue_bridge_description, status=200)
     responses.add(responses.GET, 'http://127.0.0.1/api/23/lights', json={"0": {}}, status=200)
-    assert browser.get_json(phue_details_url).json == {"0": {}}
+    assert browser.get_json(phue_details_url).json == {'0': {}}
 
 
 @responses.activate
