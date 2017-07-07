@@ -114,7 +114,8 @@ def no_phue_config_file(phue_config_path):
 
 
 @responses.activate
-def test_devices_authenticate_view_unauthorized(no_phue_config_file, browser, auth_url, philips_hue_bridge_description):
+def test_devices_authenticate_view_unauthorized(
+        no_phue_config_file, browser, auth_url, philips_hue_bridge_description):
     payload = [{"error": {"type": PhilipsHueBridgeError.unauthorized}}]
     responses.add(responses.POST, 'http://127.0.0.1/api', json=payload, status=200)
     responses.add(responses.GET, 'http://127.0.0.1/description.xml', body=philips_hue_bridge_description, status=200)
@@ -122,7 +123,8 @@ def test_devices_authenticate_view_unauthorized(no_phue_config_file, browser, au
 
 
 @responses.activate
-def test_devices_authenticate_view_returns_success(no_phue_config_file, browser, auth_url, philips_hue_bridge_description):
+def test_devices_authenticate_view_returns_success(
+        no_phue_config_file, browser, auth_url, philips_hue_bridge_description):
     payload = [{"success": {"username": "23"}}]
     responses.add(responses.POST, 'http://127.0.0.1/api', json=payload, status=200)
     responses.add(responses.GET, 'http://127.0.0.1/api/23', json={"a": 1}, status=200)
@@ -148,7 +150,8 @@ def test_devices_authenticate_view_returns_false_if_bad_response_from_bridge(
     assert browser.post_json(auth_url, {}).json == {"id": "ph1", "authenticated": False}
 
 
-def test_devices_authenticate_without_discovery_returns_404(no_device_file, browser, auth_url):
+def test_devices_authenticate_without_discovery_returns_404(
+        no_device_file, browser, auth_url):
     assert browser.post_json(auth_url, {}, status=404)
 
 
@@ -166,7 +169,8 @@ def no_auth_url(route_url):
     return route_url('devices_authenticate', device_id="s1")
 
 
-def test_devices_authenticate_returns_authenticated_when_device_doesnt_need_auth(browser, no_auth_url):
+def test_devices_authenticate_returns_authenticated_when_device_doesnt_need_auth(
+        browser, no_auth_url):
     assert browser.post_json(no_auth_url, {}).json == {"authenticated": True, "id": "s1"}
 
 
