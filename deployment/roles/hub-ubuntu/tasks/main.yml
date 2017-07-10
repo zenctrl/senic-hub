@@ -1,5 +1,5 @@
 ---
-# thsee are the platform specific setup steps for the hub on 
+# these are the platform specific setup steps for the hub on
 # an ubuntu or debian like system
 # - include: dhcp.yml
 #   tags: dhcp
@@ -24,7 +24,7 @@
     - nuimo_app
     - bluenet
 #  notify: reload supervisord
-  tags: supervisor
+  tags: supervisorconfig
 
 - include: ntp.yml
   tags: time

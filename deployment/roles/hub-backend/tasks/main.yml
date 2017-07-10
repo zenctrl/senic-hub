@@ -146,6 +146,7 @@
     dest: /etc/supervisor/conf.d/senic_hub.conf
     mode: "0644"
   notify: reload supervisord
+  tags: supervisorconfig
 
 - name: create configuration file
   become: yes
