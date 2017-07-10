@@ -9,7 +9,9 @@ from pytest import fixture
 
 import responses
 
-from senic_hub.backend.device_discovery import PhilipsHueBridgeError
+from requests.exceptions import ConnectionError
+
+from senic_hub.backend.device_discovery import PhilipsHueBridgeApiClient, PhilipsHueBridgeError
 
 
 @fixture
@@ -114,7 +116,8 @@ def no_phue_config_file(phue_config_path):
 
 
 @responses.activate
-def test_devices_authenticate_view_unauthorized(no_phue_config_file, browser, auth_url, philips_hue_bridge_description):
+def test_devices_authenticate_view_unauthorized(
+        no_phue_config_file, browser, auth_url, philips_hue_bridge_description):
     payload = [{"error": {"type": PhilipsHueBridgeError.unauthorized}}]
     responses.add(responses.POST, 'http://127.0.0.1/api', json=payload, status=200)
     responses.add(responses.GET, 'http://127.0.0.1/description.xml', body=philips_hue_bridge_description, status=200)
@@ -122,7 +125,8 @@ def test_devices_authenticate_view_unauthorized(no_phue_config_file, browser, au
 
 
 @responses.activate
-def test_devices_authenticate_view_returns_success(no_phue_config_file, browser, auth_url, philips_hue_bridge_description):
+def test_devices_authenticate_view_returns_success(
+        no_phue_config_file, browser, auth_url, philips_hue_bridge_description):
     payload = [{"success": {"username": "23"}}]
     responses.add(responses.POST, 'http://127.0.0.1/api', json=payload, status=200)
     responses.add(responses.GET, 'http://127.0.0.1/api/23', json={"a": 1}, status=200)
@@ -148,7 +152,15 @@ def test_devices_authenticate_view_returns_false_if_bad_response_from_bridge(
     assert browser.post_json(auth_url, {}).json == {"id": "ph1", "authenticated": False}
 
 
-def test_devices_authenticate_without_discovery_returns_404(no_device_file, browser, auth_url):
+@patch.object(PhilipsHueBridgeApiClient, '_request')
+def test_devices_authenticate_view_returns_false_if_hue_bridge_not_reachable(
+        request_mock, browser, auth_url):
+    request_mock.side_effect = [ConnectionError('Not reachable')]
+    assert browser.post_json(auth_url, {}).json == {"id": "ph1", "authenticated": False}
+
+
+def test_devices_authenticate_without_discovery_returns_404(
+        no_device_file, browser, auth_url):
     assert browser.post_json(auth_url, {}, status=404)
 
 
@@ -166,7 +178,8 @@ def no_auth_url(route_url):
     return route_url('devices_authenticate', device_id="s1")
 
 
-def test_devices_authenticate_returns_authenticated_when_device_doesnt_need_auth(browser, no_auth_url):
+def test_devices_authenticate_returns_authenticated_when_device_doesnt_need_auth(
+        browser, no_auth_url):
     assert browser.post_json(no_auth_url, {}).json == {"authenticated": True, "id": "s1"}
 
 
@@ -182,29 +195,51 @@ def test_devices_authenticate_try_authenticate_when_username_has_expired(
 
 
 @fixture
-def details_url(route_url):
+def phue_details_url(route_url):
     return route_url('devices_details', device_id="ph1")
 
 
 @responses.activate
 def test_devices_details_returns_list_of_lights(
-        phue_config_file, browser, details_url, philips_hue_bridge_description):
+        phue_config_file, browser, phue_details_url, philips_hue_bridge_description):
     responses.add(responses.GET, 'http://127.0.0.1/description.xml', body=philips_hue_bridge_description, status=200)
     responses.add(responses.GET, 'http://127.0.0.1/api/23/lights', json={"0": {}}, status=200)
-    assert browser.get_json(details_url).json == {"0": {}}
+    assert browser.get_json(phue_details_url).json == {'0': {}}
 
 
 @responses.activate
 def test_devices_details_returns_502_if_philips_hue_bridge_returns_error(
-        phue_config_file, browser, details_url, philips_hue_bridge_description):
+        phue_config_file, browser, phue_details_url, philips_hue_bridge_description):
     response_payload = {"error": {"type": 12345}}
     responses.add(responses.GET, 'http://127.0.0.1/api/23/lights', json=response_payload, status=200)
     responses.add(responses.GET, 'http://127.0.0.1/description.xml', body=philips_hue_bridge_description, status=200)
-    assert browser.get_json(details_url, status=502)
+    assert browser.get_json(phue_details_url, status=502)
 
 
 @responses.activate
 def test_devices_details_returns_400_if_not_authenticated(
-        no_phue_config_file, browser, details_url, philips_hue_bridge_description):
+        no_phue_config_file, browser, phue_details_url, philips_hue_bridge_description):
     responses.add(responses.GET, 'http://127.0.0.1/description.xml', body=philips_hue_bridge_description, status=200)
-    assert browser.get_json(details_url, status=400)
+    assert browser.get_json(phue_details_url, status=400)
+
+
+@fixture
+def sonos_details_url(route_url):
+    return route_url('devices_details', device_id="s1")
+
+
+@responses.activate
+def test_devices_details_returns_empty_object_for_non_phue_devices(
+        phue_config_file, browser, sonos_details_url):
+    assert browser.get_json(sonos_details_url).json == {}
+
+
+@fixture
+def no_such_device_details_url(route_url):
+    return route_url('devices_details', device_id="deadbeef")
+
+
+@responses.activate
+def test_devices_details_returns_404_if_device_does_not_exist(
+        phue_config_file, browser, no_such_device_details_url):
+    assert browser.get_json(no_such_device_details_url, status=404)

@@ -22,6 +22,9 @@
 - name: reload supervisord
   raw: "supervisorctl reload"
 
+- name: force time sync
+  raw: "/etc/init.d/ntpd stop && /usr/sbin/ntpd -u ntp:ntp -g -q && /etc/init.d/ntpd start"
+
 - name: restart supervisor service
   service:
     name: supervisor

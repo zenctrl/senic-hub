@@ -1,5 +1,5 @@
 ---
-# thsee are the platform specific setup steps for the hub on 
+# these are the platform specific setup steps for the hub on
 # an ubuntu or debian like system
 # - include: dhcp.yml
 #   tags: dhcp
@@ -14,5 +14,9 @@
     - device_discovery
     - nuimo_app
     - bluenet
+    - netwatch
 #  notify: reload supervisord
-  tags: wifi
+  tags: supervisor
+
+- include: ntp.yml
+  tags: time

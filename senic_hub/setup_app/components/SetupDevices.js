@@ -73,6 +73,7 @@ export default class SetupDevices extends Screen {
     //TODO: Figure out why {cache: "no-cache"} doesn't work
     fetch(Settings.HUB_API_URL + 'setup/devices?cache-bust=' + Date.now())
       .then((response) => {
+        //TODO: If screen has already disappeared after request was issued ignore response
         if (response.ok) {
           return response.json()
         }
@@ -86,7 +87,10 @@ export default class SetupDevices extends Screen {
 
           this.devicesPollTimer = setTimeout(this.pollDevices.bind(this), this.devicesPollInterval)
       })
-      .catch((error) => alert(error))
+      .catch(error => {
+        console.log('Failed polling devices:', error)
+        this.resetTo('setup.boot')
+      })
   }
 
   authenticateDevice(device) {

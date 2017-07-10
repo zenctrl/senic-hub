@@ -22,7 +22,8 @@ logger = logging.getLogger(__name__)
 @click.pass_context
 @click.option('--wlan', '-w', required=False, help="WLAN device (default = wlan0)")
 def netwatch_cli(ctx, wlan):
-    wlan = wlan or 'wlan0'
+    if not wlan:
+        wlan = 'wlan0'
     ctx.obj = NetwatchSupervisor(wlan)
 
 
@@ -55,6 +56,8 @@ class NetwatchSupervisor(object):
         :param wlan_adapter: name of the WLAN adapter (i.e. 'wlan0')
         """
         self._wlan_adapter = wlan_adapter
+        self._bluenet_is_running = False
+        self._nuimo_app_is_running = False
         self._bluenet_rpc = xmlrpc.client.ServerProxy('http://127.0.0.1:6459')
 
     def run(self):
@@ -62,15 +65,15 @@ class NetwatchSupervisor(object):
 
         # check initial status:
         state = NetworkManager.NetworkManager.State
-        self._on_network_state_changed(None, state)
+        self._on_state_changed(None, state)
 
         # listen for changes:
-        NetworkManager.NetworkManager.OnStateChanged(self._on_network_state_changed)
+        NetworkManager.NetworkManager.OnStateChanged(self._on_state_changed)
         logger.debug("Start listening to network status changes")
         loop = GObject.MainLoop()
         loop.run()
 
-    def _on_network_state_changed(self, nm, state, **kwargs):
+    def _on_state_changed(self, nm, state, **kwargs):
         logger.info("State changed to %d: %s" % (state, NetworkManager.const('STATE', state)))
         if state >= NetworkManager.NM_STATE_CONNECTED_GLOBAL:
             self._switch_to_normal_mode()
@@ -78,7 +81,7 @@ class NetwatchSupervisor(object):
             self._switch_to_provisioning_mode()
 
     def _switch_to_normal_mode(self):
-        while (self._is_bluenet_connected() and
+        while (self._bluenet_is_connected() and
                 NetworkManager.NetworkManager.State >= NetworkManager.NM_STATE_CONNECTED_LOCAL):
             logger.debug("Waiting before leaving provisioning mode till setup app is disconnected...")
             time.sleep(5)
@@ -97,7 +100,8 @@ class NetwatchSupervisor(object):
             start_program('nuimo_app')
         except xmlrpc.client.Fault as e:
             if e.faultCode == 60:
-                logger.debug("Nuimo App is already running")
+                logger.debug("nuimo_app is already running")
+                pass
             else:
                 logger.warning("Error while starting Nuimo App: %s" % str(e))
 
@@ -114,15 +118,15 @@ class NetwatchSupervisor(object):
             if e.faultCode == 60:
                 logger.debug("Bluenet is already running")
             else:
-                logger.warning("Error while starting Bluenet: %s" % str(e))
+                logger.warning("Error while starting bluenet: %s" % str(e))
 
-    def _is_bluenet_connected(self):
+    def _bluenet_is_connected(self):
         try:
-            return self._bluenet_rpc.is_bluenet_connected()
+            return self._bluenet_rpc.bluenet_is_connected()
         except OSError:
             # -> connection refused because bluenet is not even running
             return False
-        except xmlrpc.client.Fault as e:
+        except (xmlrpc.client.Fault, OSError) as e:
             logger.warning("Couldn't check if Bluenet is connected: %s" % str(e))
         return False
 

@@ -18,12 +18,10 @@ app_info = Service(
 
 @app_info.get()
 def get_app_info(request):
-    result = dict(
+    return dict(
         version=get_distribution('senic_hub').version,
-        bin_path=request.registry.settings['bin_path'],
         onboarded=is_hub_onboarded(request)
     )
-    return result
 
 
 def is_hub_onboarded(request):

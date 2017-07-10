@@ -9,7 +9,10 @@ def url(route_url):
 
 
 def test_appinfo_version(url, browser):
-    assert 'version' in browser.get_json(url).json
+    appInfo = browser.get_json(url).json
+    assert 'version' in appInfo
+    assert 'onboarded' in appInfo
+    assert type(appInfo['onboarded']) is bool
 
 
 @fixture
