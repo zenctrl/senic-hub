@@ -30,6 +30,11 @@
     name: supervisor
     state: restarted
 
+- name: restart hostname service
+  service:
+    name: hostname.sh
+    state: restarted
+
 - name: restart dhcp server
   service:
     name: isc-dhcp-server

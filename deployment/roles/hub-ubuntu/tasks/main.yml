@@ -28,3 +28,13 @@
 
 - include: ntp.yml
   tags: time
+
+- name: configure hostname
+  copy:
+    content: "senic-hub-{{ploy_hostname}}"
+    dest: "/etc/hostname"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart hostname service
+  tags: hostname
