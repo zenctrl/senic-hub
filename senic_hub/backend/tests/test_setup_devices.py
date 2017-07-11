@@ -82,7 +82,8 @@ def test_device_list_contains_devices(browser, url):
             "port": "8090",
             "authenticationRequired": False,
             "authenticated": True,
-            "extra": {}
+            "extra": {},
+            "ha_entity_id": "media_player.soundtouch"
         }
     ]
 

@@ -1,3 +1,5 @@
+from time import sleep
+
 from cornice.service import Service
 
 from ..commands import create_configuration_files_and_restart_apps
@@ -15,6 +17,10 @@ configuration_service = Service(
 
 @configuration_service.post()
 def configuration_create_view(request):
+    stop_program('device_discovery')
+
     create_configuration_files_and_restart_apps(request.registry.settings)
 
-    stop_program('device_discovery')
+    # Wait for Nuimo App to restart and connect to Nuimo
+    # TODO: Add D-Bus interface to Nuimo and wait for its ready signal
+    sleep(10.0)
