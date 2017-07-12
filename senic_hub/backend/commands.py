@@ -1,7 +1,6 @@
 import click
 import json
 import logging
-import os
 import signal
 import sys
 import time
@@ -9,15 +8,14 @@ import time
 from os.path import abspath
 from datetime import datetime, timedelta
 from pyramid.paster import get_app, setup_logging
-from tempfile import mkstemp
 
 import configparser
 
 import yaml
 
 from . import supervisor
-
 from .device_discovery import PhilipsHueBridgeApiClient, discover_devices, merge_devices
+from .lockfile import open_locked
 from .views.nuimo_components import component_to_app_config_component, create_component
 
 
@@ -124,34 +122,37 @@ def device_discovery(config):
 
     while True:
         now = datetime.utcnow()
-        discovered_devices = discover_devices()
-
-        try:
-            with open(devices_path, 'r') as f:
-                known_devices = json.load(f)
-        except OSError as e:
-            logging.warning("Could not open devices file %s", devices_path)
-            logging.warning(e, exc_info=True)
-        except json.decoder.JSONDecodeError as e:
-            logging.warning("Could not JSON-decode devices file %s", devices_path)
-            logging.warning(e, exc_info=True)
-        finally:
-            known_devices = []
-
-        merged_devices = merge_devices(known_devices, discovered_devices, now)
-
-        add_authentication_status(merged_devices)
-        add_device_details(merged_devices)
-        add_homeassistant_entity_ids(merged_devices)
-
-        fd, filename = mkstemp(dir=app.registry.settings['data_path'])
-        with open(fd, "w") as f:
-            json.dump(merged_devices, f)
-        os.rename(filename, devices_path)
+        discover_and_merge_devices(devices_path, now)
 
         next_scan = now + timedelta(seconds=scan_interval_seconds)
         logging.info("Next device discovery run scheduled for %s", next_scan)
         time.sleep(scan_interval_seconds)
+
+
+def discover_and_merge_devices(devices_path, now):
+    discovered_devices = discover_devices()
+
+    try:
+        with open_locked(devices_path, 'a+') as f:
+            if f.tell() == 0:  # File is empty, i.e. it was just created
+                known_devices = []
+            else:
+                f.seek(0, 0)
+                known_devices = json.load(f)
+
+            merged_devices = merge_devices(known_devices, discovered_devices, now)
+
+            add_authentication_status(merged_devices)
+            add_device_details(merged_devices)
+            add_homeassistant_entity_ids(merged_devices)
+
+            f.seek(0, 0)
+            f.truncate()
+            json.dump(merged_devices, f)
+
+    except OSError as e:
+        logging.error("Could not open devices file %s", devices_path)
+        logging.error(e, exc_info=True)
 
 
 def add_authentication_status(devices):

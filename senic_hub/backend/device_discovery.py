@@ -143,7 +143,6 @@ class PhilipsHueBridgeApiClient:
             data = data[0]
 
         if "error" in data:
-            logger.error("Response from Hue bridge %s: %s", self.bridge_url, data)
             error_type = data["error"]["type"]
             if error_type in [
                     PhilipsHueBridgeError.unauthorized,

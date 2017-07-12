@@ -3,8 +3,6 @@ import logging
 import os
 import os.path
 
-from tempfile import mkstemp
-
 from cornice.service import Service
 
 from pyramid.httpexceptions import HTTPBadGateway, HTTPBadRequest, HTTPNotFound
@@ -14,6 +12,7 @@ from .. import supervisor
 
 from ..config import path
 from ..device_discovery import PhilipsHueBridgeApiClient, UnauthenticatedDeviceError, UpstreamError
+from ..lockfile import open_locked
 
 
 logger = logging.getLogger(__name__)
@@ -150,7 +149,7 @@ def get_device(device_list_path, device_id):
     if not os.path.exists(device_list_path):
         raise HTTPNotFound("Device discovery was not run...")
 
-    with open(device_list_path, "r") as f:
+    with open_locked(device_list_path, 'r') as f:
         devices = json.loads(f.read())
 
     device = next((x for x in devices if x["id"] == device_id), None)
@@ -161,25 +160,24 @@ def get_device(device_list_path, device_id):
 
 
 def update_device(device, settings, username):
-    devices_path = settings["devices_path"]
-    with open(devices_path, "r") as f:
+    with open_locked(settings['devices_path'], 'a+') as f:
+        f.seek(0, 0)
         devices = json.loads(f.read())
 
-    device["extra"]["username"] = username
+        device["extra"]["username"] = username
 
-    if device['authenticated'] and username:
-        bridge = PhilipsHueBridgeApiClient(device["ip"], username)
+        if device['authenticated'] and username:
+            bridge = PhilipsHueBridgeApiClient(device["ip"], username)
 
-        device['extra']['lights'] = bridge.get_lights()
+            device['extra']['lights'] = bridge.get_lights()
 
-    device_index = [i for (i, d) in enumerate(devices) if d["id"] == device["id"]].pop()
+        device_index = [i for (i, d) in enumerate(devices) if d["id"] == device["id"]].pop()
 
-    devices[device_index] = device
+        devices[device_index] = device
 
-    fd, filename = mkstemp(dir=settings['data_path'])
-    with open(fd, "w") as f:
+        f.seek(0, 0)
+        f.truncate()
         json.dump(devices, f)
-    os.rename(filename, devices_path)
 
 
 def read_json(file_path, default=None):
