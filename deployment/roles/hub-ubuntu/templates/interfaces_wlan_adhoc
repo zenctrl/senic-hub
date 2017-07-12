@@ -1,8 +1,0 @@
-auto {{ploy_wlan_adhoc}}
-iface {{ploy_wlan_adhoc}} inet static
-  address 10.0.23.23
-  netmask 255.255.255.0
-  wireless-channel {{ploy_adhoc_channel}}
-  wireless-essid {{ploy_hostname}}
-  wireless-mode ad-hoc
-  wireless-key off

@@ -30,7 +30,6 @@ setup(
     ],
     packages=[name],
     include_package_data=True,
-    data_files=sorted(find_data('senic_hub/frontend/distribution')),
     package_dir={name: 'senic_hub'},
     package_data={
         name: [
@@ -38,7 +37,6 @@ setup(
             'senic_hub/backend/tests/*.py',
             'senic_hub/backend/tests/data/*.*',
             'senic_hub/backend/views/*.*',
-            'senic_hub/frontend/distribution',
         ],
     },
     zip_safe=False,
@@ -52,15 +50,14 @@ setup(
         'colander',
         'cornice<2.0',
         'cryptoyaml',
-        'netdisco==0.9.2',
+        'netdisco>=0.9.2',
         'nuimo>=0.3.0,<0.4.0',
         'pyramid',
         'pyramid_tm',
         'pytz',
         'requests',
-        'wifi',
         # nuimo_app
-        'websocket-client==0.40.0',
+        'websocket-client>=0.40.0',
         'soco==0.12',
         'phue==0.9',
         'lightify>=1.0.5',
@@ -75,7 +72,9 @@ setup(
         [paste.app_factory]
         main = senic_hub.backend:main
         [console_scripts]
+        netwatch = senic_hub.backend.netwatch:netwatch_cli
         bluenet = senic_hub.bluenet.bluenet:bluenet_cli
+        create_configurations = senic_hub.backend.commands:create_configuration_files_and_restart_apps
         device_discovery = senic_hub.backend.commands:device_discovery
         nuimo_app = senic_hub.nuimo_app.__main__:main
     """,

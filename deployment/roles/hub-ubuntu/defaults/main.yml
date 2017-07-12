@@ -1,7 +1,0 @@
----
-ploy_adhoc_channel: 1
-wwwuser: www-data
-hostname: "{{ploy_hostname}}"
-backend_deploy_location: /srv/senic_hub
-frontend_document_root: /srv/senic_hub/venv/senic-hub-htdocs
-backend_data_location: /srv/senic_hub/data

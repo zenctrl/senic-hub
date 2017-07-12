@@ -75,10 +75,6 @@
     key: "{{build_user_key}}"
   when: build_user_key is defined
 
-- include: vim.yml
-  when: configure_vim
-  tags: vim
-
 - name: create hub sources destination
   file:
     dest: "/home/{{build_user}}/senic-hub/"
@@ -124,11 +120,10 @@
     state: stopped
   tags: spv
 
-- name: install source version into deployment venv
+- name: install source version
   pip:
     name: "-e /home/{{build_user}}/senic-hub/"
-    virtualenv: "{{backend_deploy_location}}/venv"
-    chdir: "{{backend_deploy_location}}"
+    executable: /usr/bin/pip3
   tags: spv
 
 - name: make sure the development version of the hub is now running
@@ -136,3 +131,8 @@
     name: senic_hub
     state: started
   tags: spv
+
+- include: vim.yml
+  when: configure_vim
+  tags: vim
+

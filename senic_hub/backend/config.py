@@ -26,7 +26,7 @@ def path(service):
 def configure(global_config, **settings):
     config = Configurator(settings=dict(default_settings, **settings))
     config.begin()
-    scan_ignore = ['.tests', '.testing']
+    scan_ignore = ['.tests', '.testing', '.netwatch']
     config.include('cornice')
     config.scan(ignore=scan_ignore)
     config.registry.crypto_settings = crypto_settings(global_config, **settings)
