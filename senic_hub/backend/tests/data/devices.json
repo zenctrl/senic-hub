@@ -39,6 +39,7 @@
     "port": "8090",
     "authenticationRequired": false,
     "authenticated": true,
-    "extra": {}
+    "extra": {},
+    "ha_entity_id": "media_player.soundtouch"
   }
 ]

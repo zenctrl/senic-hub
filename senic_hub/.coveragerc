@@ -8,7 +8,6 @@ omit =
   senic_hub/backend/supervisor.py
   senic_hub/backend/testing.py
   senic_hub/backend/tests/*
-  senic_hub/backend/views/setup_config.py
   senic_hub/backend/wifi_setup.py
   senic_hub/nuimo_app/*
   senic_hub/frontend/*

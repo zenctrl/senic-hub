@@ -2,9 +2,10 @@
 Installation
 ============
 
-1. ``npm install -g react-native-cli``
-2. ``npm install``
-3. ``react-native run-ios`` or ``react-native run-android``. Append `--device` to run on a connected phone/tablet.
+1. ``brew install carthage`` (Necessary for managing iOS dependencies)
+2. ``npm install -g react-native-cli``
+3. ``npm install``
+4. ``react-native run-ios`` or ``react-native run-android``. Append `--device` to run on a connected phone/tablet.
 
 For more details refer to the React Native `getting started guide <https://facebook.github.io/react-native/docs/getting-started.html#getting-started>`_.
 
@@ -30,7 +31,7 @@ One time setup
 Publish new beta app
 --------------------
 
-* Increase version numbers in ``senic_hub/setup_app/android/app/build.gradle`` file
+* Increase version code and version name in ``senic_hub/setup_app/android/app/build.gradle``
 * Run ``CRASHLYTICS_BUILD_SECRET=secret_goes_here fastlane beta`` from ``senic_hub/setup_app/android`` directory. ``CRASHLYTICS_BUILD_SECRET`` is available in 1Password entry ``Software/Crashlytics Android Secret build key``
 
 iOS
