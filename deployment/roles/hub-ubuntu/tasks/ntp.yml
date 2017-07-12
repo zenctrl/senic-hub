@@ -1,9 +1,0 @@
----
-- name: configure ntpd
-  template:
-    src: ntp.conf
-    dest: /etc/ntp.conf
-    owner: root
-    group: root
-    mode: "0644"
-  notify: force time sync

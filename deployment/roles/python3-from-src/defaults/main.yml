@@ -1,4 +1,0 @@
----
-python_version: 3.5.3
-src_dest: /usr/src/python
-build_dir: "{{src_dest}}/Python-{{python_version}}"

@@ -1,5 +1,0 @@
----
-python_interpreter: python3
-backend_deploy_location: /srv/senic_hub
-backend_data_location: /srv/senic_hub/data
-hass_data_location: /srv/homeassistant/data

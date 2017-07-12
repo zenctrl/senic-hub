@@ -1,6 +1,0 @@
----
-bluez_version: 5.44
-install_from_source: true
-src_dest: /usr/src/bluez
-build_dir: "{{src_dest}}/bluez-{{bluez_version}}"
-upload_pi3_driver: false
