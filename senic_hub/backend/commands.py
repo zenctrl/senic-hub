@@ -17,7 +17,7 @@ import yaml
 
 from . import supervisor
 
-from .device_discovery import PhilipsHueBridgeApiClient, discover_devices
+from .device_discovery import PhilipsHueBridgeApiClient, discover_devices, merge_devices
 from .views.nuimo_components import component_to_app_config_component, create_component
 
 
@@ -123,9 +123,12 @@ def device_discovery(config):
     signal.signal(signal.SIGINT, sigint_handler)
 
     while True:
+        now = datetime.utcnow()
+        discovered_devices = discover_devices()
+
         try:
             with open(devices_path, 'r') as f:
-                devices = json.load(f)
+                known_devices = json.load(f)
         except OSError as e:
             logging.warning("Could not open devices file %s", devices_path)
             logging.warning(e, exc_info=True)
@@ -133,18 +136,17 @@ def device_discovery(config):
             logging.warning("Could not JSON-decode devices file %s", devices_path)
             logging.warning(e, exc_info=True)
         finally:
-            devices = []
+            known_devices = []
 
-        now = datetime.utcnow()
-        devices = discover_devices(devices, now)
+        merged_devices = merge_devices(known_devices, discovered_devices, now)
 
-        add_authentication_status(devices)
-        add_device_details(devices)
-        add_homeassistant_entity_ids(devices)
+        add_authentication_status(merged_devices)
+        add_device_details(merged_devices)
+        add_homeassistant_entity_ids(merged_devices)
 
         fd, filename = mkstemp(dir=app.registry.settings['homeassistant_data_path'])
         with open(fd, "w") as f:
-            json.dump(devices, f)
+            json.dump(merged_devices, f)
         os.rename(filename, devices_path)
 
         next_scan = now + timedelta(seconds=scan_interval_seconds)

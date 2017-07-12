@@ -40,11 +40,13 @@ class PhilipsHueBridgeError(IntEnum):
 logger = logging.getLogger(__name__)
 
 
-def discover_devices(devices, now):
-    all_devices = []
-    known_devices = deepcopy(devices)
+def merge_devices(known_devices, discovered_devices, now):
+    # TODO: Do we need to make a deep copy? Are arrays not passed by-value, but by-ref?
+    known_devices = deepcopy(known_devices)
 
-    discovered_devices = discover()
+    # TODO: `merged_devices` can be directly assigned with a list comprehension
+    merged_devices = []
+
     for device in discovered_devices:
         # make sure we get updates for devices we already had discovered before
         existing_device = next((d for d in known_devices if d["id"] == device["id"]), None)
@@ -58,16 +60,16 @@ def discover_devices(devices, now):
                 known_devices.remove(existing_device)
 
         device[DISCOVERY_TIMESTAMP_FIELD] = str(now)
-        all_devices.append(device)
+        merged_devices.append(device)
 
     # add already known devices that were not found in this discovery
     # run or it was found that they didn't have any updates
-    all_devices.extend(known_devices)
+    merged_devices.extend(known_devices)
 
-    return sorted(all_devices, key=lambda d: d["id"])
+    return sorted(merged_devices, key=lambda d: d["id"])
 
 
-def discover(discovery_class=NetworkDiscovery):
+def discover_devices(discovery_class=NetworkDiscovery):
     """
     Return a list of all discovered devices.
 
