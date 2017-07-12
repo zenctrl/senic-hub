@@ -144,7 +144,7 @@ def device_discovery(config):
         add_device_details(merged_devices)
         add_homeassistant_entity_ids(merged_devices)
 
-        fd, filename = mkstemp(dir=app.registry.settings['homeassistant_data_path'])
+        fd, filename = mkstemp(dir=app.registry.settings['data_path'])
         with open(fd, "w") as f:
             json.dump(merged_devices, f)
         os.rename(filename, devices_path)

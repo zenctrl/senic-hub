@@ -176,7 +176,7 @@ def update_device(device, settings, username):
 
     devices[device_index] = device
 
-    fd, filename = mkstemp(dir=settings['homeassistant_data_path'])
+    fd, filename = mkstemp(dir=settings['data_path'])
     with open(fd, "w") as f:
         json.dump(devices, f)
     os.rename(filename, devices_path)
