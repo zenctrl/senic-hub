@@ -122,7 +122,7 @@ class NetwatchSupervisor(object):
 
     def _bluenet_is_connected(self):
         try:
-            return self._bluenet_rpc.bluenet_is_connected()
+            return self._bluenet_rpc.is_bluenet_connected()
         except OSError:
             # -> connection refused because bluenet is not even running
             return False
