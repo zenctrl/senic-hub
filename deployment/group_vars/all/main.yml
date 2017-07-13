@@ -5,7 +5,7 @@ devpi_base_url: pypi.senic.com/
 devpi_index: getsenic/master
 devpi_auth_user: deploy
 devpi_index_url: "{{devpi_proto}}://{{devpi_base_url}}{{devpi_index}}/+simple/"
-build_user: senic
-run_user: nuimo
+build_user: root
+run_user: senic
 locale: en_US.UTF-8
 sentry_dsn: "{{sentry_dsn_secret}}"

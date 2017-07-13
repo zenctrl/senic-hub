@@ -55,8 +55,6 @@
         || complete -o default -o nospace -F _git g
 
   with_items:
-    - name: "{{build_user}}"
-      path: "/home/{{build_user}}"
     - name: root
       path: /home/root
 
@@ -77,7 +75,7 @@
 
 - name: create hub sources destination
   file:
-    dest: "/home/{{build_user}}/senic-hub/"
+    dest: "{{backend_deploy_location}}/src/"
     state: directory
   become: true
   become_user: "{{build_user}}"
@@ -87,7 +85,7 @@
 - name: upload sources via rsync
   synchronize:
     src: ../../../../
-    dest: "/home/{{build_user}}/senic-hub/"
+    dest: "{{backend_deploy_location}}/src/"
     archive: false
     delete: true
     rsync_opts:
@@ -122,7 +120,7 @@
 
 - name: install source version
   pip:
-    name: "-e /home/{{build_user}}/senic-hub/"
+    name: "-e {{backend_deploy_location}}/src/"
     executable: /usr/bin/pip3
   tags: spv
 
