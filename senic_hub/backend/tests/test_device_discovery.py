@@ -151,7 +151,7 @@ def test_discover_devices_includes_new_device_discovered():
     expected = [{
         "id": "1",
         "name": "first",
-        DISCOVERY_TIMESTAMP_FIELD: str(now - timedelta(minutes=2)),
+        DISCOVERY_TIMESTAMP_FIELD: str(now),
     }, {
         "id": "2",
         "name": "second",
@@ -200,6 +200,35 @@ def test_discover_devices_device_that_wasnt_discovered_again_is_not_removed_from
     discovered_devices = [{
         "id": "1",
         "name": "first",
+    }]
+    expected = known_devices
+    assert merge_devices(known_devices, discovered_devices, now) == expected
+
+
+def test_merging_devices_keeps_hue_username():
+    now = datetime.utcnow()
+    known_devices = [{
+        "id": "1",
+        "type": "philips_hue",
+        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'extra': {
+            'username': 'light-bringer',
+        },
+    }, {
+        "id": "2",
+        "type": "philips_hue",
+        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'extra': {
+            'username': 'another-light-bringer',
+        },
+    }]
+    discovered_devices = [{
+        "id": "1",
+        "type": "philips_hue",
+    }, {
+        "id": "2",
+        "type": "philips_hue",
+        'extra': {},
     }]
     expected = known_devices
     assert merge_devices(known_devices, discovered_devices, now) == expected

@@ -49,15 +49,17 @@ def merge_devices(known_devices, discovered_devices, now):
 
     for device in discovered_devices:
         # make sure we get updates for devices we already had discovered before
-        existing_device = next((d for d in known_devices if d["id"] == device["id"]), None)
-        if existing_device:
-            # device already known, check if we should update any fields
-            if {k: v for k, v in existing_device.items() if k != DISCOVERY_TIMESTAMP_FIELD} == device:
-                # all fields match, use the already known device
-                continue
-            else:
-                # fields don't match, device will added as new
-                known_devices.remove(existing_device)
+        known_device = next((d for d in known_devices if d["id"] == device["id"]), None)
+        if known_device:
+            known_devices.remove(known_device)
+
+            # Copy "extra" attributes from existing device if not present in newly found
+            # device. These attributes are typically added later such as during
+            # authentication of Philipe Hue bridge.
+            merged_extra = known_device.get('extra', None)
+            if merged_extra:
+                merged_extra.update(device.get('extra', {}))
+                device['extra'] = merged_extra
 
         device[DISCOVERY_TIMESTAMP_FIELD] = str(now)
         merged_devices.append(device)
