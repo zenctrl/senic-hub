@@ -21,7 +21,7 @@ from .bluenet_gatt_service import BluenetService, BluenetUuids, WifiConnectionSt
 #: Name of the NetworkManager connection to use for BLE provisioning
 #: It will be created on first attempt to join a network
 #: or overwritten if it already exists.
-NM_CONNECTION_NAME = 'Bluenet'
+NM_CONNECTION_NAME = 'bluenet'
 
 logger = logging.getLogger(__name__)
 
