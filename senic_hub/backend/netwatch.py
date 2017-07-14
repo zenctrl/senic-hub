@@ -81,14 +81,21 @@ class NetwatchSupervisor(object):
             self._switch_to_provisioning_mode()
 
     def _switch_to_normal_mode(self):
-        while (self._bluenet_is_connected() and
-                NetworkManager.NetworkManager.State >= NetworkManager.NM_STATE_CONNECTED_LOCAL):
-            logger.debug("Waiting before leaving provisioning mode till setup app is disconnected...")
-            time.sleep(5)
-
         if NetworkManager.NetworkManager.State < NetworkManager.NM_STATE_CONNECTED_LOCAL:
             logger.debug("Staying in provisioning mode because connection is lost again")
             return
+
+        while True:
+            if NetworkManager.NetworkManager.State < NetworkManager.NM_STATE_CONNECTED_LOCAL:
+                logger.debug("Staying in provisioning mode because connection is lost again")
+                return
+            try:
+                if not self._bluenet_is_connected():
+                    break
+            except Exception as e:
+                logger.error("Couldn't check if Bluenet is connected: %s" % str(e))
+            logger.debug("Waiting before leaving provisioning mode till setup app is disconnected...")
+            time.sleep(5)
 
         logger.debug("Normal mode: Stopping Bluenet and starting Nuimo App")
         try:
@@ -126,9 +133,6 @@ class NetwatchSupervisor(object):
         except OSError:
             # -> connection refused because bluenet is not even running
             return False
-        except (xmlrpc.client.Fault, OSError) as e:
-            logger.warning("Couldn't check if Bluenet is connected: %s" % str(e))
-        return False
 
 
 if __name__ == '__main__':
