@@ -41,7 +41,8 @@ def create_configuration_files_and_restart_apps(settings):
     with open(homeassistant_config_path, 'w') as f:
         yaml.dump(generate_hass_configuration(devices), f, default_flow_style=False)
 
-    supervisor.restart_program('homeassistant')
+    # TODO: Restart home assistant again once it's part of SenicOS
+    # supervisor.restart_program('homeassistant')
 
     # generate nuimo app config & restart supervisor app
     nuimo_app_config_file_path = settings['nuimo_app_config_path']
