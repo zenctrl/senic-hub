@@ -7,6 +7,7 @@
     group: "{{run_user}}"
     mode: "0755"
     state: directory
+  tags: hass
 
 - name: create data location
   become: true
@@ -16,17 +17,20 @@
     group: "{{run_user}}"
     mode: "0750"
     state: directory
+  tags: hass
 
 - name: init virtualenv in deployment location
   command: "{{python_interpreter}} -m venv venv"
   args:
     chdir: "{{hass_deploy_location}}"
     creates: "{{hass_deploy_location}}/venv/bin/python"
+  tags: hass
 
 - name: Make sure pip, setuptools & six are uptodate
   command: "{{hass_deploy_location}}/venv/bin/pip install -U pip setuptools six"
   args:
     chdir: "{{hass_deploy_location}}"
+  tags: hass
 
 - name: upload python requirements
   become: true
@@ -36,6 +40,7 @@
     owner: "{{build_user}}"
     group: "{{run_user}}"
     mode: "0644"
+  tags: hass
 
 - name: install application
   pip:
@@ -43,7 +48,7 @@
     requirements: "{{hass_deploy_location}}/requirements.txt"
     extra_args: "--pre --upgrade -i {{devpi_index_url}}"
   notify: restart homeassistant
-  tags: update_hass
+  tags: hass
 
 - name: configure homeassistant
   become: true
@@ -54,7 +59,7 @@
     mode: "0664"
     src: configuration.yaml
   notify: restart homeassistant
-  tags: update_hass
+  tags: hass
 
 - name: configure supervisor
   become: yes
@@ -62,10 +67,10 @@
     src: supervisor.conf
     dest: /etc/supervisor/conf.d/homeassistant.conf
     mode: "0644"
-  tags: update_hass
+  tags: hass
 
 - name: ensure homeassistant is running
   supervisorctl:
     name: homeassistant
     state: started
-  tags: update_hass
+  tags: hass
