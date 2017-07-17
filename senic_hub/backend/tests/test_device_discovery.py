@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from pytest import fixture, raises
 
 import responses
 
 from senic_hub.backend.device_discovery import (
-    DISCOVERY_TIMESTAMP_FIELD, UpstreamError, discover, discover_devices, get_device_description)
+    DISCOVERY_TIMESTAMP_FIELD, UpstreamError, discover_devices, merge_devices, get_device_description)
 
 
 @fixture
@@ -109,11 +109,11 @@ def test_discover_philips_hue_device(philips_hue_bridge_description):
         "ip": "127.0.0.1",
         "extra": {},
     }
-    assert discover(MockPhilipsDiscovery) == [expected]
+    assert discover_devices(MockPhilipsDiscovery) == [expected]
 
 
 def test_discover_devices_for_the_first_time_return_all_devices():
-    devices = []
+    known_devices = []
     discovered_devices = [{
         "id": "1",
         "name": "first",
@@ -131,14 +131,12 @@ def test_discover_devices_for_the_first_time_return_all_devices():
         "name": "second",
         DISCOVERY_TIMESTAMP_FIELD: str(now),
     }]
-    with patch("senic_hub.backend.device_discovery.discover") as discover_mock:
-        discover_mock.return_value = discovered_devices
-        assert discover_devices(devices, now) == expected
+    assert merge_devices(known_devices, discovered_devices, now) == expected
 
 
 def test_discover_devices_includes_new_device_discovered():
     now = datetime.utcnow()
-    devices = [{
+    known_devices = [{
         "id": "1",
         "name": "first",
         DISCOVERY_TIMESTAMP_FIELD: str(now - timedelta(minutes=2)),
@@ -153,20 +151,18 @@ def test_discover_devices_includes_new_device_discovered():
     expected = [{
         "id": "1",
         "name": "first",
-        DISCOVERY_TIMESTAMP_FIELD: str(now - timedelta(minutes=2)),
+        DISCOVERY_TIMESTAMP_FIELD: str(now),
     }, {
         "id": "2",
         "name": "second",
         DISCOVERY_TIMESTAMP_FIELD: str(now),
     }]
-    with patch("senic_hub.backend.device_discovery.discover") as discover_mock:
-        discover_mock.return_value = discovered_devices
-        assert discover_devices(devices, now) == expected
+    assert merge_devices(known_devices, discovered_devices, now) == expected
 
 
 def test_discover_devices_update_device_with_updated_fields():
     now = datetime.utcnow()
-    devices = [{
+    known_devices = [{
         "id": "1",
         "name": "first",
         DISCOVERY_TIMESTAMP_FIELD: str(now - timedelta(minutes=2)),
@@ -187,14 +183,12 @@ def test_discover_devices_update_device_with_updated_fields():
         "name": "second",
         DISCOVERY_TIMESTAMP_FIELD: str(now),
     }]
-    with patch("senic_hub.backend.device_discovery.discover") as discover_mock:
-        discover_mock.return_value = discovered_devices
-        assert discover_devices(devices, now) == expected
+    assert merge_devices(known_devices, discovered_devices, now) == expected
 
 
 def test_discover_devices_device_that_wasnt_discovered_again_is_not_removed_from_the_devices_list():
     now = datetime.utcnow()
-    devices = [{
+    known_devices = [{
         "id": "1",
         "name": "first",
         DISCOVERY_TIMESTAMP_FIELD: str(now),
@@ -207,7 +201,34 @@ def test_discover_devices_device_that_wasnt_discovered_again_is_not_removed_from
         "id": "1",
         "name": "first",
     }]
-    expected = devices
-    with patch("senic_hub.backend.device_discovery.discover") as discover_mock:
-        discover_mock.return_value = discovered_devices
-        assert discover_devices(devices, now) == expected
+    expected = known_devices
+    assert merge_devices(known_devices, discovered_devices, now) == expected
+
+
+def test_merging_devices_keeps_hue_username():
+    now = datetime.utcnow()
+    known_devices = [{
+        "id": "1",
+        "type": "philips_hue",
+        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'extra': {
+            'username': 'light-bringer',
+        },
+    }, {
+        "id": "2",
+        "type": "philips_hue",
+        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'extra': {
+            'username': 'another-light-bringer',
+        },
+    }]
+    discovered_devices = [{
+        "id": "1",
+        "type": "philips_hue",
+    }, {
+        "id": "2",
+        "type": "philips_hue",
+        'extra': {},
+    }]
+    expected = known_devices
+    assert merge_devices(known_devices, discovered_devices, now) == expected
