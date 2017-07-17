@@ -16,7 +16,8 @@ def test_setup_config_returns_200_and_creates_files(
         url, browser):
     assert browser.post_json(url, {}, status=200)
     stop_program_mock.assert_called_once_with('device_discovery')
+    # TODO: Test for home-assistant being restarted once it's part of SenicOS
     restart_program_mock.assert_has_calls([
-        mock.call('homeassistant'),
+        # mock.call('homeassistant'),
         mock.call('nuimo_app')
     ])
