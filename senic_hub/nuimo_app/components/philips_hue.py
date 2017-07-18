@@ -226,7 +226,7 @@ class Component(ThreadComponent):
         self.delta = 0
 
         # Extract light IDs, they are stored with format `<bridgeID>-light-<lightID>`
-        light_ids = config['device_ids'].split(', ')
+        light_ids = config['device_ids']
         light_ids = [i.split('-light-')[1].strip() for i in light_ids]
 
         self.lights = self.create_lights(light_ids)

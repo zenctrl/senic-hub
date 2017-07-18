@@ -1,7 +1,8 @@
-from configparser import ConfigParser
 from os import remove
 from pytest import fixture, yield_fixture
 from tempfile import NamedTemporaryFile
+
+import yaml
 
 from senic_hub.backend.views.nuimo_components import create_component
 
@@ -23,23 +24,23 @@ def test_nuimo_components_returns_404_if_config_file_doesnt_exist(
 
 
 def test_nuimo_components_returns_components(url, browser):
-    assert browser.get_json(url).json == {'components': [
+    assert set(browser.get_json(url).json) == set({'components': [
         {
-            'id': 'component-ph2',
+            'id': 'ph2',
             'type': 'philips_hue',
-            'device_ids': ['ph2-light-4', 'ph2-light-5', 'ph2-light-6', 'ph2-light-7', 'ph2-light-8'],
+            'device_ids': ['ph2-light-4', 'ph2-light-5', 'ph2-light-6', 'ph2-light-7', 'ph2-light-8']
         },
         {
-            'id': 'component-soundtouch1',
+            'id': 'soundtouch1',
             'type': 'media_player',
-            'device_ids': ['soundtouch1'],
+            'device_ids': ['soundtouch1']
         },
         {
-            'id': 'component-s1',
+            'id': 's1',
             'type': 'sonos',
-            'device_ids': ['s1'],
-        },
-    ]}
+            'device_ids': ['s1']
+        }
+    ]})
 
 
 @yield_fixture(autouse=True)
@@ -61,14 +62,14 @@ def test_add_component_adds_to_app_config(url, browser, temporary_nuimo_app_conf
         'type': 'sonos'},
         status=200
     )
+    with open(settings['nuimo_app_config_path'], 'r') as f:
+        config = yaml.load(f)
 
-    config = ConfigParser()
-    config.read(settings['nuimo_app_config_path'])
-    assert len(config.sections()) == 4
-    last_section = dict(config.items(config.sections()[-1]))
-    assert last_section['device_ids'] == ', '.join(['s1'])
-    assert last_section['ip_address'] == '127.0.0.1'
-    assert last_section['type'] == 'sonos'
+    components = config['nuimos'][0]['components']
+    assert len(components) == 4
+    assert components['s1']['device_ids'] == ['s1']
+    assert components['s1']['ip_address'] == '127.0.0.1'
+    assert components['s1']['type'] == 'sonos'
 
 
 def test_add_component_returns_new_component(url, browser, temporary_nuimo_app_config_file):
@@ -127,7 +128,7 @@ def test_create_soundtouch_component():
 
 @fixture
 def component_url(route_url):
-    return route_url('nuimo_component', nuimo_id=0, component_id='component-ph2')
+    return route_url('nuimo_component', nuimo_id=0, component_id='ph2')
 
 
 def test_get_component_returns_component(component_url, browser, temporary_nuimo_app_config_file, settings):
@@ -149,11 +150,12 @@ def test_get_invalid_component_returns_404(route_url, browser, temporary_nuimo_a
 def test_delete_component_returns_200(component_url, browser, temporary_nuimo_app_config_file, settings):
     browser.delete(component_url, status=200)
     component_id = component_url.rsplit('/', 1)[-1]
-    with open(settings['nuimo_app_config_path'], 'r+') as f:
-        config = ConfigParser()
-        config.read_file(f)
-        assert len(config.sections()) == 2
-        assert component_id not in config.sections()
+    with open(settings['nuimo_app_config_path'], 'r') as f:
+        config = yaml.load(f)
+
+    components = config['nuimos'][0]['components']
+    assert len(components) == 2
+    assert component_id not in components
 
 
 def test_delete_invalid_component_returns_404(route_url, browser, temporary_nuimo_app_config_file):
@@ -170,14 +172,15 @@ def test_put_invalid_component_returns_404(route_url, browser, temporary_nuimo_a
 def test_put_component_devices_modifies_app_config(component_url, browser, temporary_nuimo_app_config_file, settings):
     browser.put_json(component_url, {'device_ids': ['ph2-light-5', 'ph2-light-6']}, status=200)
 
-    config = ConfigParser()
-    config.read(settings['nuimo_app_config_path'])
-    component = dict(config['component-ph2'])
-    assert set(component['device_ids'].split(', ')) == set(['ph2-light-5', 'ph2-light-6'])
+    with open(settings['nuimo_app_config_path'], 'r') as f:
+        config = yaml.load(f)
+
+    assert set(config['nuimos'][0]['components']['ph2']['device_ids']) == set(['ph2-light-5', 'ph2-light-6'])
 
 
 def test_put_component_devices_returns_modified_component(component_url, browser):
     response = browser.put_json(component_url, {'device_ids': ['ph2-light-5', 'ph2-light-6']}).json
     component_id = component_url.rsplit('/', 1)[-1]
+
     assert response['id'] == component_id
     assert set(response['device_ids']) == set(['ph2-light-5', 'ph2-light-6'])

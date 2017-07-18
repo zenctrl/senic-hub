@@ -1,5 +1,5 @@
-import configparser
 import logging
+import yaml
 import sys
 
 from importlib import import_module
@@ -26,7 +26,7 @@ def main(config):
     logging.getLogger("urllib3.connectionpool").setLevel(logging.CRITICAL)
 
     app = get_app(abspath(config), name='senic_hub')
-    config, component_config = read_config(app.registry.settings['nuimo_app_config_path'])
+    component_config = read_config(app.registry.settings['nuimo_app_config_path'])
     logger.info("Using configuration from: %s", app.registry.settings['nuimo_app_config_path'])
 
     nuimo_controller_mac_address_file_path = app.registry.settings['nuimo_mac_address_filepath']
@@ -53,9 +53,10 @@ def main(config):
 
 
 def read_config(config_file_path):
-    config = configparser.ConfigParser()
-    config.read(config_file_path)
-    return config["DEFAULT"], config
+    with open(config_file_path, 'r') as f:
+        config = yaml.load(f)
+
+    return config['nuimos'][0]['components']
 
 
 def get_component_instances(component_config):
@@ -67,9 +68,9 @@ def get_component_instances(component_config):
 
     module_name_format = __name__.rsplit('.', 1)[0] + '.components.{}'
 
-    for component_id in component_config.sections():
+    for component_id in component_config:
         config = component_config[component_id]
-        module_name = module_name_format.format(config.pop('type'))
+        module_name = module_name_format.format(config['type'])
         logger.info("Importing module %s", module_name)
         component_module = import_module(module_name)
         instances.append(component_module.Component(component_id, config))

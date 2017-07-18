@@ -1,4 +1,3 @@
-from configparser import ConfigParser
 from logging import getLogger
 from os import path
 from uuid import uuid4
@@ -11,6 +10,7 @@ from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound
 from ..config import path as service_path
 from .setup_devices import get_device
 
+import yaml
 
 logger = getLogger(__name__)
 
@@ -45,15 +45,16 @@ def nuimo_components_view(request):
         component = {
             'id': component_id,
             'type': device['type'],
-            'device_ids': device['device_ids'].split(', '),
+            'device_ids': device['device_ids']
         }
         return component
 
-    config = ConfigParser()
-    config.read(nuimo_app_config_path)
+    with open(nuimo_app_config_path, 'r') as f:
+        config = yaml.load(f)
+
     components = [
-        nuimo_app_config_component_to_response_component(s, dict(config[s]))
-        for s in config.sections()
+        nuimo_app_config_component_to_response_component(s, config['nuimos'][0]['components'][s])
+        for s in config['nuimos'][0]['components']
     ]
 
     return {'components': components}
@@ -90,13 +91,13 @@ def add_nuimo_component_view(request):
     component['device_ids'] = device_ids
 
     with open(request.registry.settings['nuimo_app_config_path'], 'r+') as f:
-        config = ConfigParser()
-        config.read_file(f)
-        config[component['id']] = component_to_app_config_component(component)
-        f.seek(0)  # We want to overwrite the config file with the new configuration
-        config.write(f)
+        config = yaml.load(f)
 
-    component['index'] = len(config.sections()) - 1
+        config['nuimos'][0]['components'][component['id']] = component
+        f.seek(0)  # We want to overwrite the config file with the new configuration
+        yaml.dump(config, f, default_flow_style=False)
+
+    component['index'] = len(config['nuimos'][0]['components']) - 1
 
     return component
 
@@ -138,33 +139,16 @@ def create_component(device):
     return component
 
 
-def component_to_app_config_component(component):
-    app_config_component = {
-        k: v for k, v in component.items()
-        if k in ['ha_entity_id', 'id', 'ip_address', 'port', 'type', 'username']}
-    app_config_component['device_ids'] = ', '.join(component['device_ids'])
-    return app_config_component
-
-
-def app_config_component_to_component(app_config_component):
-    component = {
-        k: v for k, v in app_config_component.items()
-        if k in ['ha_entity_id', 'id', 'ip_address', 'port', 'type', 'username']}
-    component['device_ids'] = app_config_component['device_ids'].split(', ')
-    return component
-
-
 @nuimo_component_service.get()
 def get_nuimo_component_view(request):
     component_id = request.matchdict['component_id']
-    with open(request.registry.settings['nuimo_app_config_path'], 'r+') as f:
-        config = ConfigParser()
-        config.read_file(f)
-        try:
-            app_config_component = dict(config[component_id])
-        except KeyError:
-            raise HTTPNotFound
-    component = app_config_component_to_component(app_config_component)
+    with open(request.registry.settings['nuimo_app_config_path'], 'r') as f:
+        config = yaml.load(f)
+    try:
+        component = config['nuimos'][0]['components'][component_id]
+    except KeyError:
+        raise HTTPNotFound
+
     component['id'] = component_id
     return component
 
@@ -173,14 +157,16 @@ def get_nuimo_component_view(request):
 def delete_nuimo_component_view(request):
     component_id = request.matchdict['component_id']
     with open(request.registry.settings['nuimo_app_config_path'], 'r+') as f:
-        config = ConfigParser()
-        config.read_file(f)
-        if component_id not in config.sections():
+        config = yaml.load(f)
+
+        if component_id not in config['nuimos'][0]['components']:
             raise HTTPNotFound()
-        config.remove_section(component_id)
+
+        del config['nuimos'][0]['components'][component_id]
+
         f.seek(0)  # We want to overwrite the config file with the new configuration
         f.truncate()
-        config.write(f)
+        yaml.dump(config, f, default_flow_style=False)
 
 
 class ModifyComponentSchema(MappingSchema):
@@ -194,14 +180,13 @@ def modify_nuimo_component(request):
     device_ids = request.validated['device_ids']
 
     with open(request.registry.settings['nuimo_app_config_path'], 'r+') as f:
-        config = ConfigParser()
-        config.read_file(f)
+        config = yaml.load(f)
         try:
-            config[component_id]['device_ids'] = ', '.join(device_ids)
+            config['nuimos'][0]['components'][component_id]['device_ids'] = device_ids
         except KeyError:
             raise HTTPNotFound
         f.seek(0)  # We want to overwrite the config file with the new configuration
         f.truncate()
-        config.write(f)
+        yaml.dump(config, f, default_flow_style=False)
 
     return get_nuimo_component_view(request)

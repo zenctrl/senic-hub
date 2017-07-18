@@ -9,14 +9,13 @@ from os.path import abspath
 from datetime import datetime, timedelta
 from pyramid.paster import get_app, setup_logging
 
-import configparser
 
 import yaml
 
 from . import supervisor
 from .device_discovery import PhilipsHueBridgeApiClient, discover_devices, merge_devices
 from .lockfile import open_locked
-from .views.nuimo_components import component_to_app_config_component, create_component
+from .views.nuimo_components import create_component
 
 
 DEFAULT_SCAN_INTERVAL_SECONDS = 1 * 60  # 1 minute
@@ -46,7 +45,7 @@ def create_configuration_files_and_restart_apps(settings):
     nuimo_app_config_file_path = settings['nuimo_app_config_path']
     with open(nuimo_app_config_file_path, 'w') as f:
         config = generate_nuimo_app_configuration(devices)
-        config.write(f)
+        yaml.dump(config, f, default_flow_style=False)
 
     supervisor.restart_program('nuimo_app')
 
@@ -93,13 +92,17 @@ def phue_bridge_config(bridge):
 
 
 def generate_nuimo_app_configuration(devices):
-    config = configparser.ConfigParser()
-    authenticated_devices = [d for d in devices if d["authenticated"]]
-    for device in authenticated_devices:
-        component = component_to_app_config_component(create_component(device))
-        config[component['id']] = component
-
-    return config
+    components = [create_component(d) for d in devices if d["authenticated"]]
+    components = {c['id']: c for c in components}
+    return {
+        'nuimos': [
+            {
+                'name': 'My Nuimo',
+                'mac': '00:00:00:00:00:00',  # MAC address is still read from `nuimo_mac_address.txt`
+                'components': components,
+            }
+        ]
+    }
 
 
 def sigint_handler(*args):
