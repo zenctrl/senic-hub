@@ -144,7 +144,7 @@ export default class HubOnboarding {
   }
 
   _retrieveInitialValues() {
-    console.log("Hub: retrieving initial values")
+    console.log("Hub Bluetooth: retrieving initial values")
     return this.device
       .readCharacteristicForService(OnboardingUuids.SERVICE, OnboardingUuids.CONNECTION_STATE)
       .then((characteristic) => this._updateConnectionState(null, characteristic))
@@ -155,7 +155,7 @@ export default class HubOnboarding {
 
   _updateAvailableNetworks(error, characteristic) {
     if (error) {
-      console.log("Hub: error from networks chrc: " + error.message)
+      console.log("Hub Bluetooth: error from wifi networks chrc: " + error.message)
       return
     }
     let ssid = base64.decode(characteristic.value)
@@ -165,22 +165,22 @@ export default class HubOnboarding {
 
   _updateConnectionState(error, characteristic) {
     if (error) {
-      console.log("Hub: error from connection state chrc: " + error.message)
+      console.log("Hub Bluetooth: error from wifi connection state chrc: " + error.message)
       return
     }
     if (characteristic.value.length < 4) {
-      console.log("Hub: received empty connection state.")
+      console.log("Hub Bluetooth: received empty wifi connection state.")
       return;
     }
     let rawState = base64.decode(characteristic.value)
     this.connectionState = rawState.charCodeAt(0)
     if (this.connectionState > 1 && rawState.length > 1) {
       this.currentSsid = rawState.slice(1)
-      console.log("Hub: received connection state: " + this.getConnectionStateString() + " to " + this.currentSsid)
+      console.log("Hub Bluetooth: received wifi connection state: " + this.getConnectionStateString() + " to " + this.currentSsid)
     }
     else {
       this.currentSsid = ''
-      console.log("Hub: received connection state: " + this.getConnectionStateString())
+      console.log("Hub Bluetooth: received wifi connection state: " + this.getConnectionStateString())
     }
 
     if (this.onConnectionStateChanged) {
