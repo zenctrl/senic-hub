@@ -9,8 +9,8 @@ def url(route_url):
 
 
 @mock.patch('senic_hub.backend.commands.supervisor.restart_program')
-@mock.patch('senic_hub.backend.views.setup_config.sleep')
-@mock.patch('senic_hub.backend.views.setup_config.stop_program')
+@mock.patch('senic_hub.backend.views.config.sleep')
+@mock.patch('senic_hub.backend.views.config.stop_program')
 def test_setup_config_returns_200_and_creates_files(
         stop_program_mock, sleep_mock, restart_program_mock,
         url, browser):
