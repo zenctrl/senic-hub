@@ -9,7 +9,7 @@ from ..supervisor import stop_program
 
 configuration_service = Service(
     name='configuration_create',
-    path=path('setup/config'),
+    path=path('config'),
     renderer='json',
     accept='application/json',
 )
