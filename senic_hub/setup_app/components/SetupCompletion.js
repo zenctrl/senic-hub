@@ -54,7 +54,7 @@ export default class SetupCompletion extends Screen {
   }
 
   didAppear() {
-    fetch(Settings.HUB_API_URL + 'setup/config', {method: 'POST'})
+    fetch(Settings.HUB_API_URL + 'config', {method: 'POST'})
       .then(response => {
         if (!response.ok) {
           throw new Error('Request failed: ' + JSON.stringify(response))

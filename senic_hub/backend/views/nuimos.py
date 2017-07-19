@@ -9,21 +9,14 @@ from ..config import path as service_path
 logger = getLogger(__name__)
 
 
-nuimo_bootstrap = Service(
-    name='start_nuimo_setup',
-    path=service_path('setup/nuimo/bootstrap'),
-    renderer='json',
-    accept='application/json')
-
-
 connected_nuimos = Service(
     name='connected_nuimos',
-    path=service_path('setup/nuimo'),
+    path=service_path('nuimos'),
     renderer='json',
     accept='application/json')
 
 
-@nuimo_bootstrap.post()
+@connected_nuimos.post()
 def bootstrap_nuimos(request):  # pragma: no cover,
     adapter_name = request.registry.settings.get('bluetooth_adapter_name', 'hci0')
     required_mac_address = request.registry.settings.get('nuimo_mac_address')

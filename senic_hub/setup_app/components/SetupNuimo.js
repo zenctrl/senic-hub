@@ -55,7 +55,7 @@ export default class SetupNuimo extends Screen {
   bootstrapNuimos() {
     Promise
       .race([
-        fetch(Settings.HUB_API_URL + 'setup/nuimo/bootstrap', {
+        fetch(Settings.HUB_API_URL + 'nuimos', {
           method: 'POST',
           headers: {
             'Accept': 'application/json',
