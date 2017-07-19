@@ -6,7 +6,7 @@ from pytest import fixture, raises
 import responses
 
 from senic_hub.backend.device_discovery import (
-    DISCOVERY_TIMESTAMP_FIELD, UpstreamError, discover_devices, merge_devices, get_device_description)
+    UpstreamError, discover_devices, merge_devices, get_device_description)
 
 
 @fixture
@@ -125,11 +125,11 @@ def test_discover_devices_for_the_first_time_return_all_devices():
     expected = [{
         "id": "1",
         "name": "first",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
     }, {
         "id": "2",
         "name": "second",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
     }]
     assert merge_devices(known_devices, discovered_devices, now) == expected
 
@@ -139,7 +139,7 @@ def test_discover_devices_includes_new_device_discovered():
     known_devices = [{
         "id": "1",
         "name": "first",
-        DISCOVERY_TIMESTAMP_FIELD: str(now - timedelta(minutes=2)),
+        'discovered': str(now - timedelta(minutes=2)),
     }]
     discovered_devices = [{
         "id": "1",
@@ -151,11 +151,11 @@ def test_discover_devices_includes_new_device_discovered():
     expected = [{
         "id": "1",
         "name": "first",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
     }, {
         "id": "2",
         "name": "second",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
     }]
     assert merge_devices(known_devices, discovered_devices, now) == expected
 
@@ -165,7 +165,7 @@ def test_discover_devices_update_device_with_updated_fields():
     known_devices = [{
         "id": "1",
         "name": "first",
-        DISCOVERY_TIMESTAMP_FIELD: str(now - timedelta(minutes=2)),
+        'discovered': str(now - timedelta(minutes=2)),
     }]
     discovered_devices = [{
         "id": "1",
@@ -177,11 +177,11 @@ def test_discover_devices_update_device_with_updated_fields():
     expected = [{
         "id": "1",
         "name": "first updated",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
     }, {
         "id": "2",
         "name": "second",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
     }]
     assert merge_devices(known_devices, discovered_devices, now) == expected
 
@@ -191,11 +191,11 @@ def test_discover_devices_device_that_wasnt_discovered_again_is_not_removed_from
     known_devices = [{
         "id": "1",
         "name": "first",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
     }, {
         "id": "2",
         "name": "second",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
     }]
     discovered_devices = [{
         "id": "1",
@@ -210,14 +210,14 @@ def test_merging_devices_keeps_hue_username():
     known_devices = [{
         "id": "1",
         "type": "philips_hue",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
         'extra': {
             'username': 'light-bringer',
         },
     }, {
         "id": "2",
         "type": "philips_hue",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
         'extra': {
             'username': 'another-light-bringer',
         },

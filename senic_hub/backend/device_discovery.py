@@ -19,9 +19,6 @@ SUPPORTED_DEVICES = [
 ]
 
 
-DISCOVERY_TIMESTAMP_FIELD = "discovered"
-
-
 class UnauthenticatedDeviceError(Exception):
     message = "Device not authenticated..."
 
@@ -61,7 +58,7 @@ def merge_devices(known_devices, discovered_devices, now):
                 merged_extra.update(device.get('extra', {}))
                 device['extra'] = merged_extra
 
-        device[DISCOVERY_TIMESTAMP_FIELD] = str(now)
+        device['discovered'] = str(now)
         merged_devices.append(device)
 
     # add already known devices that were not found in this discovery
