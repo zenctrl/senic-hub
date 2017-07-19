@@ -105,11 +105,6 @@ def generate_nuimo_app_configuration(devices):
     }
 
 
-def sigint_handler(*args):
-    logger.info('Stopping...')
-    sys.exit(0)
-
-
 @click.command(help='scan for devices in local network and store their description in a file')
 @click.option('--config', '-c', required=True, type=click.Path(exists=True), help='app configuration file')
 def device_discovery(config):
@@ -121,6 +116,9 @@ def device_discovery(config):
         'device_scan_interval_seconds', DEFAULT_SCAN_INTERVAL_SECONDS))
 
     # install Ctrl+C handler
+    def sigint_handler(*args):
+        logger.info('Stopping...')
+        sys.exit(0)
     signal.signal(signal.SIGINT, sigint_handler)
 
     while True:
