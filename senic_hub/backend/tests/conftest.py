@@ -1,14 +1,9 @@
-from json import loads
-from pyramid.renderers import render
 from pyramid.testing import DummyRequest
 from pyramid.testing import setUp, tearDown
 from pytest import fixture
-from os import path
 from webtest import TestApp as TestAppBase
 
-
-def as_dict(content, **kw):
-    return dict(loads(render('json', content, DummyRequest())), **kw)
+from senic_hub.backend.testing import asset_path
 
 
 @fixture
@@ -18,10 +13,6 @@ def route_url(app):
         return DummyRequest().route_url(name, **kwargs)
 
     return _route_url
-
-
-def asset_path(*parts):
-    return path.abspath(path.join(path.dirname(__file__), 'data', *parts))
 
 
 # settings for test configuration

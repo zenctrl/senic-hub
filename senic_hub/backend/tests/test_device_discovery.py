@@ -1,12 +1,125 @@
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from pytest import fixture, raises
 
 import responses
 
 from senic_hub.backend.device_discovery import (
-    DISCOVERY_TIMESTAMP_FIELD, UpstreamError, discover_devices, merge_devices, get_device_description)
+    add_authentication_status,
+    add_device_details,
+    add_homeassistant_entity_ids,
+    discover_devices,
+    discover_and_merge_devices,
+    get_device_description,
+    merge_devices,
+    PhilipsHueBridgeApiClient,
+    UnsupportedDeviceTypeException,
+    UpstreamError,
+)
+from senic_hub.backend.testing import temp_asset_path
+
+
+@patch('senic_hub.backend.device_discovery.discover_devices')
+@patch('senic_hub.backend.device_discovery.add_authentication_status')
+@patch('senic_hub.backend.device_discovery.add_device_details')
+@patch('senic_hub.backend.device_discovery.add_homeassistant_entity_ids')
+def test_devices_are_discovered_and_merged_with_existing_devices_file(
+        add_homeassistant_entity_ids_mock, add_device_details_mock,
+        add_authentication_status_mock, discover_devices_mock):
+    discover_devices_mock.return_value = []
+    with temp_asset_path('devices.json') as devices_path:
+        discover_and_merge_devices(devices_path, datetime.utcnow())
+    # TODO: `assert_called (_once)` only available on the mock with Python 3.6, we use Python 3.5
+    # add_homeassistant_entity_ids_mock.assert_called_once()
+    # add_device_details_mock.assert_called_once()
+    # add_authentication_status_mock.assert_called_once()
+    # discover_devices_mock.assert_called_once()
+
+
+@patch('senic_hub.backend.device_discovery.discover_devices')
+@patch('senic_hub.backend.device_discovery.add_authentication_status')
+@patch('senic_hub.backend.device_discovery.add_device_details')
+@patch('senic_hub.backend.device_discovery.add_homeassistant_entity_ids')
+def test_devices_are_discovered_and_merged_with_empty_devices_file(
+        add_homeassistant_entity_ids_mock, add_device_details_mock,
+        add_authentication_status_mock, discover_devices_mock):
+    discover_devices_mock.return_value = []
+    with temp_asset_path('empty') as devices_path:
+        discover_and_merge_devices(devices_path, datetime.utcnow())
+    # TODO: `assert_called_once` only available with Python 3.6, we use Python 3.5
+    # add_homeassistant_entity_ids_mock.assert_called_once()
+    # add_device_details_mock.assert_called_once()
+    # add_authentication_status_mock.assert_called_once()
+    # discover_devices_mock.assert_called_once()
+
+
+@patch('senic_hub.backend.device_discovery.discover_devices')
+@patch('senic_hub.backend.device_discovery.open_locked')
+def test_devices_are_discovered_catches_os_error(open_locked_mock, discover_devices_mock):
+    open_locked_mock.side_effect = [OSError('Foo has eaten the bar')]
+    discover_and_merge_devices('any/path', datetime.utcnow())
+
+
+def test_add_authentication_status_sets_authenticated_if_authentication_not_required():
+    device = dict(authenticationRequired=False)
+    add_authentication_status([device])
+    assert(device['authenticated'])
+
+
+def test_add_authentication_status_sets_authenticated_if_authentication_required_for_non_philips_hue_device():
+    device = dict(authenticationRequired=True, type='no-philips-hue')
+    add_authentication_status([device])
+    assert(device['authenticated'])
+
+
+@patch.object(PhilipsHueBridgeApiClient, 'is_authenticated')
+def test_add_authentication_status_sets_authenticated_if_philips_hue_api_says_yes(is_authenticated_mock):
+    is_authenticated_mock.return_value = True
+    device = dict(ip='0.0.0.0', type='philips_hue', authenticationRequired=True, extra=dict())
+    add_authentication_status([device])
+    assert(device['authenticated'])
+
+
+@patch.object(PhilipsHueBridgeApiClient, 'is_authenticated')
+def test_add_authentication_status_sets_authenticated_if_philips_hue_api_says_no(is_authenticated_mock):
+    is_authenticated_mock.return_value = False
+    device = dict(ip='0.0.0.0', type='philips_hue', authenticationRequired=True, extra=dict())
+    add_authentication_status([device])
+    assert(not device['authenticated'])
+
+
+@patch.object(PhilipsHueBridgeApiClient, 'get_lights')
+def test_add_device_details_adds_philips_hue_lights(get_lights_mock):
+    expected = 'foo'
+    get_lights_mock.return_value = expected
+    device = dict(ip='0.0.0.0', type='philips_hue', authenticated=True, extra=dict(username='foo'))
+    add_device_details([device])
+    assert(device['extra']['lights'] == expected)
+
+
+def test_add_homeassistant_entity_ids_adds_philips_hue():
+    device = dict(type='philips_hue')
+    add_homeassistant_entity_ids([device])
+    assert(device['ha_entity_id'] == 'light.senic_hub')
+
+
+def test_add_homeassistant_entity_ids_adds_soundtouch():
+    device = dict(type='soundtouch')
+    add_homeassistant_entity_ids([device])
+    assert(device['ha_entity_id'] == 'media_player.bose_soundtouch')
+
+
+def test_add_homeassistant_entity_ids_adds_sonos():
+    device = dict(type='sonos', extra=dict(roomName='foo'))
+    add_homeassistant_entity_ids([device])
+    assert(device['ha_entity_id'] == 'media_player.foo')
+
+
+def test_add_homeassistant_entity_ids_throws_exception_for_unknown_device_type():
+    device = dict(type='no-such-type')
+    with raises(UnsupportedDeviceTypeException):
+        add_homeassistant_entity_ids([device])
 
 
 @fixture
@@ -125,11 +238,11 @@ def test_discover_devices_for_the_first_time_return_all_devices():
     expected = [{
         "id": "1",
         "name": "first",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
     }, {
         "id": "2",
         "name": "second",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
     }]
     assert merge_devices(known_devices, discovered_devices, now) == expected
 
@@ -139,7 +252,7 @@ def test_discover_devices_includes_new_device_discovered():
     known_devices = [{
         "id": "1",
         "name": "first",
-        DISCOVERY_TIMESTAMP_FIELD: str(now - timedelta(minutes=2)),
+        'discovered': str(now - timedelta(minutes=2)),
     }]
     discovered_devices = [{
         "id": "1",
@@ -151,11 +264,11 @@ def test_discover_devices_includes_new_device_discovered():
     expected = [{
         "id": "1",
         "name": "first",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
     }, {
         "id": "2",
         "name": "second",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
     }]
     assert merge_devices(known_devices, discovered_devices, now) == expected
 
@@ -165,7 +278,7 @@ def test_discover_devices_update_device_with_updated_fields():
     known_devices = [{
         "id": "1",
         "name": "first",
-        DISCOVERY_TIMESTAMP_FIELD: str(now - timedelta(minutes=2)),
+        'discovered': str(now - timedelta(minutes=2)),
     }]
     discovered_devices = [{
         "id": "1",
@@ -177,11 +290,11 @@ def test_discover_devices_update_device_with_updated_fields():
     expected = [{
         "id": "1",
         "name": "first updated",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
     }, {
         "id": "2",
         "name": "second",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
     }]
     assert merge_devices(known_devices, discovered_devices, now) == expected
 
@@ -191,11 +304,11 @@ def test_discover_devices_device_that_wasnt_discovered_again_is_not_removed_from
     known_devices = [{
         "id": "1",
         "name": "first",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
     }, {
         "id": "2",
         "name": "second",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
     }]
     discovered_devices = [{
         "id": "1",
@@ -210,14 +323,14 @@ def test_merging_devices_keeps_hue_username():
     known_devices = [{
         "id": "1",
         "type": "philips_hue",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
         'extra': {
             'username': 'light-bringer',
         },
     }, {
         "id": "2",
         "type": "philips_hue",
-        DISCOVERY_TIMESTAMP_FIELD: str(now),
+        'discovered': str(now),
         'extra': {
             'username': 'another-light-bringer',
         },

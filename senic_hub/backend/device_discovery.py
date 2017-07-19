@@ -1,15 +1,27 @@
 import functools
 import json
 import logging
+import signal
+import sys
+import time
 import xml.etree.ElementTree as ET
 
 from copy import deepcopy
 from enum import IntEnum
-from requests.exceptions import ConnectionError
 
+import click
 import requests
 
+from os.path import abspath
+from datetime import datetime, timedelta
+from pyramid.paster import get_app, setup_logging
+from requests.exceptions import ConnectionError
+
+from .lockfile import open_locked
 from .network_discovery import NetworkDiscovery
+
+
+logger = logging.getLogger(__name__)
 
 
 SUPPORTED_DEVICES = [
@@ -19,56 +31,62 @@ SUPPORTED_DEVICES = [
 ]
 
 
-DISCOVERY_TIMESTAMP_FIELD = "discovered"
+DEFAULT_SCAN_INTERVAL_SECONDS = 1 * 60  # 1 minute
 
 
-class UnauthenticatedDeviceError(Exception):
-    message = "Device not authenticated..."
+class UnsupportedDeviceTypeException(Exception):
+    pass
 
 
-class UpstreamError(Exception):
-    def __init__(self, error_type=None):
-        self.error_type = error_type
-        self.message = "Received error from the upstream device! Type: {}".format(self.error_type)
+@click.command(help='scan for devices in local network and store their description in a file')
+@click.option('--config', '-c', required=True, type=click.Path(exists=True), help='app configuration file')
+def command(config):  # pragma: no cover
+    app = get_app(abspath(config), name='senic_hub')
+    setup_logging(config)
+
+    devices_path = app.registry.settings['devices_path']
+    scan_interval_seconds = int(app.registry.settings.get(
+        'device_scan_interval_seconds', DEFAULT_SCAN_INTERVAL_SECONDS))
+
+    # install Ctrl+C handler
+    def sigint_handler(*args):
+        logger.info('Stopping...')
+        sys.exit(0)
+    signal.signal(signal.SIGINT, sigint_handler)
+
+    while True:
+        now = datetime.utcnow()
+        discover_and_merge_devices(devices_path, now)
+
+        next_scan = now + timedelta(seconds=scan_interval_seconds)
+        logging.info("Next device discovery run scheduled for %s", next_scan)
+        time.sleep(scan_interval_seconds)
 
 
-class PhilipsHueBridgeError(IntEnum):
-    unauthorized = 1
-    button_not_pressed = 101
+def discover_and_merge_devices(devices_path, now):
+    discovered_devices = discover_devices()
 
+    try:
+        with open_locked(devices_path, 'a+') as f:
+            if f.tell() == 0:  # File is empty, i.e. it was just created
+                known_devices = []
+            else:
+                f.seek(0, 0)
+                known_devices = json.load(f)
 
-logger = logging.getLogger(__name__)
+            merged_devices = merge_devices(known_devices, discovered_devices, now)
 
+            add_authentication_status(merged_devices)
+            add_device_details(merged_devices)
+            add_homeassistant_entity_ids(merged_devices)
 
-def merge_devices(known_devices, discovered_devices, now):
-    # TODO: Do we need to make a deep copy? Are arrays not passed by-value, but by-ref?
-    known_devices = deepcopy(known_devices)
+            f.seek(0, 0)
+            f.truncate()
+            json.dump(merged_devices, f)
 
-    # TODO: `merged_devices` can be directly assigned with a list comprehension
-    merged_devices = []
-
-    for device in discovered_devices:
-        # make sure we get updates for devices we already had discovered before
-        known_device = next((d for d in known_devices if d["id"] == device["id"]), None)
-        if known_device:
-            known_devices.remove(known_device)
-
-            # Copy "extra" attributes from existing device if not present in newly found
-            # device. These attributes are typically added later such as during
-            # authentication of Philipe Hue bridge.
-            merged_extra = known_device.get('extra', None)
-            if merged_extra:
-                merged_extra.update(device.get('extra', {}))
-                device['extra'] = merged_extra
-
-        device[DISCOVERY_TIMESTAMP_FIELD] = str(now)
-        merged_devices.append(device)
-
-    # add already known devices that were not found in this discovery
-    # run or it was found that they didn't have any updates
-    merged_devices.extend(known_devices)
-
-    return sorted(merged_devices, key=lambda d: d["id"])
+    except OSError as e:
+        logging.error("Could not open devices file %s", devices_path)
+        logging.error(e, exc_info=True)
 
 
 def discover_devices(discovery_class=NetworkDiscovery):
@@ -96,6 +114,85 @@ def discover_devices(discovery_class=NetworkDiscovery):
     logger.info("Device discovery finished.")
 
     return devices
+
+
+def merge_devices(known_devices, discovered_devices, now):
+    # TODO: Do we need to make a deep copy? Are arrays not passed by-value, but by-ref?
+    known_devices = deepcopy(known_devices)
+
+    # TODO: `merged_devices` can be directly assigned with a list comprehension
+    merged_devices = []
+
+    for device in discovered_devices:
+        # make sure we get updates for devices we already had discovered before
+        known_device = next((d for d in known_devices if d["id"] == device["id"]), None)
+        if known_device:
+            known_devices.remove(known_device)
+
+            # Copy "extra" attributes from existing device if not present in newly found
+            # device. These attributes are typically added later such as during
+            # authentication of Philipe Hue bridge.
+            merged_extra = known_device.get('extra', None)
+            if merged_extra:
+                merged_extra.update(device.get('extra', {}))
+                device['extra'] = merged_extra
+
+        device['discovered'] = str(now)
+        merged_devices.append(device)
+
+    # add already known devices that were not found in this discovery
+    # run or it was found that they didn't have any updates
+    merged_devices.extend(known_devices)
+
+    return sorted(merged_devices, key=lambda d: d["id"])
+
+
+def add_authentication_status(devices):
+    for device in devices:
+        if not device["authenticationRequired"]:
+            device["authenticated"] = True
+            continue
+
+        if device["type"] == "philips_hue":
+            api = PhilipsHueBridgeApiClient(device["ip"], device['extra'].get('username'))
+            device["authenticated"] = api.is_authenticated()
+        else:
+            device["authenticated"] = True
+
+
+def add_device_details(devices):
+    authenticated_bridges = [d for d in devices if d['type'] == 'philips_hue' and d['authenticated']]
+    for bridge in authenticated_bridges:
+        api = PhilipsHueBridgeApiClient(bridge["ip"], bridge['extra']['username'])
+        bridge['extra']['lights'] = api.get_lights()
+
+
+def add_homeassistant_entity_ids(devices):
+    for device in devices:
+        if device["type"] == "philips_hue":
+            device["ha_entity_id"] = "light.senic_hub"  # TODO: Generate proper HA entity ID
+        elif device["type"] == "soundtouch":
+            device["ha_entity_id"] = "media_player.bose_soundtouch"
+        elif device["type"] == "sonos":
+            room_name = device["extra"]["roomName"]
+            device["ha_entity_id"] = "media_player.{}".format(room_name.replace(" ", "_").lower())
+        else:
+            raise UnsupportedDeviceTypeException()
+
+
+class UnauthenticatedDeviceError(Exception):
+    message = "Device not authenticated..."
+
+
+class UpstreamError(Exception):
+    def __init__(self, error_type=None):
+        self.error_type = error_type
+        self.message = "Received error from the upstream device! Type: {}".format(self.error_type)
+
+
+class PhilipsHueBridgeError(IntEnum):
+    unauthorized = 1
+    button_not_pressed = 101
 
 
 def get_device_description(device_type, device_info):
