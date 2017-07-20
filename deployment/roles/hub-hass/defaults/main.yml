@@ -1,5 +1,5 @@
 ---
 python_interpreter: python3
 hass_deploy_location: /srv/homeassistant
-hass_data_location: /var/data/senic-hub/
+hass_data_location: /var/data/senic-hub
 hostname: "{{ploy_hostname}}"
