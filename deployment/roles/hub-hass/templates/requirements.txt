@@ -1,5 +1,4 @@
 homeassistant==0.42.2
-asyncio==3.4.3
 aiohttp_cors==0.5.2  # requirement of HTTP component
 phue==0.9  # requirement of Philips Hue component
 SoCo==0.12  # requirement of Sonos component

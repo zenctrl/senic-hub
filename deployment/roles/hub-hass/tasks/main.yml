@@ -1,4 +1,17 @@
 ---
+- name: upload missing asyncio to lib/python
+  synchronize:
+    src: asyncio
+    dest: "/usr/lib/python3.5/"
+    archive: false
+    delete: true
+    rsync_opts:
+    - "-rlptD"
+    - "-e bin/ploy-ssh"
+  tags:
+    - hass
+    - asyncio
+
 - name: create deployment location
   become: true
   file:
