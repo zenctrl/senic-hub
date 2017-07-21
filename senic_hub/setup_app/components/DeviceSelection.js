@@ -54,7 +54,7 @@ export default class DeviceSelection extends Screen {
     );
   }
 
-  willAppear() {
+  didAppear() {
     let that = this;
     //TODO: Promise usage can be probably simplified
     (new Promise((res, rej) => res()))

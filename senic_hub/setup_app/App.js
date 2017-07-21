@@ -1,4 +1,5 @@
 import AddComponent from './components/AddComponent'
+import BluetoothConnectionFailureScreen from './components/BluetoothConnectionFailureScreen'
 import BootScreen from './components/BootScreen'
 import DeviceSelection from './components/DeviceSelection'
 import FeedbackScreen from './components/FeedbackScreen'
@@ -22,6 +23,7 @@ Navigation.registerComponent('app.nuimoComponents', () => NuimoComponents)
 Navigation.registerComponent('app.selectComponentDevices', () => SelectComponentDevices)
 Navigation.registerComponent('feedback', () => FeedbackScreen)
 Navigation.registerComponent('settings', () => SettingsScreen)
+Navigation.registerComponent('setup.bluetoothConnectionFailure', () => BluetoothConnectionFailureScreen)
 Navigation.registerComponent('setup.boot', () => BootScreen)
 Navigation.registerComponent('setup.completion', () => SetupCompletion)
 Navigation.registerComponent('setup.devices', () => SetupDevices)

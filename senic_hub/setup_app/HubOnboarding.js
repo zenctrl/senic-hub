@@ -43,12 +43,23 @@ export default class HubOnboarding {
     this.version = ''
     this.networksChangedCallback = () => {}
     this.onConnectionStateChanged = null
+    this.onDisconnected = null  // callback in the form of 'function(error)'
     // TODO add a way to unsubscribe from notifications
     this.availableNetworksSubscription = null
     this.connectionStateSubscription = null
+
+    this.onDisconnectedSubscription = this.device.onDisconnected((error, device) => {
+        if (error) {
+          console.log("Hub Bluetooth: disconnected: " + error.message)
+        }
+        if (this.onDisconnected) {
+          this.onDisconnected(error)
+        }
+      }
+    )
   }
 
-  connect() {
+  connect(retry = true) {
     console.log("Hub Bluetooth: connecting...")
     return this.device
       .connect()
@@ -74,10 +85,29 @@ export default class HubOnboarding {
   }
 
   disconnect() {
-    console.log("Hub Bluetooth: disconnecting...")
-    this.device.cancelConnection().then((device) => {
-      console.log("Hub Bluetooth: disconnected")
-    })
+    return this.device.isConnected()
+      .then(connected => {
+        if (!connected) {
+          return Promise.resolve()
+        }
+        console.log("Hub Bluetooth: disconnecting...")
+        if (this.availableNetworksSubscription) {
+          this.availableNetworksSubscription.remove()
+          this.availableNetworksSubscription = null
+        }
+        if (this.connectionStateSubscription) {
+          this.connectionStateSubscription.remove()
+          this.connectionStateSubscription = null
+        }
+        return this.device.cancelConnection()
+          .then(device => {
+            console.log("Hub Bluetooth: disconnected")
+          })
+          .catch(error => {
+            console.log("Hub Bluetooth: disconnect failed with error: " + error)
+            throw error
+          })
+      })
   }
 
   /** callback(availableNetworks: String) */

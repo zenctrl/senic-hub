@@ -10,11 +10,11 @@ import {
 import { Button } from 'react-native-elements'
 
 import HubOnboarding from '../HubOnboarding'
-import Screen from './Screen';
+import BluetoothRequiringScreen from './BluetoothRequiringScreen';
 import Settings from '../Settings'
 
 
-export default class SetupWifiPassword extends Screen {
+export default class SetupWifiPassword extends BluetoothRequiringScreen {
   constructor(props) {
     super(props)
 
@@ -26,6 +26,14 @@ export default class SetupWifiPassword extends Screen {
     }
 
     this.setTitle("Wi-Fi Password")
+  }
+
+  didAppear() {
+    super.didAppear()
+  }
+
+  willDisappear() {
+    super.willDisappear()
   }
 
   render() {

@@ -33,6 +33,7 @@ export default class BootScreen extends Screen {
     // connected.
     if (HubOnboarding.hubDevice) {
       HubOnboarding.hubDevice.disconnect()
+        .catch(error => this.resetTo('setup.bluetoothConnectionFailure'))
     }
     this.detectHubReachabilityAndResetToNextScreenOnSuccess()
   }

@@ -13,7 +13,6 @@ import { List, ListItem } from 'react-native-elements'
 import HubOnboarding from '../HubOnboarding'
 import Screen from './Screen'
 
-
 export default class SetupHub extends Screen {
   constructor(props) {
     super(props)
@@ -29,10 +28,10 @@ export default class SetupHub extends Screen {
     this.setTitle("Hub")
   }
 
-  willAppear() {
+  didAppear() {
     this.bluetoothStateChangeListener = this.manager.onStateChange((state) => {
       console.log('BleManager.state:', state)
-      this.setState({bluetoothState: state})
+      this.setState({ bluetoothState: state })
       if (state === 'PoweredOn') {
         this.startScanning()
       } else {
@@ -40,18 +39,16 @@ export default class SetupHub extends Screen {
       }
     }, true)
 
-    // Disconnect hub it was connected in the meanwhile (i.e. by a following onboarding step),
+    // Disconnect hub if it was connected in the meanwhile (i.e. by a following onboarding step),
     // otherwise it wouldn't be discovered in connected state
     if (HubOnboarding.hubDevice) {
       HubOnboarding.hubDevice.disconnect()
+        .catch(error => this.resetTo('setup.bluetoothConnectionFailure'))
     }
   }
 
   willDisappear() {
-    if (this.bluetoothStateChangeListener) {
-      this.bluetoothStateChangeListener.remove()
-      this.bluetoothStateChangeListener = null
-    }
+    this.bluetoothStateChangeListener.remove()
     this.manager.stopDeviceScan()
   }
 

@@ -27,7 +27,7 @@ export default class NuimoComponents extends Screen {
     ])
   }
 
-  willAppear() {
+  didAppear() {
     this.fetchComponents()
   }
 

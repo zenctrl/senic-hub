@@ -11,10 +11,10 @@ import { List, ListItem } from 'react-native-elements'
 import { NetworkInfo } from 'react-native-network-info';
 
 import HubOnboarding, { WifiConnectionState } from '../HubOnboarding'
-import Screen from './Screen';
+import BluetoothRequiringScreen from './BluetoothRequiringScreen';
 import Settings from '../Settings'
 
-export default class SetupWifi extends Screen {
+export default class SetupWifi extends BluetoothRequiringScreen {
   constructor(props) {
     super(props)
 
@@ -37,6 +37,7 @@ export default class SetupWifi extends Screen {
   }
 
   didAppear() {
+    super.didAppear()
     let subscribeForWifiEvents = () => {
       HubOnboarding.hubDevice.onNetworksChanged((ssid) => {
         if (!this.state.ssids.find(s => s === ssid)) {
@@ -73,9 +74,8 @@ export default class SetupWifi extends Screen {
         }, 5000)
       })
       .catch((error) => {
-        alert("Could not connect to the Hub. Please try again.")
         console.warn(error)
-        //TODO: Present error message on screen with a "retry" button that connects again
+        this.resetTo('setup.bluetoothConnectionFailure')
       })
   }
 
@@ -83,6 +83,7 @@ export default class SetupWifi extends Screen {
     //TODO: Setting an empty callback isn't clean – use proper approach.
     HubOnboarding.hubDevice.onNetworksChanged(() => {})
     HubOnboarding.hubDevice.onConnectionStateChanged = null
+    super.willDisappear()
   }
 
   onNetworkSelected(ssid) {
