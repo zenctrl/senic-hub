@@ -51,17 +51,15 @@ class NuimoApp(NuimoControllerListener):
     def __init__(self, ha_api_url, ble_adapter_name, mac_address, components):
         super().__init__()
 
-        self.components = components
+        self.components = []
         self.active_component = None
+        self.set_components(components)
 
         self.manager = ControllerManager(ble_adapter_name)
         self.manager.is_adapter_powered = True
 
         self.controller = Controller(mac_address, self.manager)
         self.controller.listener = self
-
-        for component in self.components:
-            component.nuimo = self
 
     def start(self):
         self.set_active_component()
@@ -196,3 +194,18 @@ class NuimoApp(NuimoControllerListener):
 
     def display_matrix(self, matrix, **kwargs):
         self.controller.display_matrix(LedMatrix(matrix), **kwargs)
+
+    def set_components(self, components):
+        # TODO: check if components is empty?
+
+        for component in components:
+            component.nuimo = self
+
+        self.components = components
+
+        if self.active_component:
+            self.active_component.stop()
+            for component in components:
+                if self.active_component.component_id == component.component_id:
+                    self.set_active_component(component)
+                    break
