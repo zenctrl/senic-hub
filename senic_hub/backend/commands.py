@@ -80,7 +80,6 @@ def phue_bridge_config(bridge):
 
 def generate_nuimo_app_configuration(devices):
     components = [create_component(d) for d in devices if d["authenticated"]]
-    components = {c['id']: c for c in components}
     return {
         'nuimos': [
             {
