@@ -17,10 +17,10 @@ class Component(ThreadComponent):
     MAX_BRIGHTNESS = 100
     MIN_BRIGHTNESS = 0
 
-    def __init__(self, component_id, config):
-        super().__init__(component_id, config)
+    def __init__(self, component_config):
+        super().__init__(component_config)
 
-        self.gateway = Lightify(config['ip_address'])
+        self.gateway = Lightify(component_config['ip_address'])
         self.light = None
         self.on = None
         self.prev_on = None

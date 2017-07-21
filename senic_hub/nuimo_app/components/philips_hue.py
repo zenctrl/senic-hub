@@ -217,24 +217,24 @@ class Group(HueBase):
 class Component(ThreadComponent):
     MATRIX = matrices.LIGHT_BULB
 
-    def __init__(self, component_id, config):
-        super().__init__(component_id, config)
+    def __init__(self, component_config):
+        super().__init__(component_config)
 
-        self.bridge = Bridge(config['ip_address'], config['username'])
+        self.bridge = Bridge(component_config['ip_address'], component_config['username'])
 
         self.delta_range = range(-254, 254)
         self.delta = 0
 
         # Extract light IDs, they are stored with format `<bridgeID>-light-<lightID>`
-        light_ids = config['device_ids']
+        light_ids = component_config['device_ids']
         light_ids = [i.split('-light-')[1].strip() for i in light_ids]
 
         self.lights = self.create_lights(light_ids)
         self.lights.update_state()
 
-        self.station_id_1 = config.get('station1', None)
-        self.station_id_2 = config.get('station2', None)
-        self.station_id_3 = config.get('station3', None)
+        self.station_id_1 = component_config.get('station1', None)
+        self.station_id_2 = component_config.get('station2', None)
+        self.station_id_3 = component_config.get('station3', None)
 
         # seed random nr generator (used to get random color value)
         seed()

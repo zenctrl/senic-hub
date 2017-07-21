@@ -12,8 +12,8 @@ class Component(HomeAssistantComponent):
     MATRIX = matrices.LIGHT_BULB
     BRIGHTNESS_CHANGE_RESPONSE_TIMEOUT = 5.0
 
-    def __init__(self, component_id, config):
-        super().__init__("light", component_id, config)
+    def __init__(self, component_config):
+        super().__init__("light", component_config)
 
         self.brightness = None
         self.is_brightness_request_pending = False

@@ -15,8 +15,8 @@ def clamp_value(value, range_):
 class BaseComponent:
     MATRIX = matrices.ERROR
 
-    def __init__(self, component_id, config):
-        self.component_id = component_id
+    def __init__(self, component_config):
+        self.component_id = component_config['id']
 
     def start(self):
         pass
@@ -35,8 +35,8 @@ class BaseComponent:
 
 
 class ThreadComponent(BaseComponent):
-    def __init__(self, component_id, config):
-        super().__init__(component_id, config)
+    def __init__(self, component_config):
+        super().__init__(component_config)
         self.stopped = True
         self.thread = None
 
@@ -65,14 +65,14 @@ class ThreadComponent(BaseComponent):
 
 
 class HomeAssistantComponent(BaseComponent):
-    def __init__(self, ha_domain, component_id, config):
-        super().__init__(component_id, config)
+    def __init__(self, ha_domain, component_config):
+        super().__init__(component_config)
 
         self.is_on = False
 
         # TODO: Parametrize HA's address?
         self._ha_address = "localhost:8123"
-        self._ha_entity_id = config['ha_entity_id']
+        self._ha_entity_id = component_config['ha_entity_id']
         self._ha_domain = ha_domain
 
     def start(self):

@@ -14,7 +14,7 @@ class Component(HomeAssistantComponent):
     VOLUME_CHANGE_RESPONSE_TIMEOUT = 5.0
 
     def __init__(self, component_id, config):
-        super().__init__("media_player", component_id, config)
+        super().__init__("media_player", component_config)
 
         self.playback_state = None
         self.volume = None

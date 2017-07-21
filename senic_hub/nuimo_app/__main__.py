@@ -59,21 +59,19 @@ def read_config(config_file_path):
     return config['nuimos'][0]['components']
 
 
-def get_component_instances(component_config):
+def get_component_instances(components):
     """
     Import component modules configured in the Nuimo app configuration
     and return instances of the contained component classes.
     """
-    instances = []
-
     module_name_format = __name__.rsplit('.', 1)[0] + '.components.{}'
 
-    for component_id in component_config:
-        config = component_config[component_id]
-        module_name = module_name_format.format(config['type'])
+    instances = []
+    for component in components:
+        module_name = module_name_format.format(component['type'])
         logger.info("Importing module %s", module_name)
         component_module = import_module(module_name)
-        instances.append(component_module.Component(component_id, config))
+        instances.append(component_module.Component(component))
 
     return instances
 
