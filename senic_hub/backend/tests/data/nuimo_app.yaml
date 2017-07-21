@@ -2,7 +2,7 @@ nuimos:
   - name: My Nuimo
     mac: fc:52:6e:8e:87:06
     components:
-      ph2:
+      - id: ph2
         type: philips_hue
         device_ids:
           - ph2-light-4
@@ -13,13 +13,13 @@ nuimos:
         ip_address: 127.0.0.2
         username: light_bringer
 
-      soundtouch1:
+      - id: soundtouch1
         type: media_player
         device_ids:
           - soundtouch1
         ha_entity_id: media_player.bose_soundtouch1
 
-      s1:
+      - id: s1
         type: sonos
         device_ids:
           - s1

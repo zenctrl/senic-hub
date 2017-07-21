@@ -41,20 +41,19 @@ def nuimo_components_view(request):
     if not path.exists(nuimo_app_config_path):
         raise HTTPNotFound("App config file does not exist")
 
-    def nuimo_app_config_component_to_response_component(component_id, device):
-        component = {
-            'id': component_id,
-            'type': device['type'],
-            'device_ids': device['device_ids']
+    def nuimo_app_config_component_to_response_component(component):
+        return {
+            'id': component['id'],
+            'type': component['type'],
+            'device_ids': component['device_ids'],
         }
-        return component
 
     with open(nuimo_app_config_path, 'r') as f:
         config = yaml.load(f)
 
     components = [
-        nuimo_app_config_component_to_response_component(s, config['nuimos'][0]['components'][s])
-        for s in config['nuimos'][0]['components']
+        nuimo_app_config_component_to_response_component(c)
+        for c in config['nuimos'][0]['components']
     ]
 
     return {'components': components}
@@ -93,11 +92,9 @@ def add_nuimo_component_view(request):
     with open(request.registry.settings['nuimo_app_config_path'], 'r+') as f:
         config = yaml.load(f)
 
-        config['nuimos'][0]['components'][component['id']] = component
+        config['nuimos'][0]['components'].append(component)
         f.seek(0)  # We want to overwrite the config file with the new configuration
         yaml.dump(config, f, default_flow_style=False)
-
-    component['index'] = len(config['nuimos'][0]['components']) - 1
 
     return component
 
@@ -144,13 +141,11 @@ def get_nuimo_component_view(request):
     component_id = request.matchdict['component_id']
     with open(request.registry.settings['nuimo_app_config_path'], 'r') as f:
         config = yaml.load(f)
+    components = config['nuimos'][0]['components']
     try:
-        component = config['nuimos'][0]['components'][component_id]
-    except KeyError:
+        return next(c for c in components if c['id'] == component_id)
+    except StopIteration:
         raise HTTPNotFound
-
-    component['id'] = component_id
-    return component
 
 
 @nuimo_component_service.delete()
@@ -159,10 +154,14 @@ def delete_nuimo_component_view(request):
     with open(request.registry.settings['nuimo_app_config_path'], 'r+') as f:
         config = yaml.load(f)
 
-        if component_id not in config['nuimos'][0]['components']:
-            raise HTTPNotFound()
+        components = config['nuimos'][0]['components']
 
-        del config['nuimos'][0]['components'][component_id]
+        try:
+            component = next(c for c in components if c['id'] == component_id)
+        except StopIteration:
+            raise HTTPNotFound
+
+        components.remove(component)
 
         f.seek(0)  # We want to overwrite the config file with the new configuration
         f.truncate()
@@ -181,10 +180,15 @@ def modify_nuimo_component(request):
 
     with open(request.registry.settings['nuimo_app_config_path'], 'r+') as f:
         config = yaml.load(f)
+        components = config['nuimos'][0]['components']
+
         try:
-            config['nuimos'][0]['components'][component_id]['device_ids'] = device_ids
-        except KeyError:
+            component = next(c for c in components if c['id'] == component_id)
+        except StopIteration:
             raise HTTPNotFound
+
+        component['device_ids'] = device_ids
+
         f.seek(0)  # We want to overwrite the config file with the new configuration
         f.truncate()
         yaml.dump(config, f, default_flow_style=False)

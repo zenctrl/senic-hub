@@ -24,7 +24,7 @@ def test_nuimo_components_returns_404_if_config_file_doesnt_exist(
 
 
 def test_nuimo_components_returns_components(url, browser):
-    assert set(browser.get_json(url).json) == set({'components': [
+    assert browser.get_json(url).json == {'components': [
         {
             'id': 'ph2',
             'type': 'philips_hue',
@@ -40,7 +40,7 @@ def test_nuimo_components_returns_components(url, browser):
             'type': 'sonos',
             'device_ids': ['s1']
         }
-    ]})
+    ]}
 
 
 @yield_fixture(autouse=True)
@@ -67,9 +67,11 @@ def test_add_component_adds_to_app_config(url, browser, temporary_nuimo_app_conf
 
     components = config['nuimos'][0]['components']
     assert len(components) == 4
-    assert components['s1']['device_ids'] == ['s1']
-    assert components['s1']['ip_address'] == '127.0.0.1'
-    assert components['s1']['type'] == 'sonos'
+    added_component = components[len(components) - 1]
+    assert 'id' in added_component
+    assert added_component['device_ids'] == ['s1']
+    assert added_component['ip_address'] == '127.0.0.1'
+    assert added_component['type'] == 'sonos'
 
 
 def test_add_component_returns_new_component(url, browser, temporary_nuimo_app_config_file):
@@ -78,7 +80,6 @@ def test_add_component_returns_new_component(url, browser, temporary_nuimo_app_c
     assert response['device_ids'] == ['ph2-light-4']
     assert response['type'] == 'philips_hue'
     assert response['ip_address'] == '127.0.0.2'
-    assert response['index'] == 3
 
 
 def test_adding_component_with_unknown_device_id_returns_400(url, browser, temporary_nuimo_app_config_file):
@@ -155,7 +156,8 @@ def test_delete_component_returns_200(component_url, browser, temporary_nuimo_ap
 
     components = config['nuimos'][0]['components']
     assert len(components) == 2
-    assert component_id not in components
+    for component in config['nuimos'][0]['components']:
+        assert component_id is not component['id']
 
 
 def test_delete_invalid_component_returns_404(route_url, browser, temporary_nuimo_app_config_file):
@@ -175,7 +177,8 @@ def test_put_component_devices_modifies_app_config(component_url, browser, tempo
     with open(settings['nuimo_app_config_path'], 'r') as f:
         config = yaml.load(f)
 
-    assert set(config['nuimos'][0]['components']['ph2']['device_ids']) == set(['ph2-light-5', 'ph2-light-6'])
+    component = next(c for c in config['nuimos'][0]['components'] if c['id'] == 'ph2')
+    assert set(component['device_ids']) == set(['ph2-light-5', 'ph2-light-6'])
 
 
 def test_put_component_devices_returns_modified_component(component_url, browser):
