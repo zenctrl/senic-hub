@@ -7,7 +7,7 @@ from os.path import abspath
 
 import click
 
-from pyramid.paster import get_app  # , setup_logging
+from pyramid.paster import get_app, setup_logging
 
 from . import NuimoApp
 
@@ -18,9 +18,7 @@ logger = logging.getLogger(__name__)
 @click.command(help="confifguration file for the Nuimo app")
 @click.option('--config', '-c', required=True, type=click.Path(exists=True), help="app configuration file")
 def main(config):
-    # TODO: `config`/production.ini is currently broken, setup_logging() will disable logging to console
-    # setup_logging(config)
-    logger.setLevel(logging.DEBUG)
+    setup_logging(config)
 
     # urllib3 logger is very verbose so we hush it down
     logging.getLogger("urllib3.connectionpool").setLevel(logging.CRITICAL)
