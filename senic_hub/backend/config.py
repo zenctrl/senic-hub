@@ -11,12 +11,6 @@ project_name = 'senic_hub'
 log = get_logger(__name__)
 
 
-default_settings = dict(
-    wifi_networks_path='/tmp/wifi_networks.json',
-    wifi_setup_flag_path='/srv/senic_hub/data/WIFI_SETUP_REQUIRED',
-)
-
-
 # TODO Rename to service_path() to not clash with os.path
 def path(service):
     """ Return path — or route pattern — for the given REST service. """
@@ -24,7 +18,7 @@ def path(service):
 
 
 def configure(global_config, **settings):
-    config = Configurator(settings=dict(default_settings, **settings))
+    config = Configurator(settings=settings)
     config.begin()
     scan_ignore = ['.tests', '.testing', '.netwatch']
     config.include('cornice')
