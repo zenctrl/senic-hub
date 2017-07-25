@@ -20,7 +20,7 @@ HOME_ASSISTANT_COMPONENT_TYPES = {'light', 'media_player'}
 
 nuimo_components_service = Service(
     name='nuimo_components',
-    path=service_path('nuimos/{nuimo_id:[a-z0-9]+}/components'),
+    path=service_path('nuimos/{mac_address:[a-z0-9\-]+}/components'),
     renderer='json',
     accept='application/json',
 )
@@ -28,7 +28,7 @@ nuimo_components_service = Service(
 
 nuimo_component_service = Service(
     name='nuimo_component',
-    path=service_path('nuimos/{nuimo_id:[a-z0-9]+}/components/{component_id:[a-z0-9\-]+}'),
+    path=service_path('nuimos/{mac_address:[a-z0-9\-]+}/components/{component_id:[a-z0-9\-]+}'),
     renderer='json',
     accept='application/json',
 )
@@ -37,6 +37,7 @@ nuimo_component_service = Service(
 @nuimo_components_service.get()
 def nuimo_components_view(request):
     nuimo_app_config_path = request.registry.settings['nuimo_app_config_path']
+    mac_address = request.matchdict['mac_address'].replace('-', ':')
 
     if not path.exists(nuimo_app_config_path):
         raise HTTPNotFound("App config file does not exist")
@@ -51,9 +52,14 @@ def nuimo_components_view(request):
     with open(nuimo_app_config_path, 'r') as f:
         config = yaml.load(f)
 
+    try:
+        nuimo = config['nuimos'][mac_address]
+    except KeyError:
+        return HTTPNotFound("No Nuimo with such ID")
+
     components = [
         nuimo_app_config_component_to_response_component(c)
-        for c in config['nuimos'][0]['components']
+        for c in nuimo['components']
     ]
 
     return {'components': components}
@@ -70,6 +76,7 @@ class AddComponentSchema(MappingSchema):
 @nuimo_components_service.post(schema=AddComponentSchema)
 def add_nuimo_component_view(request):
     device_ids = request.validated['device_ids']
+    mac_address = request.matchdict['mac_address'].replace('-', ':')
 
     # TODO: We should check if all devices belong to the same type
     #       Right now it's not necessary as we expect proper API usage
@@ -92,7 +99,12 @@ def add_nuimo_component_view(request):
     with open(request.registry.settings['nuimo_app_config_path'], 'r+') as f:
         config = yaml.load(f)
 
-        config['nuimos'][0]['components'].append(component)
+        try:
+            nuimo = config['nuimos'][mac_address]
+        except KeyError:
+            return HTTPNotFound("No Nuimo with such ID")
+
+        nuimo['components'].append(component)
         f.seek(0)  # We want to overwrite the config file with the new configuration
         yaml.dump(config, f, default_flow_style=False)
 
@@ -139,9 +151,16 @@ def create_component(device):
 @nuimo_component_service.get()
 def get_nuimo_component_view(request):
     component_id = request.matchdict['component_id']
+    mac_address = request.matchdict['mac_address'].replace('-', ':')
     with open(request.registry.settings['nuimo_app_config_path'], 'r') as f:
         config = yaml.load(f)
-    components = config['nuimos'][0]['components']
+
+    try:
+        nuimo = config['nuimos'][mac_address]
+    except KeyError:
+        return HTTPNotFound("No Nuimo with such ID")
+
+    components = nuimo['components']
     try:
         return next(c for c in components if c['id'] == component_id)
     except StopIteration:
@@ -151,10 +170,16 @@ def get_nuimo_component_view(request):
 @nuimo_component_service.delete()
 def delete_nuimo_component_view(request):
     component_id = request.matchdict['component_id']
+    mac_address = request.matchdict['mac_address'].replace('-', ':')
     with open(request.registry.settings['nuimo_app_config_path'], 'r+') as f:
         config = yaml.load(f)
 
-        components = config['nuimos'][0]['components']
+        try:
+            nuimo = config['nuimos'][mac_address]
+        except KeyError:
+            return HTTPNotFound("No Nuimo with such ID")
+
+        components = nuimo['components']
 
         try:
             component = next(c for c in components if c['id'] == component_id)
@@ -175,12 +200,19 @@ class ModifyComponentSchema(MappingSchema):
 @nuimo_component_service.put(schema=ModifyComponentSchema)
 def modify_nuimo_component(request):
     component_id = request.matchdict['component_id']
+    mac_address = request.matchdict['mac_address'].replace('-', ':')
     # TODO: Validate `device_ids` if they map to the same device type as the component
     device_ids = request.validated['device_ids']
 
     with open(request.registry.settings['nuimo_app_config_path'], 'r+') as f:
         config = yaml.load(f)
-        components = config['nuimos'][0]['components']
+
+        try:
+            nuimo = config['nuimos'][mac_address]
+        except KeyError:
+            return HTTPNotFound("No Nuimo with such ID")
+
+        components = nuimo['components']
 
         try:
             component = next(c for c in components if c['id'] == component_id)

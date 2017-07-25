@@ -65,7 +65,7 @@ export default class DeviceSelection extends Screen {
 
   fetchComponent() {
     let that = this
-    return fetch(Settings.HUB_API_URL + 'nuimos/0/components/' + that.state.component.id)
+    return fetch(Settings.HUB_API_URL + 'nuimos/' + this.props.nuimoId + '/components/' + that.state.component.id)
       .then(response => {
         if (!response.ok) {
           throw new Error('Failed fetching component with status: ' + response.status)
@@ -118,7 +118,7 @@ export default class DeviceSelection extends Screen {
       },
       body: body,
     }
-    url = Settings.HUB_API_URL + 'nuimos/0/components/' + this.state.component.id
+    url = Settings.HUB_API_URL + 'nuimos/' + this.props.nuimoId + '/components/' + this.state.component.id
     console.log(url)
     return fetch(url, params)
       .then(response => {

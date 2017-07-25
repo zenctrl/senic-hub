@@ -17,7 +17,7 @@ export default class NuimoComponents extends Screen {
       {
         title: "Add",
         id: 'add',
-        onPress: () => this.showModal('app.addComponent')
+        onPress: () => this.showModal('app.addComponent', { nuimoId: this.props.nuimoId })
       },
       {
         title: 'Settings',
@@ -32,7 +32,7 @@ export default class NuimoComponents extends Screen {
   }
 
   fetchComponents() {
-    fetch(Settings.HUB_API_URL + 'nuimos/0/components')
+    fetch(Settings.HUB_API_URL + 'nuimos/' + this.props.nuimoId + '/components')
       .then((response) => {
         if (!response.ok) {
           throw new Error('Request failed: ' + JSON.stringify(response))
@@ -54,7 +54,7 @@ export default class NuimoComponents extends Screen {
             <ListItem
               title={item.type}
               onPress={() => {
-                this.pushScreen('app.deviceSelection', {component: item})
+                this.pushScreen('app.deviceSelection', {nuimoId: this.props.nuimoId, component: item})
               }} />
           }
           keyExtractor={(component) => component.id}

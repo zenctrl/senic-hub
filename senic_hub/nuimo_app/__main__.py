@@ -24,15 +24,13 @@ def main(config):
     logging.getLogger("urllib3.connectionpool").setLevel(logging.CRITICAL)
 
     app = get_app(abspath(config), name='senic_hub')
-    component_config = read_config(app.registry.settings['nuimo_app_config_path'])
-    logger.info("Using configuration from: %s", app.registry.settings['nuimo_app_config_path'])
 
-    nuimo_controller_mac_address_file_path = app.registry.settings['nuimo_mac_address_filepath']
-    try:
-        with open(nuimo_controller_mac_address_file_path, 'r') as f:
-            nuimo_controller_mac_address = f.readline().strip()
-    except IOError:
-        nuimo_controller_mac_address = None
+    config_file_path = app.registry.settings['nuimo_app_config_path']
+    with open(config_file_path, 'r') as f:
+        config = yaml.load(f)
+
+    nuimos = config['nuimos']
+    nuimo_controller_mac_address = list(nuimos.keys())[0]
 
     if not nuimo_controller_mac_address:
         logger.error("Nuimo controller MAC address not configured")
@@ -40,7 +38,8 @@ def main(config):
 
     ha_api_url = app.registry.settings['homeassistant_api_url']
     ble_adapter_name = app.registry.settings['bluetooth_adapter_name']
-    component_instances = get_component_instances(component_config)
+    components = nuimos[nuimo_controller_mac_address]['components']
+    component_instances = get_component_instances(components)
     nuimo_app = NuimoApp(ha_api_url, ble_adapter_name, nuimo_controller_mac_address, component_instances)
 
     try:
@@ -50,11 +49,11 @@ def main(config):
         nuimo_app.stop()
 
 
-def read_config(config_file_path):
+def read_config(config_file_path, mac_address):
     with open(config_file_path, 'r') as f:
         config = yaml.load(f)
 
-    return config['nuimos'][0]['components']
+    return config['nuimos'][mac_address]['components']
 
 
 def get_component_instances(components):

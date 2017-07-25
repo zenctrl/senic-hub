@@ -60,6 +60,7 @@ export default class BootScreen extends Screen {
             new Promise((resolve, reject) => setTimeout(reject, 3000, 'Fetching Hub info timed out')),
           ])
           .catch((error) => {
+            console.log('Hub unreachable because:', error)
             this.setState({ hubUnreachable: true })
             throw new Error('Could not reach Hub') // Cancel outer promise chain
           })
@@ -82,11 +83,36 @@ export default class BootScreen extends Screen {
       .then(hubInfo => {
         console.log('Hub onboarded:', hubInfo.onboarded)
         if (hubInfo.onboarded) {
-          this.resetTo('app.nuimoComponents')
+          this.fetchNuimoId()
+            .then(nuimoId => {
+              this.resetTo('app.nuimoComponents', { nuimoId: nuimoId })
+            })
+            .catch(() => {
+              // This case should not happen, because the Hub already said it's onboarded
+              this.resetTo('setup.nuimo')
+            })
         }
         else {
           // We restart onboarding with Nuimo discovery if hub is reachable but not fully onboarded
           this.resetTo('setup.nuimo')
+        }
+      })
+  }
+
+  fetchNuimoId() {
+    return fetch(Settings.HUB_API_URL + 'nuimos')
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Request failed: ' + JSON.stringify(response))
+        }
+        return response.json()
+      })
+      .then((response) => {
+        if (response.nuimos.length > 0) {
+          return response.nuimos[0]
+        }
+        else {
+          throw new Error("No Nuimo found")
         }
       })
   }
@@ -100,7 +126,7 @@ export default class BootScreen extends Screen {
             : <ActivityIndicator size={"large"} />
         }
       </View>
-    );
+    )
   }
 
   renderHubUnreachableView() {

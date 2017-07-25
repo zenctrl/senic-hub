@@ -7,7 +7,7 @@ def url(route_url):
 
 
 def test_returns_nuimo(browser, url):
-    assert browser.get_json(url).json['connectedControllers'] == ['AA:BB:CC:DD:EE:FF']
+    assert browser.get_json(url).json['nuimos'] == ['AA-BB-CC-DD-EE-FF']
 
 
 @pytest.fixture
@@ -17,4 +17,4 @@ def no_such_nuimo(settings):
 
 
 def test_returns_no_nuimo(no_such_nuimo, browser, url):
-    assert browser.get_json(url).json == {'connectedControllers': []}
+    assert browser.get_json(url).json == {'nuimos': []}

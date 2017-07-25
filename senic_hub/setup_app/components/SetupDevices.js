@@ -52,7 +52,7 @@ export default class SetupDevices extends Screen {
           <Button
             buttonStyle={styles.button}
             disabled={this.state.devices.length === 0}
-            onPress={() => this.pushScreen('setup.completion')}
+            onPress={() => this.pushScreen('setup.completion', {nuimoId: this.props.nuimoId})}
             title="Continue" />
         </View>
       </View>

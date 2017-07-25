@@ -38,7 +38,7 @@ def bootstrap_nuimos(request):  # pragma: no cover,
 def get_connected_nuimos(request):
     nuimo_mac_address_filepath = request.registry.settings.get('nuimo_mac_address_filepath')
     if not path.exists(nuimo_mac_address_filepath):
-        return {'connectedControllers': []}
+        return {'nuimos': []}
     with open(nuimo_mac_address_filepath, 'r') as nuimo_mac_address_file:
         mac_address = nuimo_mac_address_file.readline().strip()
-        return {'connectedControllers': [mac_address]}
+        return {'nuimos': [mac_address.replace(':', '-')]}

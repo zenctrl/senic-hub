@@ -28,7 +28,7 @@ export default class AddComponent extends Screen {
           data={this.state.componentTypes}
           renderItem={({item}) => <ListItem
             title={item.name}
-            onPress={() => this.showModal('app.selectComponentDevices', { type: item.type })} />}
+            onPress={() => this.showModal('app.selectComponentDevices', { nuimoId: this.props.nuimoId, type: item.type })} />}
           keyExtractor={(component) => component.type}
         />
       </List>

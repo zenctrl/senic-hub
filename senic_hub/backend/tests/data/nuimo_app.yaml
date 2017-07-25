@@ -1,6 +1,6 @@
 nuimos:
-  - name: My Nuimo
-    mac: fc:52:6e:8e:87:06
+  00:00:00:00:00:00:
+    name: My Nuimo
     components:
       - id: ph2
         type: philips_hue
@@ -24,3 +24,5 @@ nuimos:
         device_ids:
           - s1
         ip_address: 127.0.0.1
+  00:00:00:00:00:01:
+    name: My Nuimo 2

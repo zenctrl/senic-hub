@@ -41,7 +41,7 @@ export default class SetupNuimo extends Screen {
           <Button
             buttonStyle={styles.button}
             disabled={this.state.nuimos.length === 0}
-            onPress={() => this.pushScreen('setup.devices')}
+            onPress={() => this.pushScreen('setup.devices', {nuimoId: this.state.nuimos[0]})}
             title="Continue" />
         </View>
       </View>
@@ -72,7 +72,7 @@ export default class SetupNuimo extends Screen {
         return response.json()
       })
       .then(response => {
-        let controllers = response.connectedControllers
+        let controllers = response.nuimos
         if (controllers.length > 0) {
           this.setState({ nuimos: controllers })
         }

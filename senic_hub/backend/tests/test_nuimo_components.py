@@ -9,7 +9,12 @@ from senic_hub.backend.views.nuimo_components import create_component
 
 @fixture
 def url(route_url):
-    return route_url('nuimo_components', nuimo_id=0)
+    return route_url('nuimo_components', mac_address='00:00:00:00:00:00'.replace(':', '-'))
+
+
+@fixture
+def no_such_nuimo_url(route_url):
+    return route_url('nuimo_components', mac_address='de:ad:be:ef:00:00'.replace(':', '-'))
 
 
 @fixture
@@ -43,6 +48,10 @@ def test_nuimo_components_returns_components(url, browser):
     ]}
 
 
+def test_nuimo_components_returns_404_if_nuimo_doesnt_exist(no_such_nuimo_url, browser):
+    assert browser.get_json(no_such_nuimo_url, status=404)
+
+
 @yield_fixture(autouse=True)
 def temporary_nuimo_app_config_file(settings):
     """don't run actual external commands during these tests
@@ -65,7 +74,7 @@ def test_add_component_adds_to_app_config(url, browser, temporary_nuimo_app_conf
     with open(settings['nuimo_app_config_path'], 'r') as f:
         config = yaml.load(f)
 
-    components = config['nuimos'][0]['components']
+    components = config['nuimos']['00:00:00:00:00:00']['components']
     assert len(components) == 4
     added_component = components[len(components) - 1]
     assert 'id' in added_component
@@ -84,6 +93,14 @@ def test_add_component_returns_new_component(url, browser, temporary_nuimo_app_c
 
 def test_adding_component_with_unknown_device_id_returns_400(url, browser, temporary_nuimo_app_config_file):
     browser.post_json(url, {'device_ids': ['invalid-device-id']}, status=400)
+
+
+def test_adding_component_with_unknown_nuimo_returns_404(
+        no_such_nuimo_url, browser):
+    assert browser.post_json(no_such_nuimo_url, {
+        'device_ids': ['s1'],
+        'type': 'sonos'},
+        status=404)
 
 
 def test_create_philips_hue_component():
@@ -129,7 +146,7 @@ def test_create_soundtouch_component():
 
 @fixture
 def component_url(route_url):
-    return route_url('nuimo_component', nuimo_id=0, component_id='ph2')
+    return route_url('nuimo_component', mac_address='00:00:00:00:00:00'.replace(':', '-'), component_id='ph2')
 
 
 def test_get_component_returns_component(component_url, browser, temporary_nuimo_app_config_file, settings):
@@ -145,7 +162,11 @@ def test_get_component_returns_component(component_url, browser, temporary_nuimo
 
 
 def test_get_invalid_component_returns_404(route_url, browser, temporary_nuimo_app_config_file, settings):
-    browser.get(route_url('nuimo_component', nuimo_id=0, component_id='invalid-id'), status=404)
+    browser.get(route_url('nuimo_component', mac_address='00:00:00:00:00:00'.replace(':', '-'), component_id='invalid-id'), status=404)
+
+
+def test_get_component_of_unknown_nuimo_returns_404(route_url, browser, temporary_nuimo_app_config_file, settings):
+    browser.get(route_url('nuimo_component', mac_address='de:ad:be:ef:00:00'.replace(':', '-'), component_id='ph2'), status=404)
 
 
 def test_delete_component_returns_200(component_url, browser, temporary_nuimo_app_config_file, settings):
@@ -154,19 +175,23 @@ def test_delete_component_returns_200(component_url, browser, temporary_nuimo_ap
     with open(settings['nuimo_app_config_path'], 'r') as f:
         config = yaml.load(f)
 
-    components = config['nuimos'][0]['components']
+    components = config['nuimos']['00:00:00:00:00:00']['components']
     assert len(components) == 2
-    for component in config['nuimos'][0]['components']:
+    for component in config['nuimos']['00:00:00:00:00:00']['components']:
         assert component_id is not component['id']
 
 
 def test_delete_invalid_component_returns_404(route_url, browser, temporary_nuimo_app_config_file):
-    browser.delete(route_url('nuimo_component', nuimo_id=0, component_id='invalid-id'), status=404)
+    browser.delete(route_url('nuimo_component', mac_address='00:00:00:00:00:00'.replace(':', '-'), component_id='invalid-id'), status=404)
+
+
+def test_delete_component_of_unknown_nuimo_returns_404(route_url, browser, temporary_nuimo_app_config_file):
+    browser.delete(route_url('nuimo_component', mac_address='de:ad:be:ef:00:00'.replace(':', '-'), component_id='ph2'), status=404)
 
 
 def test_put_invalid_component_returns_404(route_url, browser, temporary_nuimo_app_config_file):
     browser.put_json(
-        route_url('nuimo_component', nuimo_id=0, component_id='invalid-id'),
+        route_url('nuimo_component', mac_address='00:00:00:00:00:00'.replace(':', '-'), component_id='invalid-id'),
         {'device_ids': ['device-id']},
         status=404)
 
@@ -177,7 +202,7 @@ def test_put_component_devices_modifies_app_config(component_url, browser, tempo
     with open(settings['nuimo_app_config_path'], 'r') as f:
         config = yaml.load(f)
 
-    component = next(c for c in config['nuimos'][0]['components'] if c['id'] == 'ph2')
+    component = next(c for c in config['nuimos']['00:00:00:00:00:00']['components'] if c['id'] == 'ph2')
     assert set(component['device_ids']) == set(['ph2-light-5', 'ph2-light-6'])
 
 
@@ -187,3 +212,10 @@ def test_put_component_devices_returns_modified_component(component_url, browser
 
     assert response['id'] == component_id
     assert set(response['device_ids']) == set(['ph2-light-5', 'ph2-light-6'])
+
+
+def test_put_component_devices_of_unknown_nuimo_returns_404(route_url, browser):
+    browser.put_json(
+        route_url('nuimo_component', mac_address='de:ad:be:ef:00:00'.replace(':', '-'), component_id='ph2'),
+        {'device_ids': ['ph2-light-5']},
+        status=404)

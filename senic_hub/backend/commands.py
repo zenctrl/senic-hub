@@ -29,9 +29,13 @@ def create_configuration_files_and_restart_apps(settings):
     # supervisor.restart_program('homeassistant')
 
     # generate nuimo app config & restart supervisor app
+    nuimo_mac_address_file_path = settings['nuimo_mac_address_filepath']
+    with open(nuimo_mac_address_file_path, 'r') as f:
+        nuimo_mac_address = f.readline().strip()
+
     nuimo_app_config_file_path = settings['nuimo_app_config_path']
     with open(nuimo_app_config_file_path, 'w') as f:
-        config = generate_nuimo_app_configuration(devices)
+        config = generate_nuimo_app_configuration(nuimo_mac_address, devices)
         yaml.dump(config, f, default_flow_style=False)
 
     supervisor.restart_program('nuimo_app')
@@ -78,14 +82,12 @@ def phue_bridge_config(bridge):
     }
 
 
-def generate_nuimo_app_configuration(devices):
+def generate_nuimo_app_configuration(nuimo_mac_address, devices):
     components = [create_component(d) for d in devices if d["authenticated"]]
-    return {
-        'nuimos': [
-            {
-                'name': 'My Nuimo',
-                'mac': '00:00:00:00:00:00',  # MAC address is still read from `nuimo_mac_address.txt`
-                'components': components,
-            }
-        ]
+
+    config = {'nuimos': {}}
+    config['nuimos'][nuimo_mac_address] = {
+        'name': 'My Nuimo',
+        'components': components,
     }
+    return config

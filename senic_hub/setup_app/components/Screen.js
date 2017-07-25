@@ -40,8 +40,8 @@ export default class Screen extends Component {
     this.props.navigator.pop()
   }
 
-  showModal(screen) {
-    this.props.navigator.showModal({screen: screen})
+  showModal(screen, props) {
+    this.props.navigator.showModal({screen: screen, passProps: props})
   }
 
   dismissModal() {
@@ -81,8 +81,8 @@ export default class Screen extends Component {
     }
   }
 
-  resetTo(screen) {
-    this.props.navigator.resetTo({screen: screen})
+  resetTo(screen, props) {
+    this.props.navigator.resetTo({screen: screen, passProps: props})
   }
 
   willAppear() {}

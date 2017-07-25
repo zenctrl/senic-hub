@@ -25,7 +25,7 @@ export default class AddComponent extends Screen {
       },
       body: body,
     }
-    fetch(Settings.HUB_API_URL + 'nuimos/0/components', params)
+    fetch(Settings.HUB_API_URL + 'nuimos/' + this.props.nuimoId + '/components', params)
       .then(() => this.dismissAllModals())
       .catch((error) => console.error(error))
   }
