@@ -8,6 +8,8 @@ Installation
 4. ``npm install``
 5. ``react-native run-ios`` or ``react-native run-android``. Append `--device` to run on a connected phone/tablet.
 
+In case the app doesn't find the development server (your computer), make sure your phone and your computer are in the same network. You can also specify the IP address of your computer inside the app once it's started in development mode. Therfor shake the phone and select "Dev Settings". Then select "Debug server host & port for device" and enter the IP and the packager's port (usually 8081).
+
 For more details refer to the React Native `getting started guide <https://facebook.github.io/react-native/docs/getting-started.html#getting-started>`_.
 
 ==================================
