@@ -61,6 +61,21 @@ class NuimoApp(NuimoControllerListener):
         self.controller = Controller(mac_address, self.manager)
         self.controller.listener = self
 
+    def set_components(self, components):
+        previously_active = self.active_component
+        if self.active_component:
+            self.active_component.stop()
+
+        for component in components:
+            component.nuimo = self
+        self.components = components
+
+        if previously_active:
+            for component in components:
+                if previously_active.component_id == component.component_id:
+                    self.set_active_component(component)
+                    break
+
     def start(self):
         self.set_active_component()
         logger.info("Connecting to Nuimo controller %s", self.controller.mac_address)
@@ -194,18 +209,3 @@ class NuimoApp(NuimoControllerListener):
 
     def display_matrix(self, matrix, **kwargs):
         self.controller.display_matrix(LedMatrix(matrix), **kwargs)
-
-    def set_components(self, components):
-        # TODO: check if components is empty?
-
-        for component in components:
-            component.nuimo = self
-
-        self.components = components
-
-        if self.active_component:
-            self.active_component.stop()
-            for component in components:
-                if self.active_component.component_id == component.component_id:
-                    self.set_active_component(component)
-                    break
