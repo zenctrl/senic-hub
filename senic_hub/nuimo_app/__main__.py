@@ -90,8 +90,7 @@ def watch_config_changes(config_path, nuimo_apps):
     notifier = pyinotify.Notifier(watch_manager, handler)
     # IN_CLOSE_WRITE is fired when the file was closed after modification
     # in opposite to IN_MODIFY which is called for each partial write
-    # listens to all changes in the directory because listening only to the file doesn't work
-    result = watch_manager.add_watch(os.path.dirname(config_path), pyinotify.IN_CLOSE_WRITE)
+    watch_manager.add_watch(config_path, pyinotify.IN_CLOSE_WRITE)
     logger.info("Listening to changes of: %s", config_path)
     notifier.loop()
 
