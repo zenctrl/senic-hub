@@ -351,15 +351,6 @@ class BluenetDaemon(object):
 class RequestHandler(SimpleXMLRPCRequestHandler):
     rpc_paths = ('/RPC2',)
 
-    def _start_rpc_server(self):
-        def is_bluenet_connected():
-            return self._ble_peripheral.is_connected
-
-        server = SimpleXMLRPCServer(('127.0.0.1', 6459), requestHandler=RequestHandler)
-        server.register_function(is_bluenet_connected)
-        logger.info("Starting RPC server")
-        server.serve_forever()
-
 
 if __name__ == '__main__':
     bluenet_cli()
