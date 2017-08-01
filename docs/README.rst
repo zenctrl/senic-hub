@@ -2,7 +2,7 @@ The Senic Hub
 -------------
 
 The Senic Hub is a **Bluetooth Low Energy and Wi-Fi-enabled smart home hub** that allows a user to connect to their smart devices (such as Sonos, Philips Hue etc).
-It also works together with the `Senic Nuimo <https://www.senic.com/en/nuimo>`_, our very own bluetooth controller for smart devices and significantly extends its usefulness by eliminating the need to having it connected to a smart phone or tablet.
+It also works together with the `Senic Nuimo <https://www.senic.com/en/nuimo>`_, our very own bluetooth controller for smart devices and significantly extends its usefulness by eliminating the need of having it connected to a smart phone or tablet.
 
 This repository contains the entire software stack that we created for the hub.
 

@@ -45,7 +45,7 @@ Bootstrapping the local installation
 
 With the dependencies installed, just run `make`.
 This should create Python virtualenv named `venv` inside the `application` directory.
-It's advisable to activate by typing `source venv/bin/activate`.
+It's advisable to activate it by typing `source venv/bin/activate`.
 
 
 Running tests
