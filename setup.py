@@ -61,6 +61,7 @@ setup(
         'soco==0.12',
         'phue==0.9',
         'lightify>=1.0.5',
+        'pyinotify==0.9.6',
         'raven',
     ],
     extras_require={
