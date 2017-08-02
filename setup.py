@@ -1,6 +1,6 @@
 from setuptools import setup
 from os import path, walk
-
+import platform
 
 name = 'senic_hub'
 
@@ -10,6 +10,48 @@ def find_data(top):
         base = dirpath.replace(top, 'senic-hub-htdocs', 1)
         yield base, [path.join(dirpath, name) for name in files]
 
+
+if platform.system() == 'Linux':
+    install_requires = [
+        # backend
+        'click',
+        'colander',
+        'cornice<2.0',
+        'cryptoyaml',
+        'netdisco>=0.9.2',
+        'nuimo>=0.3.0,<0.4.0',
+        'pyramid',
+        'pyramid_tm',
+        'pytz',
+        'requests',
+        # nuimo_app
+        'websocket-client>=0.40.0',
+        'soco==0.12',
+        'phue==0.9',
+        'lightify>=1.0.5',
+        'pyinotify==0.9.6',
+        'raven',
+    ]
+else:
+    install_requires = [
+        # backend
+        'click',
+        'colander',
+        'cornice<2.0',
+        'cryptoyaml',
+        'netdisco>=0.9.2',
+        'nuimo>=0.3.0,<0.4.0',
+        'pyramid',
+        'pyramid_tm',
+        'pytz',
+        'requests',
+        # nuimo_app
+        'websocket-client>=0.40.0',
+        'soco==0.12',
+        'phue==0.9',
+        'lightify>=1.0.5',
+        'raven',
+    ]
 
 setup(
     name=name,
@@ -44,26 +86,7 @@ setup(
         'setuptools-git >= 0',
         'setuptools-git-version'
     ],
-    install_requires=[
-        # backend
-        'click',
-        'colander',
-        'cornice<2.0',
-        'cryptoyaml',
-        'netdisco>=0.9.2',
-        'nuimo>=0.3.0,<0.4.0',
-        'pyramid',
-        'pyramid_tm',
-        'pytz',
-        'requests',
-        # nuimo_app
-        'websocket-client>=0.40.0',
-        'soco==0.12',
-        'phue==0.9',
-        'lightify>=1.0.5',
-        'pyinotify==0.9.6',
-        'raven',
-    ],
+    install_requires=install_requires,
     extras_require={
         'development': [
             'tox',

@@ -7,7 +7,10 @@ from os.path import abspath
 from threading import Thread
 
 import click
-import pyinotify
+import platform
+
+if platform.system() == 'Linux':
+    import pyinotify
 
 from pyramid.paster import get_app, setup_logging
 
@@ -47,9 +50,10 @@ def main(config):
 
     nuimo_apps = {}
     nuimo_apps[nuimo_controller_mac_address] = nuimo_app
-    watch_config_thread = Thread(
-        target=watch_config_changes, args=(config_file_path, nuimo_apps), daemon=True)
-    watch_config_thread.start()
+    if platform.system() == 'Linux':
+        watch_config_thread = Thread(
+            target=watch_config_changes, args=(config_file_path, nuimo_apps), daemon=True)
+        watch_config_thread.start()
 
     try:
         nuimo_app.start()
