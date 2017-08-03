@@ -107,7 +107,6 @@ def reload_config_file(config_path, nuimo_apps):
         if mac_addr not in nuimos:
             logger.info("A Nuimo was removed from the config file: %s", mac_addr)
             nuimo_apps[mac_addr].stop()
-            # TODO: stop NuimoApp for deleted Nuimo here
 
     for mac_addr in nuimos.keys():
         if mac_addr in nuimo_apps:
