@@ -36,9 +36,9 @@ def main(config):
 
     nuimos = config['nuimos']
 
-    nuimo_controllers_mac_address = list(nuimos.keys())
+    nuimo_controller_mac_addresses = list(nuimos.keys())
 
-    if not nuimo_controllers_mac_address:
+    if not nuimo_controller_mac_addresses:
         logger.error("Nuimo controller MAC address not configured")
         sys.exit(1)
 
@@ -47,7 +47,7 @@ def main(config):
 
     nuimo_apps = {}
 
-    for nuimo_controller_mac_address in nuimo_controllers_mac_address:
+    for nuimo_controller_mac_address in nuimo_controller_mac_addresses:
         components = nuimos[nuimo_controller_mac_address]['components']
         component_instances = get_component_instances(components)
         nuimo_apps[nuimo_controller_mac_address] = NuimoApp(ha_api_url, ble_adapter_name, nuimo_controller_mac_address, component_instances)
