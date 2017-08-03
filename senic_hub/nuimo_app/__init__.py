@@ -83,7 +83,7 @@ class NuimoApp(NuimoControllerListener):
         try:
             self.manager.run()
         except KeyboardInterrupt:
-            logger.debug("Stopping... Nuimo controller %s", self.controller.mac_address)
+            logger.info("Stopping... Nuimo controller %s", self.controller.mac_address)
             self.stop()
 
     def stop(self):
