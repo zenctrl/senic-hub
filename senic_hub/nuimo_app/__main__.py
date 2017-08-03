@@ -35,31 +35,30 @@ def main(config):
         config = yaml.load(f)
 
     nuimos = config['nuimos']
-    nuimo_controller_mac_address = list(nuimos.keys())[0]
 
-    if not nuimo_controller_mac_address:
+    nuimo_controllers_mac_address = list(nuimos.keys())
+
+    if not nuimo_controllers_mac_address:
         logger.error("Nuimo controller MAC address not configured")
         sys.exit(1)
 
     ha_api_url = app.registry.settings['homeassistant_api_url']
     ble_adapter_name = app.registry.settings['bluetooth_adapter_name']
-    components = nuimos[nuimo_controller_mac_address]['components']
-    component_instances = get_component_instances(components)
-    nuimo_app = NuimoApp(ha_api_url, ble_adapter_name, nuimo_controller_mac_address, component_instances)
-    # TODO: create multiple NuimoApps for all Nuimos mentioned in the config file
 
     nuimo_apps = {}
-    nuimo_apps[nuimo_controller_mac_address] = nuimo_app
+
+    for nuimo_controller_mac_address in nuimo_controllers_mac_address:
+        components = nuimos[nuimo_controller_mac_address]['components']
+        component_instances = get_component_instances(components)
+        nuimo_apps[nuimo_controller_mac_address] = NuimoApp(ha_api_url, ble_adapter_name, nuimo_controller_mac_address, component_instances)
+
     if platform.system() == 'Linux':
         watch_config_thread = Thread(
             target=watch_config_changes, args=(config_file_path, nuimo_apps), daemon=True)
         watch_config_thread.start()
 
-    try:
-        nuimo_app.start()
-    except KeyboardInterrupt:
-        logger.debug("Stopping...")
-        nuimo_app.stop()
+    for mac_addr in nuimo_apps:
+        Thread(target=nuimo_apps[mac_addr].start).start()
 
 
 def get_component_instances(components):
@@ -107,6 +106,7 @@ def reload_config_file(config_path, nuimo_apps):
     for mac_addr in nuimo_apps.keys():
         if mac_addr not in nuimos:
             logger.info("A Nuimo was removed from the config file: %s", mac_addr)
+            nuimo_apps[mac_addr].stop()
             # TODO: stop NuimoApp for deleted Nuimo here
 
     for mac_addr in nuimos.keys():

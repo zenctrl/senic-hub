@@ -80,7 +80,11 @@ class NuimoApp(NuimoControllerListener):
         self.set_active_component()
         logger.info("Connecting to Nuimo controller %s", self.controller.mac_address)
         self.controller.connect()
-        self.manager.run()
+        try:
+            self.manager.run()
+        except KeyboardInterrupt:
+            logger.debug("Stopping... Nuimo controller %s", self.controller.mac_address)
+            self.stop()
 
     def stop(self):
         if self.active_component:
