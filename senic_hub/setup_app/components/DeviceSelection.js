@@ -138,7 +138,6 @@ export default class DeviceSelection extends Screen {
   }
 
   remove(){
-    console.log('remove')
     component = {}
     let body = JSON.stringify(component)
     let params = {
@@ -149,7 +148,6 @@ export default class DeviceSelection extends Screen {
       body: body,
     }
     url = Settings.HUB_API_URL + 'nuimos/' + this.props.nuimoId + '/components/' + this.state.component.id
-    console.log(url)
     return fetch(url, params)
       .then(response => {
         if (!response.ok) {
