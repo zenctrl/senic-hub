@@ -17,12 +17,13 @@ class BaseComponent:
 
     def __init__(self, component_config):
         self.component_id = component_config['id']
+        self.stopped = True
 
     def start(self):
-        pass
+        self.stopped = False
 
     def stop(self):
-        pass
+        self.stopped = True
 
     def on_longtouch_left(self):
         pass
@@ -37,16 +38,12 @@ class BaseComponent:
 class ThreadComponent(BaseComponent):
     def __init__(self, component_config):
         super().__init__(component_config)
-        self.stopped = True
         self.thread = None
 
     def start(self):
-        self.stopped = False
+        super().start()
         self.thread = Thread(target=self._run)
         self.thread.start()
-
-    def stop(self):
-        self.stopped = True
 
     def _run(self):
         try:
