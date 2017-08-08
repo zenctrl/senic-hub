@@ -17,12 +17,12 @@ export default class NuimoComponents extends Screen {
       {
         title: "Add",
         id: 'add',
-        onPress: () => this.showModal('app.addComponent', { nuimoId: this.props.nuimoId })
+        onPress: () => this.pushScreen('app.addComponent', { nuimoId: this.props.nuimoId })
       },
       {
         title: 'Settings',
         id: 'reset',
-        onPress: () => this.showModal('settings'),
+        onPress: () => this.pushScreen('settings'),
       },
     ])
   }
