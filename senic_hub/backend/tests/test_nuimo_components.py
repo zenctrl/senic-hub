@@ -33,17 +33,20 @@ def test_nuimo_components_returns_components(url, browser):
         {
             'id': 'ph2',
             'type': 'philips_hue',
-            'device_ids': ['ph2-light-4', 'ph2-light-5', 'ph2-light-6', 'ph2-light-7', 'ph2-light-8']
+            'device_ids': ['ph2-light-4', 'ph2-light-5', 'ph2-light-6', 'ph2-light-7', 'ph2-light-8'],
+            'name': "Philips Hue Bridge 2"
         },
         {
             'id': 'soundtouch1',
             'type': 'media_player',
-            'device_ids': ['soundtouch1']
+            'device_ids': ['soundtouch1'],
+            'name': "Bose Soundtouch Media Player"
         },
         {
             'id': 's1',
             'type': 'sonos',
-            'device_ids': ['s1']
+            'device_ids': ['s1'],
+            'name': "Sonos Player S1"
         }
     ]}
 
@@ -107,6 +110,7 @@ def test_create_philips_hue_component():
     device = {
         'id': 'ph1',
         'type': 'philips_hue',
+        'name': 'Philips Hue Bridge 1',
         'ip': '127.0.0.1',
         'extra': {
             'username': 'light_bringer',
@@ -124,6 +128,7 @@ def test_create_philips_hue_component():
         'id': component['id'],
         'device_ids': ['ph1-light-4', 'ph1-light-5', 'ph1-light-6', 'ph1-light-7', 'ph1-light-8'],
         'type': 'philips_hue',
+        'name': 'Philips Hue Bridge 1',
         'ip_address': '127.0.0.1',
         'username': 'light_bringer',
     }
@@ -133,6 +138,7 @@ def test_create_soundtouch_component():
     device = {
         'id': 'soundtouch1',
         'type': 'soundtouch',
+        'name': "Bose Soundtouch Media Player",
         'ha_entity_id': 'media_player.bose_soundtouch',
     }
     component = create_component(device)
@@ -140,6 +146,7 @@ def test_create_soundtouch_component():
         'id': component['id'],
         'device_ids': ['soundtouch1'],
         'type': 'media_player',
+        'name': "Bose Soundtouch Media Player",
         'ha_entity_id': 'media_player.bose_soundtouch',
     }
 
@@ -156,6 +163,7 @@ def test_get_component_returns_component(component_url, browser, temporary_nuimo
         'id': component_id,
         'device_ids': ['ph2-light-4', 'ph2-light-5', 'ph2-light-6', 'ph2-light-7', 'ph2-light-8'],
         'type': 'philips_hue',
+        'name': 'Philips Hue Bridge 2',
         'ip_address': '127.0.0.2',
         'username': 'light_bringer',
     }

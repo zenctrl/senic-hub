@@ -21,6 +21,7 @@ def test_devices_returns_all_devices(url, browser):
         {
             "id": "ph1",
             "type": "philips_hue",
+            "name": "Philips Hue Bridge 1",
             "ip": "127.0.0.1",
             "virtual": True,
             "authenticationRequired": True,
@@ -29,6 +30,7 @@ def test_devices_returns_all_devices(url, browser):
         {
             "id": "ph2",
             "type": "philips_hue",
+            "name": "Philips Hue Bridge 2",
             "ip": "127.0.0.2",
             "virtual": True,
             "authenticationRequired": True,
@@ -57,6 +59,7 @@ def test_devices_returns_all_devices(url, browser):
         {
             "id": "s1",
             "type": "sonos",
+            "name": "Sonos Player S1",
             "ip": "127.0.0.1",
             "authenticationRequired": False,
             "authenticated": True,
@@ -64,6 +67,7 @@ def test_devices_returns_all_devices(url, browser):
         {
             "id": "soundtouch1",
             "type": "soundtouch",
+            "name": "Bose Soundtouch Media Player",
             "ip": "127.0.0.1",
             "port": "8090",
             "authenticationRequired": False,

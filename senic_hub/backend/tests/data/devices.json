@@ -2,6 +2,7 @@
   {
     "id": "ph1",
     "type": "philips_hue",
+    "name": "Philips Hue Bridge 1",
     "ip": "127.0.0.1",
     "authenticationRequired": true,
     "authenticated": false,
@@ -10,6 +11,7 @@
   {
     "id": "ph2",
     "type": "philips_hue",
+    "name": "Philips Hue Bridge 2",
     "ip": "127.0.0.2",
     "authenticationRequired": true,
     "authenticated": true,
@@ -27,6 +29,7 @@
   {
     "id": "s1",
     "type": "sonos",
+    "name": "Sonos Player S1",
     "ip": "127.0.0.1",
     "authenticationRequired": false,
     "authenticated": true,
@@ -35,6 +38,7 @@
   {
     "id": "soundtouch1",
     "type": "soundtouch",
+    "name": "Bose Soundtouch Media Player",
     "ip": "127.0.0.1",
     "port": "8090",
     "authenticationRequired": false,

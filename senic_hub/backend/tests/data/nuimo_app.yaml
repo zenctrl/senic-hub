@@ -12,17 +12,20 @@ nuimos:
           - ph2-light-8
         ip_address: 127.0.0.2
         username: light_bringer
+        name: "Philips Hue Bridge 2"
 
       - id: soundtouch1
         type: media_player
         device_ids:
           - soundtouch1
         ha_entity_id: media_player.bose_soundtouch1
+        name: "Bose Soundtouch Media Player"
 
       - id: s1
         type: sonos
         device_ids:
           - s1
         ip_address: 127.0.0.1
+        name: "Sonos Player S1"
   00:00:00:00:00:01:
     name: My Nuimo 2
