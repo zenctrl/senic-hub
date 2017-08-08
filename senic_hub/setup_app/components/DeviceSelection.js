@@ -151,7 +151,7 @@ export default class DeviceSelection extends Screen {
     return fetch(url, params)
       .then(response => {
         if (!response.ok) {
-          throw new Error('Saving component failed with status: ' + response.status)
+          throw new Error('Deleting component failed with status: ' + response.status)
         }
       })
   }
