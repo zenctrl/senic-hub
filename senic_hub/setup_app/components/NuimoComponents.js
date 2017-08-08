@@ -52,7 +52,7 @@ export default class NuimoComponents extends Screen {
           data={this.state.components}
           renderItem={({item}) =>
             <ListItem
-              title={item.type}
+              title={item.name}
               onPress={() => {
                 this.pushScreen('app.deviceSelection', {nuimoId: this.props.nuimoId, component: item})
               }} />

@@ -45,6 +45,7 @@ def expand_devices(raw_device):
         'type',
         'ip',
         'port',
+        'name',
         'authenticationRequired',
         'authenticated'
     }}

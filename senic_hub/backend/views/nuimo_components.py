@@ -65,6 +65,7 @@ def nuimo_components_view(request):
             'id': component['id'],
             'type': component['type'],
             'device_ids': component['device_ids'],
+            'name': component['name']
         }
 
     with open(nuimo_app_config_path, 'r') as f:
@@ -190,6 +191,7 @@ def create_component(device):
         'id': str(uuid4()),
         'device_ids': [device['id']],
         'type': component_type,
+        'name': device['name']
     }
     if component_type in ['philips_hue', 'sonos']:
         component['ip_address'] = device['ip']
