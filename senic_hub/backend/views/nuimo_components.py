@@ -9,6 +9,7 @@ from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound
 
 from ..config import path as service_path
 from .setup_devices import get_device
+from ..lockfile import open_locked
 
 import yaml
 import json
