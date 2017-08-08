@@ -9,10 +9,8 @@ from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound
 
 from ..config import path as service_path
 from .setup_devices import get_device
-from ..lockfile import open_locked
 
 import yaml
-import json
 
 logger = getLogger(__name__)
 
@@ -31,22 +29,6 @@ nuimo_components_service = Service(
 nuimo_component_service = Service(
     name='nuimo_component',
     path=service_path('nuimos/{mac_address:[a-z0-9\-]+}/components/{component_id:[a-z0-9\-]+}'),
-    renderer='json',
-    accept='application/json',
-)
-
-
-discovered_devices_by_type_service = Service(
-    name='discovered_devices_by_type',
-    path=service_path('discovered/{type:[a-z0-9\-]+}'),
-    renderer='json',
-    accept='application/json',
-)
-
-
-discovered_devices_service = Service(
-    name='discovered_devices',
-    path=service_path('discovered'),
     renderer='json',
     accept='application/json',
 )
@@ -127,44 +109,8 @@ def add_nuimo_component_view(request):
         f.seek(0)  # We want to overwrite the config file with the new configuration
         yaml.dump(config, f, default_flow_style=False)
 
+
     return component
-
-
-@discovered_devices_by_type_service.get()
-def get_discovered_devices_by_type(request):
-
-    device_type = request.matchdict['type'].replace('-', '_')
-    logger.info(device_type)
-    device_list_path = request.registry.settings['devices_path']
-
-    with open_locked(device_list_path, 'r') as f:
-        devices = json.loads(f.read())
-
-    logger.info(devices)
-
-    device_list = []
-    for candidate in devices:
-        if candidate['type'] == device_type:
-            device_list.append(dict(id=candidate['id'], name=candidate['name']))
-
-    return {'devices': device_list}
-
-
-@discovered_devices_service.get()
-def get_discovered_devices(request):
-
-    device_list_path = request.registry.settings['devices_path']
-
-    with open_locked(device_list_path, 'r') as f:
-        devices = json.loads(f.read())
-
-    logger.info(devices)
-
-    device_list = []
-    for candidate in devices:
-            device_list.append(dict(id=candidate['id'], name=candidate['name'], type=candidate['type']))
-
-    return {'devices': device_list}
 
 
 def create_component(device):

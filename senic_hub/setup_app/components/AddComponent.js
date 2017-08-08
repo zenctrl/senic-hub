@@ -41,7 +41,7 @@ export default class AddComponent extends Screen {
 
   fetchDevices() {
     let that = this
-    return fetch(Settings.HUB_API_URL + 'discovered')
+    return fetch(Settings.HUB_API_URL + 'devices')
       .then(response => {
         if (!response.ok) throw new Error('Request failed: ' + response)
         return response.json()
