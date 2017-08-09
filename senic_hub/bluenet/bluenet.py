@@ -37,7 +37,7 @@ def bluenet_cli(ctx, wlan, bluetooth):
 
 
 @bluenet_cli.command(name='start', help="start GATT service and scan for networks")
-@click.option('--hostname', '-h', required=True, help="Host Name of Hub")
+@click.option('--hostname', '-h', required=True, help="Host Name of Hub, %IP is replaced with the current IP address")
 @click.option('--alias', '-a', required=True, help="Bluetooth Alias Name")
 @click.option('--verbose', '-v', count=True, help="Print info messages (-vv for debug messages)")
 @click.option('--auto-advertise', is_flag=True, help="Disable BLE advertising when not needed")
@@ -339,6 +339,11 @@ class BluenetDaemon(object):
         return devices_by_name.get(self._wlan_adapter, None)
 
     def _start_rpc_server(self):
+        """
+        Starts a XML RPC server that can be used check if this Bluenet instance is connected
+        to a setup app. (Netwatch won't stop Bluenet in this case)
+        """
+
         def is_bluenet_connected():
             return self._ble_peripheral.is_connected
 
