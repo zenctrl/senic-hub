@@ -23,7 +23,7 @@ export default class AddComponent extends Screen {
           data={this.state.discovered_devices}
           renderItem={({item}) => <ListItem
             title={item.name}
-            onPress={() => this.saveComponent([item.id])} />}
+            onPress={() => this.saveComponent(item.id)} />}
           keyExtractor={(component) => component.type}
         />
       </List>
@@ -47,10 +47,31 @@ export default class AddComponent extends Screen {
         return response.json()
       })
       .then(response => {
-        console.log(response.devices)
         devices = response.devices
+
+        var devId = []
+        var index = null
+        var id = null
+        //TODO: to be tested with multiple HUE BRIDGES
+        for (var i = devices.length-1; i >= 0; i--) {
+          if (devices[i].type == 'philips_hue'){
+            if (!devices[i].id.includes('-light-')){
+              index = i
+              id = devices[i].id
+            }else{
+              devId.push(devices[i].id)
+              devices.splice(i, 1)
+            }
+          }
+          else{
+            devices[i].id = [devices[i].id]
+          }
+        }
+        if (devices[index].type == 'philips_hue'){
+          devices[index].id = devId
+        }
+
         that.setState({discovered_devices: devices})
-        console.log(this.state.discovered_devices)
       })
   }
 
