@@ -22,7 +22,7 @@ export default class NuimoComponents extends Screen {
       {
         title: 'Settings',
         id: 'reset',
-        onPress: () => this.pushScreen('settings'),
+        onPress: () => this.pushScreen('settings', { nuimoId: this.props.nuimoId }),
       },
     ])
   }
