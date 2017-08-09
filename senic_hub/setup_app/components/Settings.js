@@ -24,7 +24,7 @@ export default class SettingsScreen extends Screen {
       {
         title: "Close",
         id: 'close',
-        onPress: () => this.dismissModal()
+        onPress: () => this.pushScreen('app.nuimoComponents', { nuimoId: this.props.nuimoId })
       }
     ])
   }
