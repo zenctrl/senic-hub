@@ -49,17 +49,16 @@ export default class AddComponent extends Screen {
       .then(response => {
         devices = response.devices
 
-        var devId = []
-        var index = null
-        var id = null
+        var devIds = []
+        var bridgeIndex = null
         //TODO: to be tested with multiple HUE BRIDGES
+        //can be probably simplified
         for (var i = devices.length-1; i >= 0; i--) {
           if (devices[i].type == 'philips_hue'){
             if (!devices[i].id.includes('-light-')){
-              index = i
-              id = devices[i].id
+              bridgeIndex = i
             }else{
-              devId.push(devices[i].id)
+              devIds.push(devices[i].id)
               devices.splice(i, 1)
             }
           }
@@ -67,8 +66,8 @@ export default class AddComponent extends Screen {
             devices[i].id = [devices[i].id]
           }
         }
-        if (devices[index].type == 'philips_hue'){
-          devices[index].id = devId
+        if (devices[bridgeIndex].type == 'philips_hue'){
+          devices[bridgeIndex].id = devIds
         }
 
         that.setState({discovered_devices: devices})
