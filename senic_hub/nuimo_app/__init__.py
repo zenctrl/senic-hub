@@ -1,5 +1,8 @@
 import logging
 
+from importlib import import_module
+from threading import Thread
+
 from nuimo import (Controller, ControllerListener, ControllerManager, Gesture, LedMatrix)
 
 from . import matrices
@@ -53,18 +56,19 @@ class NuimoApp(NuimoControllerListener):
 
         self.components = []
         self.active_component = None
-        self.set_components(components)
+        component_instances = get_component_instances(components)
+        self.set_components(component_instances)
 
-        self.manager = ControllerManager(ble_adapter_name)
-        self.manager.is_adapter_powered = True
-
-        self.controller = Controller(mac_address, self.manager)
-        self.controller.listener = self
+        self.manager = None
+        self.ble_adapter_name = ble_adapter_name
+        self.controller = None
+        self.mac_address = mac_address
 
     def set_components(self, components):
         previously_active = self.active_component
         if self.active_component:
             self.active_component.stop()
+            self.active_component = None
 
         for component in components:
             component.nuimo = self
@@ -76,17 +80,26 @@ class NuimoApp(NuimoControllerListener):
                     self.set_active_component(component)
                     break
 
-    def start(self):
+    def start(self, ipc_queue):
+        ipc_thread = Thread(target=self.listen_to_ipc_queue, args=(ipc_queue,), daemon=True)
+        ipc_thread.start()
+
+        self.manager = ControllerManager(self.ble_adapter_name)
+        self.manager.is_adapter_powered = True
+
+        self.controller = Controller(self.mac_address, self.manager)
+        self.controller.listener = self
         self.set_active_component()
         logger.info("Connecting to Nuimo controller %s", self.controller.mac_address)
         self.controller.connect()
         try:
             self.manager.run()
         except KeyboardInterrupt:
-            logger.info("Stopping... Nuimo controller %s", self.controller.mac_address)
+            logger.debug("Nuimo app received SIGINT %s", self.controller.mac_address)
             self.stop()
 
     def stop(self):
+        logger.info("Stopping nuimo app of %s ...", self.controller.mac_address)
         if self.active_component:
             self.active_component.stop()
 
@@ -213,3 +226,45 @@ class NuimoApp(NuimoControllerListener):
 
     def display_matrix(self, matrix, **kwargs):
         self.controller.display_matrix(LedMatrix(matrix), **kwargs)
+
+    def listen_to_ipc_queue(self, ipc_queue):
+        """
+        Checks an inter-process queue for new messages. The messages have a simple custom format
+        containing the name of one of the defined methods to call and in some cases additional arguments.
+
+        This is required because this NuimoApp instance is executed in its own process (because gatt-python
+        doesn't handle multiple devices in a single thread correctly) and it needs to be notified of changes
+        and when to quit.
+        """
+        while True:
+            msg = ipc_queue.get()
+            if msg['method'] == 'set_components':
+                components = msg['components']
+                logger.debug("IPC set_components() received: %s", components)
+                component_instances = get_component_instances(components)
+                self.set_components(component_instances)
+            elif msg['method'] == 'stop':
+                logger.debug("IPC stop() received")
+                self.stop()
+                return
+
+
+def get_component_instances(components):
+    """
+    Import component modules configured in the Nuimo app configuration
+    and return instances of the contained component classes.
+    """
+    module_name_format = __name__ + '.components.{}'
+
+    instances = []
+    for component in components:
+        module_name = module_name_format.format(component['type'])
+        logger.info("Importing module %s", module_name)
+        # FIXME: don't ignore errors, this is just a workaround!
+        try:
+            component_module = import_module(module_name)
+            instances.append(component_module.Component(component))
+        except Exception as e:
+            logger.error("Error during import: %s", e)
+
+    return instances

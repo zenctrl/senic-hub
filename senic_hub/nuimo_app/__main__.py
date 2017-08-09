@@ -1,10 +1,10 @@
 import logging
-import sys
+import time
 import yaml
 
-from importlib import import_module
 from os.path import abspath
 from threading import Thread
+from multiprocessing import Process, Queue
 
 import click
 import platform
@@ -12,7 +12,7 @@ import platform
 if platform.system() == 'Linux':
     import pyinotify
 
-from pyramid.paster import get_app, setup_logging
+from pyramid.paster import get_app
 
 from . import NuimoApp
 
@@ -23,69 +23,81 @@ logger = logging.getLogger(__name__)
 @click.command(help="configuration file for the Nuimo app")
 @click.option('--config', '-c', required=True, type=click.Path(exists=True), help="app configuration file")
 def main(config):
-    setup_logging(config)
+    log_format = '%(asctime)s %(levelname)-5.5s [%(name)s] %(message)s'
+    logging.basicConfig(level=logging.DEBUG, format=log_format)
+
+    # TODO: remove too verbose logging messages like this
+    logger.debug("--- Start ----")
 
     # urllib3 logger is very verbose so we hush it down
     logging.getLogger("urllib3.connectionpool").setLevel(logging.CRITICAL)
 
     app = get_app(abspath(config), name='senic_hub')
 
-    config_file_path = app.registry.settings['nuimo_app_config_path']
-    with open(config_file_path, 'r') as f:
-        config = yaml.load(f)
-
-    nuimos = config['nuimos']
-
-    nuimo_controller_mac_addresses = list(nuimos.keys())
-
-    if not nuimo_controller_mac_addresses:
-        logger.error("Nuimo controller MAC address not configured")
-        sys.exit(1)
+    config_path = app.registry.settings['nuimo_app_config_path']
 
     ha_api_url = app.registry.settings['homeassistant_api_url']
     ble_adapter_name = app.registry.settings['bluetooth_adapter_name']
 
     nuimo_apps = {}
-
-    for nuimo_controller_mac_address in nuimo_controller_mac_addresses:
-        components = nuimos[nuimo_controller_mac_address]['components']
-        component_instances = get_component_instances(components)
-        nuimo_apps[nuimo_controller_mac_address] = NuimoApp(ha_api_url, ble_adapter_name, nuimo_controller_mac_address, component_instances)
+    # creating initial nuimo apps:
+    update_from_config_file(config_path, nuimo_apps, ha_api_url, ble_adapter_name)
 
     if platform.system() == 'Linux':
         watch_config_thread = Thread(
-            target=watch_config_changes, args=(config_file_path, nuimo_apps), daemon=True)
+            target=watch_config_changes,
+            args=(config_path, nuimo_apps, ha_api_url, ble_adapter_name),
+            daemon=True)
         watch_config_thread.start()
+    elif not nuimo_apps:
+        logger.error("No Nuimos configured and can't watch config for changes!")
 
-    for mac_addr in nuimo_apps:
-        Thread(target=nuimo_apps[mac_addr].start).start()
+    while True:
+        try:
+            time.sleep(1)
+        except KeyboardInterrupt:
+            logger.info("Received SIGINT, stopping all nuimo apps...")
+            break
 
-
-def get_component_instances(components):
-    """
-    Import component modules configured in the Nuimo app configuration
-    and return instances of the contained component classes.
-    """
-    module_name_format = __name__.rsplit('.', 1)[0] + '.components.{}'
-
-    instances = []
-    for component in components:
-        module_name = module_name_format.format(component['type'])
-        logger.info("Importing module %s", module_name)
-        component_module = import_module(module_name)
-        instances.append(component_module.Component(component))
-
-    return instances
+    for nuimo_app_queue in nuimo_apps.values():
+        nuimo_app_queue.put({'method': 'stop'})
+    logger.debug("Stopped all nuimo apps")
 
 
-def watch_config_changes(config_path, nuimo_apps):
+def update_from_config_file(config_path, nuimo_apps, ha_api_url, ble_adapter_name):
+    with open(config_path, 'r') as f:
+        config = yaml.load(f)
+
+    updated_nuimos = config['nuimos']
+
+    for mac_addr in nuimo_apps.keys():
+        if mac_addr not in updated_nuimos:
+            logger.info("A Nuimo was removed from the config file: %s", mac_addr)
+            nuimo_apps[mac_addr].put({'method': 'stop'})
+
+    for mac_addr in updated_nuimos.keys():
+        components = updated_nuimos[mac_addr].get('components', [])
+        if mac_addr in nuimo_apps:
+            logger.info("Updating app for Nuimo with address: %s", mac_addr)
+            nuimo_apps[mac_addr].put({'method': 'set_components',
+                                      'components': components})
+        else:
+            logger.info("A new Nuimo was found in the config file: %s", mac_addr)
+            app = NuimoApp(ha_api_url, ble_adapter_name,
+                     mac_addr, components)
+            ipc_queue = Queue()
+            nuimo_apps[mac_addr] = ipc_queue
+            Process(target=app.start, args=(ipc_queue,)).start()
+
+
+def watch_config_changes(config_path, nuimo_apps, ha_api_url, ble_adapter_name):
 
     class ModificationHandler(pyinotify.ProcessEvent):
 
         def process_IN_CLOSE_WRITE(self, event):
             if hasattr(event, 'pathname') and event.pathname == config_path:
                 logger.info("Config file was changed, reloading it...")
-                reload_config_file(config_path, nuimo_apps)
+                update_from_config_file(config_path, nuimo_apps, ha_api_url, ble_adapter_name)
 
     handler = ModificationHandler()
     watch_manager = pyinotify.WatchManager()
@@ -95,28 +107,7 @@ def watch_config_changes(config_path, nuimo_apps):
     watch_manager.add_watch(config_path, pyinotify.IN_CLOSE_WRITE)
     logger.info("Listening to changes of: %s", config_path)
     notifier.loop()
-
-
-def reload_config_file(config_path, nuimo_apps):
-    with open(config_path, 'r') as f:
-        config = yaml.load(f)
-
-    nuimos = config['nuimos']
-
-    for mac_addr in nuimo_apps.keys():
-        if mac_addr not in nuimos:
-            logger.info("A Nuimo was removed from the config file: %s", mac_addr)
-            nuimo_apps[mac_addr].stop()
-
-    for mac_addr in nuimos.keys():
-        if mac_addr in nuimo_apps:
-            logger.info("Updating app for Nuimo with address: %s", mac_addr)
-            components = nuimos[mac_addr]['components']
-            component_instances = get_component_instances(components)
-            nuimo_apps[mac_addr].set_components(component_instances)
-        else:
-            logger.info("A Nuimo was added to the config file: %s", mac_addr)
-            # TODO: create new NuimoApp for added Nuimo here
+    logger.info("Stopped listening to changes of: %s", config_path)
 
 
 if __name__ == "__main__":
