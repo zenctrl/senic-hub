@@ -109,7 +109,6 @@ def add_nuimo_component_view(request):
         f.seek(0)  # We want to overwrite the config file with the new configuration
         yaml.dump(config, f, default_flow_style=False)
 
-
     return component
 
 
