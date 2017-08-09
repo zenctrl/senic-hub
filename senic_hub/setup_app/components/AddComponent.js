@@ -10,7 +10,7 @@ export default class AddComponent extends Screen {
 
     this.state = {
       // TODO get this from the API
-      discovered_devices: []
+      discoveredDevices: []
     }
 
     this.setTitle("Select a Device Type")
@@ -20,7 +20,7 @@ export default class AddComponent extends Screen {
     return (
       <List>
         <FlatList
-          data={this.state.discovered_devices}
+          data={this.state.discoveredDevices}
           renderItem={({item}) => <ListItem
             title={item.name}
             onPress={() => this.saveComponent(item.id)} />}
@@ -70,7 +70,7 @@ export default class AddComponent extends Screen {
           devices[bridgeIndex].id = devIds
         }
 
-        that.setState({discovered_devices: devices})
+        that.setState({discoveredDevices: devices})
       })
   }
 
