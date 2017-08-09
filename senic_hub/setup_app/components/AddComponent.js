@@ -53,7 +53,7 @@ export default class AddComponent extends Screen {
         var bridgeIndex = null
         //TODO: to be tested with multiple HUE BRIDGES
         //can be probably simplified
-        for (var i = devices.length-1; i >= 0; i--) {
+        for (var i = devices.length-1; i >= 0; i--){
           if (devices[i].type == 'philips_hue'){
             if (!devices[i].id.includes('-light-')){
               bridgeIndex = i
@@ -61,8 +61,7 @@ export default class AddComponent extends Screen {
               devIds.push(devices[i].id)
               devices.splice(i, 1)
             }
-          }
-          else{
+          }else{
             devices[i].id = [devices[i].id]
           }
         }
