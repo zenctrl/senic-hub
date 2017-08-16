@@ -37,7 +37,6 @@ class Component(ThreadComponent):
         self.nuimo = None
         self.last_request_time = time()
 
-
     def run(self):
         self.subscribe_to_events()
         self.update_state()
@@ -70,7 +69,6 @@ class Component(ThreadComponent):
         self.av_transport_subscription = self.sonos_controller.avTransport.subscribe()
         self.rendering_control_subscription = self.sonos_controller.renderingControl.subscribe()
 
-
     def unsubscribe_from_events(self):
         self.rendering_control_subscription.unsubscribe()
         self.av_transport_subscription.unsubscribe()
@@ -82,7 +80,7 @@ class Component(ThreadComponent):
         logger.debug("%s state: %s volume: %s", self.sonos_controller.ip_address, self.state, self.volume)
 
     def on_rotation(self, delta):
-        if self.state != None:
+        if self.state is not None:
             try:
                 delta = round(self.volume_range.stop * delta)
                 self.volume = clamp_value(self.volume + delta, self.volume_range)
@@ -92,18 +90,16 @@ class Component(ThreadComponent):
 
                 matrix = matrices.progress_bar(self.volume / self.volume_range.stop)
                 self.nuimo.display_matrix(matrix, fading=True, ignore_duplicates=True)
-
             except SoCoException:
                 self.nuimo.display_matrix(matrices.ERROR)
 
             self.last_request_time = time()
-
         else:
             self.nuimo.display_matrix(matrices.ERROR)
             logger.debug("No Active connection with Host")
 
     def on_button_press(self):
-        if self.state == self.STATE_PLAYING:
+        if self.state is self.STATE_PLAYING:
             self.pause()
             logger.debug("Play Paused by self.pause() on button press.")
 
@@ -111,11 +107,11 @@ class Component(ThreadComponent):
             self.play()
             logger.debug("Play started/resumed by self.pause() on button press.")
 
-        elif self.state == None:
+        elif self.state is None:
             self.nuimo.display_matrix(matrices.ERROR)
             logger.debug("No Active connection with Host.")
 
-        logger.debug("state toggle : %s", self.state)
+        logger.debug("state toggle: %s", self.state)
 
         self.last_request_time = time()
 
