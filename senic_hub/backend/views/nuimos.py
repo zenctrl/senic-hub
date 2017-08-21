@@ -4,7 +4,9 @@ from os import path
 from .. import nuimo_setup
 # TODO: We better rename `config.path` to something else. Conflicts with `os.path`
 from ..config import path as service_path
-
+from pyramid.httpexceptions import HTTPNotFound
+import yaml
+from .. import supervisor
 
 logger = getLogger(__name__)
 
@@ -14,6 +16,21 @@ connected_nuimos = Service(
     path=service_path('nuimos'),
     renderer='json',
     accept='application/json')
+
+
+configured_nuimos = Service(
+    name='configured_nuimos',
+    path=service_path('confnuimos'),
+    renderer='json',
+    accept='application/json')
+
+
+nuimo_service = Service(
+    name='nuimo_services',
+    path=service_path('nuimos/{mac_address:[a-z0-9\-]+}'),
+    renderer='json',
+    accept='application/json',
+)
 
 
 @connected_nuimos.post()
@@ -42,3 +59,38 @@ def get_connected_nuimos(request):
     with open(nuimo_mac_address_filepath, 'r') as nuimo_mac_address_file:
         mac_address = nuimo_mac_address_file.readline().strip()
         return {'nuimos': [mac_address.replace(':', '-')]}
+
+
+@configured_nuimos.get()
+def get_configured_nuimos(request):
+    nuimo_app_config_path = request.registry.settings['nuimo_app_config_path']
+    nuimos = []
+    with open(nuimo_app_config_path, 'r') as f:
+        config = yaml.load(f)
+    for mac_address in config['nuimos']:
+        temp = config['nuimos'][mac_address]
+        temp['mac_address'] = mac_address
+        nuimos.append(temp)
+
+    return {'nuimos': nuimos}
+
+
+# TODO: add testcases
+@nuimo_service.delete()
+def delete_nuimo(request):  # pragma: no cover,
+    mac_address = request.matchdict['mac_address'].replace('-', ':')
+    with open(request.registry.settings['nuimo_app_config_path'], 'r+') as f:
+        config = yaml.load(f)
+
+        try:
+            config['nuimos'][mac_address]
+        except KeyError:
+            return HTTPNotFound("No Nuimo with such ID")
+
+        del config['nuimos'][mac_address]
+
+        f.seek(0)  # We want to overwrite the config file with the new configuration
+        f.truncate()
+        yaml.dump(config, f, default_flow_style=False)
+
+        supervisor.restart_program('nuimo_app')

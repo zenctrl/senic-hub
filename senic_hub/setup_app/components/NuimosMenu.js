@@ -6,39 +6,47 @@ import Settings from '../Settings'
 
 import Swipeout from 'react-native-swipeout';
 
-
-export default class NuimoComponents extends Screen {
+export default class NuimosMenu extends Screen {
   constructor(props) {
     super(props)
 
     this.state = {
-      components: [],
+      nuimos: [],
     }
 
-    this.setTitle(this.props.name)
+    this.setTitle("Nuimos Menu")
     this.setNavigationButtons([], [
       {
-        title: "Add Device",
+        title: "Add Nuimo",
         id: 'add',
-        onPress: () => this.pushScreen('app.addComponent', { nuimoId: this.props.nuimoId })
-      }
+        onPress: () => this.pushScreen('setup.nuimo')
+      },
+      {
+        title: 'Settings',
+        id: 'reset',
+        onPress: () => this.pushScreen('settings'),
+      },
     ])
   }
 
   didAppear() {
-    this.fetchComponents()
+    this.fetchNuimos()
   }
 
-  fetchComponents() {
-    fetch(Settings.HUB_API_URL + 'nuimos/' + this.props.nuimoId + '/components')
+  fetchNuimos() {
+    fetch(Settings.HUB_API_URL + 'confnuimos')
       .then((response) => {
         if (!response.ok) {
           throw new Error('Request failed: ' + JSON.stringify(response))
         }
         return response.json()
       })
-      .then((components) => {
-        this.setState({ components: components.components })
+      .then((nuimos) => {
+        this.setState({ nuimos: nuimos.nuimos })
+        console.log(this.state.nuimos)
+        for (var i; i < this.state.nuimos.length; i++){
+          console.log(this.state.nuimos[i].name)
+        }
       })
       .catch((error) => console.error(error))
   }
@@ -50,11 +58,11 @@ export default class NuimoComponents extends Screen {
        underlayColor: 'rgba(0, 0, 0, 0.6)',
        onPress: () => {
          alert(
-           'Delete Component',
+           'Delete Nuimo',
            'Are you sure?',
            [
              {text: 'Cancel', style: 'cancel'},
-             {text: 'Delete', onPress: this.deleteComponent(item.id)},
+             {text: 'Delete', onPress: this.deleteNuimo(item.mac_address.replace(/:/g, '-'))},
            ],
            { cancelable: false }
          )
@@ -68,27 +76,26 @@ export default class NuimoComponents extends Screen {
         <ListItem
           title={item.name}
           onPress={() => {
-            this.pushScreen('app.deviceSelection', {nuimoId: this.props.nuimoId, component: item})
-          }} />
+            this.pushScreen('app.nuimoComponents', {nuimoId: item.mac_address.replace(/:/g, '-'), name: item.name})
+          }}
+        />
       </Swipeout>
     );
   }
-
 
   render() {
     return (
       <List>
         <FlatList
-          data={this.state.components}
+          data={this.state.nuimos}
           renderItem={({item}) => this.renderRow(item)}
-          keyExtractor={(components) => components.id}
+          keyExtractor={(nuimos) => nuimos.mac_address}
         />
       </List>
     );
   }
 
-
-  deleteComponent(itemId){
+  deleteNuimo(itemId){
     component = {}
     let body = JSON.stringify(component)
     let params = {
@@ -98,13 +105,14 @@ export default class NuimoComponents extends Screen {
       },
       body: body,
     }
-    url = Settings.HUB_API_URL + 'nuimos/' + this.props.nuimoId + '/components/' + itemId
+    console.log("CIAO")
+    url = Settings.HUB_API_URL + 'nuimos/' + itemId
     return fetch(url, params)
       .then(response => {
         if (!response.ok) {
           throw new Error('Deleting component failed with status: ' + response.status)
         } else {
-          this.fetchComponents()
+          this.fetchNuimos()
         }
       })
   }

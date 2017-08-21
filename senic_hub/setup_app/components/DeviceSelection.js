@@ -30,15 +30,6 @@ export default class DeviceSelection extends Screen {
             .then(() => this.popScreen())
             .catch(e => console.warn(e))
         }
-      },
-      {
-        title: "Remove",
-        id: 'remove',
-        onPress: () => {
-          this.remove()
-            .then(() => this.popScreen())
-            .catch(e => console.warn(e))
-        }
       }
     ])
   }
@@ -137,22 +128,4 @@ export default class DeviceSelection extends Screen {
       })
   }
 
-  remove(){
-    component = {}
-    let body = JSON.stringify(component)
-    let params = {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: body,
-    }
-    url = Settings.HUB_API_URL + 'nuimos/' + this.props.nuimoId + '/components/' + this.state.component.id
-    return fetch(url, params)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Deleting component failed with status: ' + response.status)
-        }
-      })
-  }
 }

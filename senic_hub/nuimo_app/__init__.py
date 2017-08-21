@@ -31,7 +31,13 @@ class NuimoControllerListener(ControllerListener):
         logger.warn("Disconnected from %s, reconnecting...", mac)
         self.controller.connect()
 
+    def services_resolved(self):
+        mac = self.controller.mac_address
+        logger.info("Received services resolved to Nuimo controller %s", mac)
+
     def received_gesture_event(self, event):
+        mac = self.controller.mac_address
+        logger.info("Received gesture event to Nuimo controller %s", mac)
         self.process_gesture_event(event)
 
 
@@ -79,6 +85,8 @@ class NuimoApp(NuimoControllerListener):
                 if previously_active.component_id == component.component_id:
                     self.set_active_component(component)
                     break
+        if self.active_component is None:
+            self.set_active_component()
 
     def start(self, ipc_queue):
         ipc_thread = Thread(target=self.listen_to_ipc_queue, args=(ipc_queue,), daemon=True)
@@ -95,7 +103,7 @@ class NuimoApp(NuimoControllerListener):
         try:
             self.manager.run()
         except KeyboardInterrupt:
-            logger.debug("Nuimo app received SIGINT %s", self.controller.mac_address)
+            logger.info("Nuimo app received SIGINT %s", self.controller.mac_address)
             self.stop()
 
     def stop(self):
@@ -104,7 +112,9 @@ class NuimoApp(NuimoControllerListener):
             self.active_component.stop()
 
         self.controller.disconnect()
+        logger.info("Disconnected from Nuimo controller %s", self.controller.mac_address)
         self.manager.stop()
+        logger.debug("self manager stop %s", self.controller.mac_address)
 
     def process_gesture_event(self, event):
         if event.gesture in self.GESTURES_TO_IGNORE:
@@ -240,11 +250,11 @@ class NuimoApp(NuimoControllerListener):
             msg = ipc_queue.get()
             if msg['method'] == 'set_components':
                 components = msg['components']
-                logger.debug("IPC set_components() received: %s", components)
+                logger.debug("IPC set_components() received: %s mac = %s", components, self.controller.mac_address)
                 component_instances = get_component_instances(components)
                 self.set_components(component_instances)
             elif msg['method'] == 'stop':
-                logger.debug("IPC stop() received")
+                logger.debug("IPC stop() received %s", self.controller.mac_address)
                 self.stop()
                 return
 

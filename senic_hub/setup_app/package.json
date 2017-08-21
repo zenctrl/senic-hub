@@ -16,6 +16,7 @@
     "react-native-fabric": "^0.4.1",
     "react-native-navigation": "^1.1.79",
     "react-native-network-info": "^2.1.0",
+    "react-native-swipeout": "^2.2.2",
     "react-native-vector-icons": "^4.2.0"
   },
   "devDependencies": {

@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Platform,
 } from 'react-native';
 import HubOnboarding from '../HubOnboarding'
 import Screen from './Screen.js';
@@ -16,12 +17,14 @@ export default class BootScreen extends Screen {
 
     this.state = {
       hubUnreachable: false,
+      didAppearLaunched: false,
     }
 
     this.updateTitle()
   }
 
   didAppear() {
+    this.state.didAppearLaunched = true
     // When this screen is entered we either (re-)start onboarding a Hub or we
     // have just successfully provisioned the Hub with Wi-Fi. In both cases we
     // need to disconnect from the Hub if it we previously connected to it via
@@ -85,7 +88,7 @@ export default class BootScreen extends Screen {
         if (hubInfo.onboarded) {
           this.fetchNuimoId()
             .then(nuimoId => {
-              this.resetTo('app.nuimoComponents', { nuimoId: nuimoId })
+              this.resetTo('app.nuimosMenu', { nuimoId: nuimoId })
             })
             .catch(() => {
               // This case should not happen, because the Hub already said it's onboarded
@@ -161,6 +164,9 @@ export default class BootScreen extends Screen {
     this.setTitle(this.state.hubUnreachable
       ? "Oh, noes"
       : "Connecting to the Hub...")
+      setTimeout(
+      () => { if (Platform.OS === 'android' && !this.state.didAppearLaunched){this.didAppear() }},
+      500);
   }
 
   restartOnboarding() {

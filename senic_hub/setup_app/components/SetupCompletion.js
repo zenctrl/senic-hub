@@ -30,7 +30,7 @@ export default class SetupCompletion extends Screen {
           <Button
             disabled={!this.state.configured}
             buttonStyle={styles.button}
-            onPress={() => this.resetTo('app.nuimoComponents', {nuimoId: this.props.nuimoId})}
+            onPress={() => this.resetTo('app.nuimosMenu', {nuimoId: this.props.nuimoId})}
             title="Done" />
         </View>
       </View>

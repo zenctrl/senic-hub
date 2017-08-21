@@ -30,8 +30,7 @@ class NuimoSetup(nuimo.ControllerManagerListener, nuimo.ControllerListener):  # 
         # If there's already a connected Nuimo, take it and don't run discovery
         for controller in self._manager.controllers():
             if controller.is_connected():
-                logger.info("Returning already connected controller %s", controller.mac_address)
-                return controller.mac_address
+                logger.info("Already connected controller %s, looking for another one", controller.mac_address)
         # Start discovery
         self._required_mac_address = required_mac_address
         self._is_running = True
@@ -100,13 +99,12 @@ class NuimoSetup(nuimo.ControllerManagerListener, nuimo.ControllerListener):  # 
     def connect_failed(self, error):
         if not self._is_running:
             return
-        logger.debug("%s connection failed: %s", self._controller.mac_address, error)
-        if self._connect_timeout_timer:
-            self._connect_timeout_timer.cancel()
-        self._controller.listener = None  # Ignore any further events
-        self._controller.disconnect()
-        self._controller = None
-        self._restart_discovery()
+        logger.info("%s connection failed: %s", self._controller.mac_address, error)
+        self._manager.stop_discovery()
+        self._connect_timeout_timer = threading.Timer(20, self.connect_timed_out)
+        self._connect_timeout_timer.start()
+        self._controller.listener = self
+        self._controller.connect()
 
     def connect_timed_out(self):
         if not self._is_running:

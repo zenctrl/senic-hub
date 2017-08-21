@@ -14,12 +14,14 @@ import SetupNuimo from './components/SetupNuimo'
 import SetupWelcome from './components/SetupWelcome'
 import SetupWifi from './components/SetupWifi'
 import SetupWifiPassword from './components/SetupWifiPassword'
+import NuimosMenu from './components/NuimosMenu'
 
 import { Navigation } from 'react-native-navigation'
 
 Navigation.registerComponent('app.addComponent', () => AddComponent)
 Navigation.registerComponent('app.deviceSelection', () => DeviceSelection)
 Navigation.registerComponent('app.nuimoComponents', () => NuimoComponents)
+Navigation.registerComponent('app.nuimosMenu', () => NuimosMenu)
 Navigation.registerComponent('app.selectComponentDevices', () => SelectComponentDevices)
 Navigation.registerComponent('feedback', () => FeedbackScreen)
 Navigation.registerComponent('settings', () => SettingsScreen)
