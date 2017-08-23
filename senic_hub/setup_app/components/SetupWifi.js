@@ -31,7 +31,7 @@ export default class SetupWifi extends BluetoothRequiringScreen {
       })
     });
 
-    this.scanTimoutId = null
+    this.scanTimeoutId = null
 
     this.setTitle('Wi-Fi')
   }
@@ -50,7 +50,7 @@ export default class SetupWifi extends BluetoothRequiringScreen {
         }
 
         if (this.state.scanningSpinnerVisible && this.state.currentPhoneSsid === ssid) {
-          if (this.scanTimoutId) {
+          if (this.scanTimeoutId) {
             clearTimeout(this.scanTimeoutId)
           }
           this.onNetworkSelected(this.state.currentPhoneSsid)
@@ -68,10 +68,10 @@ export default class SetupWifi extends BluetoothRequiringScreen {
       .connect()
       .then(() => {
         subscribeForWifiEvents()
-        this.scanTimoutId = setTimeout(() => {
+        this.scanTimeoutId = setTimeout(() => {
           this.setState({scanningSpinnerVisible: false})
           this.setTitle('Select your Wi-Fi')
-        }, 5000)
+        }, 30000)
       })
       .catch((error) => {
         console.warn(error)
