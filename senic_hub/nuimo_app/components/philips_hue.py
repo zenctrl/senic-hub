@@ -240,7 +240,12 @@ class Component(ThreadComponent):
         seed()
 
     def create_lights(self, light_ids):
-        reachable_lights = self.filter_reachable(light_ids)
+        reachable_lights = None
+        try:
+            reachable_lights = self.filter_reachable(light_ids)
+        except ConnectionResetError:
+            # TODO: add a library wrapper to handle the issue properly, this is a workaround
+            logger.error("Hue Bridge not reachable, handle exception")
         if not reachable_lights:
             lights = EmptyLightSet()
         elif len(reachable_lights) > 10:
@@ -327,7 +332,11 @@ class Component(ThreadComponent):
                 prev_update_time = now
 
             if now - max([prev_sync_time, prev_update_time]) >= self.lights.sync_interval:
-                self.lights.update_state()
+                try:
+                    self.lights.update_state()
+                except ConnectionResetError:
+                    # TODO: add a library wrapper to handle the issue properly, this is a workaround
+                    logger.error("connection with Hue Bridge reset by peer, handle exception")
 
                 prev_sync_time = now
 
