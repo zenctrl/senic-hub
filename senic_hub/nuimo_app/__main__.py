@@ -41,17 +41,18 @@ def main(config):
     ble_adapter_name = app.registry.settings['bluetooth_adapter_name']
 
     nuimo_apps = {}
+    queues = {}
     processes = {}
     # creating initial nuimo apps:
-    update_from_config_file(config_path, nuimo_apps, processes, ha_api_url, ble_adapter_name)
+    update_from_config_file(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name)
 
     if platform.system() == 'Linux':
         watch_config_thread = Thread(
             target=watch_config_changes,
-            args=(config_path, nuimo_apps, processes, ha_api_url, ble_adapter_name),
+            args=(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name),
             daemon=True)
         watch_config_thread.start()
-    elif not nuimo_apps:
+    elif not queues:
         logger.error("No Nuimos configured and can't watch config for changes!")
 
     with open(config_path, 'r') as f:
@@ -60,7 +61,8 @@ def main(config):
         components = config['nuimos'][mac_addr].get('components', [])
         app = NuimoApp(ha_api_url, ble_adapter_name, mac_addr, components)
         ipc_queue = Queue()
-        nuimo_apps[mac_addr] = ipc_queue
+        queues[mac_addr] = ipc_queue
+        nuimo_apps[mac_addr] = components
         processes[mac_addr] = Process(target=app.start, args=(ipc_queue,))
         processes[mac_addr].start()
 
@@ -71,8 +73,8 @@ def main(config):
             logger.info("Received SIGINT, stopping all nuimo apps...")
             break
 
-    for mac_addr in nuimo_apps.keys():
-        nuimo_apps[mac_addr].put({'method': 'stop'})
+    for mac_addr in queues.keys():
+        queues[mac_addr].put({'method': 'stop'})
         processes[mac_addr].join()
 
     os.system('/etc/init.d/bluetooth stop')
@@ -82,7 +84,7 @@ def main(config):
     logger.info("Stopped all nuimo apps")
 
 
-def update_from_config_file(config_path, nuimo_apps, processes, ha_api_url, ble_adapter_name):
+def update_from_config_file(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name):
     with open(config_path, 'r') as f:
         config = yaml.load(f)
 
@@ -92,21 +94,22 @@ def update_from_config_file(config_path, nuimo_apps, processes, ha_api_url, ble_
 
     for mac_addr in updated_nuimos.keys():
         components = updated_nuimos[mac_addr].get('components', [])
-        if mac_addr in nuimo_apps:
+        if mac_addr in nuimo_apps and components != nuimo_apps[mac_addr]:
+            logger.debug("nuimo_apps= %s", nuimo_apps[mac_addr])
             logger.info("Updating app for Nuimo with address: %s", mac_addr)
-            nuimo_apps[mac_addr].put({'method': 'set_components',
-                                      'components': components})
+            queues[mac_addr].put({'method': 'set_components', 'components': components})
+            nuimo_apps[mac_addr] = components
         # TODO: add nuimos without restart nuimo_app code
 
 
-def watch_config_changes(config_path, nuimo_apps, processes, ha_api_url, ble_adapter_name):
+def watch_config_changes(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name):
 
     class ModificationHandler(pyinotify.ProcessEvent):
 
         def process_IN_CLOSE_WRITE(self, event):
             if hasattr(event, 'pathname') and event.pathname == config_path:
                 logger.info("Config file was changed, reloading it...")
-                update_from_config_file(config_path, nuimo_apps, processes, ha_api_url, ble_adapter_name)
+                update_from_config_file(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name)
 
     handler = ModificationHandler()
     watch_manager = pyinotify.WatchManager()

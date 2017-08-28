@@ -62,7 +62,7 @@ class NuimoApp(NuimoControllerListener):
 
         self.components = []
         self.active_component = None
-        component_instances = get_component_instances(components)
+        component_instances = get_component_instances(components, mac_address)
         self.set_components(component_instances)
 
         self.manager = None
@@ -85,6 +85,7 @@ class NuimoApp(NuimoControllerListener):
                 if previously_active.component_id == component.component_id:
                     self.set_active_component(component)
                     break
+
         if self.active_component is None:
             self.set_active_component()
 
@@ -250,16 +251,16 @@ class NuimoApp(NuimoControllerListener):
             msg = ipc_queue.get()
             if msg['method'] == 'set_components':
                 components = msg['components']
-                logger.debug("IPC set_components() received: %s mac = %s", components, self.controller.mac_address)
-                component_instances = get_component_instances(components)
+                logger.info("IPC set_components() received: %s mac = %s", components, self.controller.mac_address)
+                component_instances = get_component_instances(components, self.controller.mac_address)
                 self.set_components(component_instances)
             elif msg['method'] == 'stop':
-                logger.debug("IPC stop() received %s", self.controller.mac_address)
+                logger.info("IPC stop() received %s", self.controller.mac_address)
                 self.stop()
                 return
 
 
-def get_component_instances(components):
+def get_component_instances(components, mac_address):
     """
     Import component modules configured in the Nuimo app configuration
     and return instances of the contained component classes.
@@ -267,8 +268,16 @@ def get_component_instances(components):
     module_name_format = __name__ + '.components.{}'
 
     instances = []
+    first = True
     for component in components:
         module_name = module_name_format.format(component['type'])
+        # TODO: philips hue related fix for delete groups - would be better to keep separation of concerns
+        component['nuimo_mac_address'] = mac_address
+        if component['type'] == 'philips_hue' and first is True:
+            component['first'] = True
+            first = False
+        else:
+            component['first'] = False
         logger.info("Importing module %s", module_name)
         # FIXME: don't ignore errors, this is just a workaround!
         try:

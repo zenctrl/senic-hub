@@ -18,11 +18,14 @@ logger = logging.getLogger(__name__)
 
 
 class HueBase:
-    GROUP_NAME = "Senic hub"
 
-    def __init__(self, bridge, light_ids):
+    def __init__(self, bridge, light_ids, instance_id, first):
         self.bridge = bridge
         self.light_ids = light_ids
+        self.instance_id = instance_id
+        self.group_name = "Senic hub " + str(instance_id)
+        self.first = first
+        logger.debug("self.group_name %s first %s", self.group_name, self.first)
 
         if len(light_ids) > 1:
             self.group_id = self.get_or_create_group()
@@ -35,7 +38,16 @@ class HueBase:
 
     def get_or_create_group(self):
         groups = self.bridge.get_group()
-        group_id = next((k for k, v in groups.items() if v['name'] == self.GROUP_NAME), None)
+
+        if self.first:
+            for v in groups.items():
+                if "Senic hub " in v[1]['name']:
+                    if self.instance_id <= int(v[1]['name'].split()[-1]) < self.instance_id + 10:
+                        self.delete_group(int(v[0]))
+
+        groups = self.bridge.get_group()
+
+        group_id = next((k for k, v in groups.items() if v['name'] == self.group_name), None)
         if not group_id:
             return self.create_group()
 
@@ -46,7 +58,7 @@ class HueBase:
         return int(group_id)
 
     def create_group(self):
-        responses = self.bridge.create_group(self.GROUP_NAME, self.light_ids)
+        responses = self.bridge.create_group(self.group_name, self.light_ids)
         logger.debug("create_group responses: %s", responses)
         response = responses[0]
         if 'error' in response:
@@ -63,6 +75,16 @@ class HueBase:
             return None
 
         return group_id
+
+    def delete_group(self, group_id):
+        responses = self.bridge.delete_group(group_id)
+        logger.debug("delete_group responses: %s", responses)
+        response = responses[0]
+        if 'error' in response:
+            logger.error("Error while updating the group: %s", response['error'])
+            return None
+
+        return True
 
     @property
     def sync_interval(self):
@@ -214,6 +236,10 @@ class Group(HueBase):
         return self.parse_responses(responses, attributes)
 
 
+hue_instances = {}
+mac_idx = 0
+
+
 class Component(ThreadComponent):
     MATRIX = matrices.LIGHT_BULB
 
@@ -222,6 +248,31 @@ class Component(ThreadComponent):
 
         self.bridge = Bridge(component_config['ip_address'], component_config['username'])
 
+        self.id = component_config['id']
+        self.group_num = None
+
+        self.first = component_config['first']
+
+        # TODO: Created groups are not deleted when a Nuimo is removed
+        self.nuimo_mac_address = component_config['nuimo_mac_address']
+
+        global hue_instances
+        global mac_idx
+
+        if self.first and hue_instances != {} and self.nuimo_mac_address in hue_instances:
+            temp = hue_instances[self.nuimo_mac_address]['mac_idx']
+            hue_instances[self.nuimo_mac_address] = {}
+            hue_instances[self.nuimo_mac_address]['mac_idx'] = temp
+
+        if self.nuimo_mac_address not in hue_instances:
+            hue_instances[self.nuimo_mac_address] = {}
+            hue_instances[self.nuimo_mac_address]['mac_idx'] = mac_idx
+            mac_idx = mac_idx + 1
+
+        if self.id not in hue_instances[self.nuimo_mac_address]:
+            hue_instances[self.nuimo_mac_address][self.id] = hue_instances[self.nuimo_mac_address]['mac_idx'] * 10 + len(hue_instances[self.nuimo_mac_address])
+
+        self.group_num = hue_instances[self.nuimo_mac_address][self.id]
         self.delta_range = range(-254, 254)
         self.delta = 0
 
@@ -249,9 +300,9 @@ class Component(ThreadComponent):
         if not reachable_lights:
             lights = EmptyLightSet()
         elif len(reachable_lights) > 10:
-            lights = Group(self.bridge, reachable_lights)
+            lights = Group(self.bridge, reachable_lights, self.group_num, self.first)
         else:
-            lights = LightSet(self.bridge, reachable_lights)
+            lights = LightSet(self.bridge, reachable_lights, self.group_num, self.first)
 
         return lights
 
