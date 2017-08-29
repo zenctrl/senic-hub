@@ -45,7 +45,7 @@ export default class DeviceSelection extends Screen {
                 value={item.selected}
                 onValueChange={(value) => this.onDeviceSelectionChanged(item, value)}
                 />
-              <Text>Device: {item.id}</Text>
+              <Text>{item.name}</Text>
             </View>
           }
           keyExtractor={(device) => device.id}

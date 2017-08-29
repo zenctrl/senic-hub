@@ -57,6 +57,7 @@ def expand_devices(raw_device):
         extra_devices = [{
             'id': '%s-light-%s' % (raw_device['id'], light_id),
             'type': 'philips_hue',
+            'name': light['name'],
         } for (light_id, light) in lights]
     else:
         extra_devices = []

@@ -39,22 +39,27 @@ def test_devices_returns_all_devices(url, browser):
         {
             "id": "ph2-light-4",
             "type": "philips_hue",
+            "name": " Light 4",
         },
         {
             "id": "ph2-light-5",
             "type": "philips_hue",
+            "name": " Light 5",
         },
         {
             "id": "ph2-light-6",
             "type": "philips_hue",
+            "name": " Light 6",
         },
         {
             "id": "ph2-light-7",
             "type": "philips_hue",
+            "name": " Light 7",
         },
         {
             "id": "ph2-light-8",
             "type": "philips_hue",
+            "name": " Light 8",
         },
         {
             "id": "s1",

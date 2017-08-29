@@ -61,11 +61,11 @@ def test_device_list_contains_devices(browser, url):
             "extra": {
                 "username": "light_bringer",
                 "lights": {
-                    "5": {},
-                    "7": {},
-                    "4": {},
-                    "8": {},
-                    "6": {}
+                    "5": {"name": " Light 5"},
+                    "7": {"name": " Light 7"},
+                    "4": {"name": " Light 4"},
+                    "8": {"name": " Light 8"},
+                    "6": {"name": " Light 6"}
                 }
             }
         },
