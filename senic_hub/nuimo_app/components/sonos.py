@@ -99,7 +99,7 @@ class Component(ThreadComponent):
             logger.debug("No Active connection with Host")
 
     def on_button_press(self):
-        if self.state is self.STATE_PLAYING:
+        if self.state == self.STATE_PLAYING:
             self.pause()
             logger.debug("Play Paused by self.pause() on button press.")
 
