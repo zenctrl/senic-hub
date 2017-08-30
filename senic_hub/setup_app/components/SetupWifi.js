@@ -64,6 +64,7 @@ export default class SetupWifi extends BluetoothRequiringScreen {
       }
     }
 
+    HubOnboarding.hubDevice.disconnect()
     HubOnboarding.hubDevice
       .connect()
       .then(() => {
