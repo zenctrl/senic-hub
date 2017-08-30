@@ -36,39 +36,40 @@ export default class SetupWifi extends BluetoothRequiringScreen {
     this.setTitle('Wi-Fi')
   }
 
-  didAppear() {
-    super.didAppear()
-    let subscribeForWifiEvents = () => {
-      HubOnboarding.hubDevice.onNetworksChanged((ssid) => {
-        if (!this.state.ssids.find(s => s === ssid)) {
-          this.setState({ssids: this.state.ssids
-            .concat([ssid])
-            .sort(function (a, b) {
-              return a.toLowerCase().localeCompare(b.toLowerCase());
-            })
+  subscribeToWifiEvents() {
+    HubOnboarding.hubDevice.onNetworksChanged((ssid) => {
+      if (!this.state.ssids.find(s => s === ssid)) {
+        this.setState({ssids: this.state.ssids
+          .concat([ssid])
+          .sort(function (a, b) {
+            return a.toLowerCase().localeCompare(b.toLowerCase());
           })
-        }
+        })
+      }
 
-        if (this.state.scanningSpinnerVisible && this.state.currentPhoneSsid === ssid) {
-          if (this.scanTimeoutId) {
-            clearTimeout(this.scanTimeoutId)
-          }
-          this.onNetworkSelected(this.state.currentPhoneSsid)
+      if (this.state.scanningSpinnerVisible && this.state.currentPhoneSsid === ssid) {
+        if (this.scanTimeoutId) {
+          clearTimeout(this.scanTimeoutId)
         }
-      })
+        this.onNetworkSelected(this.state.currentPhoneSsid)
+      }
+    })
 
-      HubOnboarding.hubDevice.onConnectionStateChanged = (connectionState, currentHubSsid) => {
-        if (connectionState === WifiConnectionState.CONNECTION_STATE_CONNECTED) {
-          this.setState({currentHubSsid: currentHubSsid})
-        }
+    HubOnboarding.hubDevice.onConnectionStateChanged = (connectionState, currentHubSsid) => {
+      if (connectionState === WifiConnectionState.CONNECTION_STATE_CONNECTED) {
+        this.setState({currentHubSsid: currentHubSsid})
       }
     }
+  }
+
+  didAppear() {
+    super.didAppear()
 
     HubOnboarding.hubDevice.disconnect()
     HubOnboarding.hubDevice
       .connect()
       .then(() => {
-        subscribeForWifiEvents()
+        this.subscribeToWifiEvents()
         this.scanTimeoutId = setTimeout(() => {
           this.setState({scanningSpinnerVisible: false})
           this.setTitle('Select your Wi-Fi')
