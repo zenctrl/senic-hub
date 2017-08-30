@@ -1,10 +1,32 @@
 import React from 'react';
-import { FlatList } from 'react-native';
+import { SectionList, View, ListView, FlatList, StyleSheet, Text, Button } from 'react-native';
 import { List, ListItem } from 'react-native-elements';
 import Screen from './Screen'
 import Settings from '../Settings'
 
 import Swipeout from 'react-native-swipeout';
+
+
+
+const styles = StyleSheet.create({
+  baseText: {
+    fontFamily: 'Cochin',
+  },
+  titleText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  container: {
+    flexDirection: 'row',
+    height: 30,
+    alignSelf: 'flex-end',
+  },
+  btn: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    alignSelf: 'flex-end',
+  }
+});
 
 export default class NuimosMenu extends Screen {
   constructor(props) {
@@ -43,26 +65,62 @@ export default class NuimosMenu extends Screen {
       })
       .then((nuimos) => {
         this.setState({ nuimos: nuimos.nuimos })
-        console.log(this.state.nuimos)
-        for (var i; i < this.state.nuimos.length; i++){
-          console.log(this.state.nuimos[i].name)
-        }
       })
       .catch((error) => console.error(error))
   }
 
-  renderRow(item) {
+  render() {
+    return (
+        <FlatList
+          data={this.state.nuimos}
+          renderItem={({item}) => this.renderComponentList(item.mac_address.replace(/:/g, '-'), item)}
+          keyExtractor={(nuimos) => nuimos.mac_address}
+        >
+        </FlatList>
+    );
+  }
+
+  renderComponentList(nuimoId, item) {
+    return (
+      <View>
+        <Text style={styles.titleText}> {item.name} </Text>
+        <View style={styles.container}>
+          <Text style={styles.btn} onPress={() => { this.deleteNuimo(nuimoId)}}> - </Text>
+        </View>
+        <List>
+        <FlatList
+          data={item.components}
+          renderItem={({item}) => this.renderComponentListRow(nuimoId, item)}
+          keyExtractor={(components) => components.id}
+        />
+        <ListItem
+          title="Add an app"
+          onPress={() => {
+            this.pushScreen('app.addComponent', { nuimoId: nuimoId})
+          }} />
+        </List>
+        <View
+          style={{
+            borderBottomColor: 'black',
+            borderBottomWidth: 1,
+          }}
+        />
+      </View>
+    );
+  }
+
+  renderComponentListRow(nuimoId, item) {
     let swipeBtns = [{
        text: 'Delete',
        backgroundColor: 'red',
        underlayColor: 'rgba(0, 0, 0, 0.6)',
        onPress: () => {
          alert(
-           'Delete Nuimo',
+           'Delete Component',
            'Are you sure?',
            [
              {text: 'Cancel', style: 'cancel'},
-             {text: 'Delete', onPress: this.deleteNuimo(item.mac_address.replace(/:/g, '-'))},
+             {text: 'Delete', onPress: this.deleteComponent(nuimoId, item.id)},
            ],
            { cancelable: false }
          )
@@ -76,22 +134,9 @@ export default class NuimosMenu extends Screen {
         <ListItem
           title={item.name}
           onPress={() => {
-            this.pushScreen('app.nuimoComponents', {nuimoId: item.mac_address.replace(/:/g, '-'), name: item.name})
-          }}
-        />
+            this.pushScreen('app.deviceSelection', {nuimoId: nuimoId, component: item})
+          }} />
       </Swipeout>
-    );
-  }
-
-  render() {
-    return (
-      <List>
-        <FlatList
-          data={this.state.nuimos}
-          renderItem={({item}) => this.renderRow(item)}
-          keyExtractor={(nuimos) => nuimos.mac_address}
-        />
-      </List>
     );
   }
 
@@ -105,14 +150,34 @@ export default class NuimosMenu extends Screen {
       },
       body: body,
     }
-    console.log("CIAO")
     url = Settings.HUB_API_URL + 'nuimos/' + itemId
     return fetch(url, params)
       .then(response => {
         if (!response.ok) {
           throw new Error('Deleting component failed with status: ' + response.status)
         } else {
-          this.fetchNuimos()
+          this.didAppear()
+        }
+      })
+  }
+
+  deleteComponent(nuimoId, itemId){
+    component = {}
+    let body = JSON.stringify(component)
+    let params = {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    }
+    url = Settings.HUB_API_URL + 'nuimos/' + nuimoId + '/components/' + itemId
+    return fetch(url, params)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Deleting component failed with status: ' + response.status)
+        } else {
+          this.didAppear()
         }
       })
   }

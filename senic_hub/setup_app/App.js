@@ -3,8 +3,6 @@ import BluetoothConnectionFailureScreen from './components/BluetoothConnectionFa
 import BootScreen from './components/BootScreen'
 import DeviceSelection from './components/DeviceSelection'
 import FeedbackScreen from './components/FeedbackScreen'
-import NuimoComponents from './components/NuimoComponents'
-import SelectComponentDevices from './components/SelectComponentDevices'
 import SettingsScreen from './components/Settings'
 import SetupCompletion from './components/SetupCompletion'
 import SetupDevices from './components/SetupDevices'
@@ -20,9 +18,7 @@ import { Navigation } from 'react-native-navigation'
 
 Navigation.registerComponent('app.addComponent', () => AddComponent)
 Navigation.registerComponent('app.deviceSelection', () => DeviceSelection)
-Navigation.registerComponent('app.nuimoComponents', () => NuimoComponents)
 Navigation.registerComponent('app.nuimosMenu', () => NuimosMenu)
-Navigation.registerComponent('app.selectComponentDevices', () => SelectComponentDevices)
 Navigation.registerComponent('feedback', () => FeedbackScreen)
 Navigation.registerComponent('settings', () => SettingsScreen)
 Navigation.registerComponent('setup.bluetoothConnectionFailure', () => BluetoothConnectionFailureScreen)
