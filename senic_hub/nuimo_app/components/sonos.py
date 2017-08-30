@@ -37,6 +37,12 @@ class Component(ThreadComponent):
         self.nuimo = None
         self.last_request_time = time()
 
+        self.favorites = self.sonos_controller.get_sonos_favorites()
+
+        # TODO: playlist fixed to the first three entries - to be extended
+        if self.favorites['returned'] < 3:
+            self.favorites = None
+
     def run(self):
         self.subscribe_to_events()
         self.update_state()
@@ -154,3 +160,66 @@ class Component(ThreadComponent):
             self.nuimo.display_matrix(matrices.ERROR)
 
         self.last_request_time = time()
+
+    def on_longtouch_left(self):
+        logger.debug("favorite left")
+        if self.favorites is not None:
+            self.play_track_playlist_or_album(self.favorites['favorites'][0], matrices.STATION1)
+        else:
+            self.nuimo.display_matrix(matrices.ERROR)
+
+    def on_longtouch_bottom(self):
+        logger.debug("favorite bottom")
+        if self.favorites is not None:
+            self.play_track_playlist_or_album(self.favorites['favorites'][1], matrices.STATION2)
+        else:
+            self.nuimo.display_matrix(matrices.ERROR)
+
+    def on_longtouch_right(self):
+        logger.debug("favorite right")
+        if self.favorites is not None:
+            self.play_track_playlist_or_album(self.favorites['favorites'][2], matrices.STATION3)
+        else:
+            self.nuimo.display_matrix(matrices.ERROR)
+
+    def play_track_playlist_or_album(self, src, matrix):
+        try:
+            if 'object.container.playlistContainer' in src['meta'] or 'object.container.album.musicAlbum' in src['meta']:
+                self._replace_queue_with_playlist(src)
+                self.sonos_controller.play_from_queue(0)
+            else:
+                self.sonos_controller.play_uri(uri=src['uri'], meta=src['meta'], title=src['title'])
+            self.nuimo.display_matrix(matrix)
+        except SoCoException:
+            self.nuimo.display_matrix(matrices.ERROR)
+
+    def _replace_queue_with_playlist(self, src):
+        """Replace queue with playlist represented by src.
+
+        Playlists can't be played directly with the self.sonos_controller.play_uri
+        API as they are actually composed of mulitple URLs. Until soco has
+        suppport for playing a playlist, we'll need to parse the playlist item
+        and replace the current queue in order to play it.
+        """
+        import soco
+        import xml.etree.ElementTree as ET
+
+        root = ET.fromstring(src['meta'])
+        namespaces = {'item':
+                      'urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/',
+                      'desc': 'urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/'}
+        desc = root.find('item:item', namespaces).find('desc:desc',
+                                                       namespaces).text
+
+        res = [soco.data_structures.DidlResource(uri=src['uri'],
+                                                 protocol_info="DUMMY")]
+        didl = soco.data_structures.DidlItem(title="DUMMY",
+                                             parent_id="DUMMY",
+                                             item_id=src['uri'],
+                                             desc=desc,
+                                             resources=res)
+
+        self.sonos_controller.stop()
+        self.sonos_controller.clear_queue()
+        self.sonos_controller.play_mode = 'NORMAL'
+        self.sonos_controller.add_to_queue(didl)
