@@ -6,9 +6,9 @@ import {
 } from 'react-native';
 import { isEmulator } from 'react-native-device-info';
 import { Button } from 'react-native-elements';
-import Screen from './Screen.js';
+import BaseScreen from '../BaseScreen.js';
 
-export default class SetupWelcome extends Screen {
+export default class SetupWelcomeScreen extends BaseScreen {
   constructor(props) {
     super(props)
 
@@ -43,10 +43,10 @@ export default class SetupWelcome extends Screen {
     // Bluetooth can't be used in simulators, so we just skip
     // hub onboaring when app is run in the simulator
     if (isEmulator()) {
-      this.pushScreen('setup.hubApiUrl')
+      this.pushScreen('setupHubApiUrlScreen')
     }
     else {
-      this.pushScreen('setup.hub')
+      this.pushScreen('setupHubScreen')
     }
   }
 }

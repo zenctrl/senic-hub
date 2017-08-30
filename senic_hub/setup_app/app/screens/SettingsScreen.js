@@ -7,16 +7,16 @@ import {
 
 import { List, ListItem } from 'react-native-elements'
 
-import Screen from './Screen';
-import Settings from '../Settings'
+import BaseScreen from './BaseScreen';
+import Settings from '../lib/Settings'
 
-export default class SettingsScreen extends Screen {
+export default class SettingsScreen extends BaseScreen {
   constructor(props) {
     super(props)
 
     this.items = [
-      { title: 'Feedback', onPress: () => this.pushScreen('feedback') },
-      { title: 'Restart Setup', onPress: () => Settings.resetHubApiUrl().then(() => this.resetTo('setup.welcome')) },
+      { title: 'Feedback', onPress: () => this.pushScreen('feedbackScreen') },
+      { title: 'Restart Setup', onPress: () => Settings.resetHubApiUrl().then(() => this.resetTo('setupWelcomeScreen')) },
     ]
 
     this.setTitle('Settings')

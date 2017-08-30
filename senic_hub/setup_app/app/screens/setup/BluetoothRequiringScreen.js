@@ -1,15 +1,15 @@
 import React from 'react';
 
-import HubOnboarding from '../HubOnboarding'
-import Screen from './Screen';
+import HubOnboarding from '../../lib/HubOnboarding'
+import BaseScreen from '../BaseScreen';
 
 
-export default class BluetoothRequiringScreen extends Screen {
+export default class BluetoothRequiringScreen extends BaseScreen {
 
   didAppear() {
     HubOnboarding.hubDevice.onDisconnected = (error) => {
       if (error) {
-        this.resetTo('setup.bluetoothConnectionFailure')
+        this.resetTo('bluetoothConnectionFailureScreen')
       }
     }
   }

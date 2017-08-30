@@ -9,11 +9,11 @@ import {
 } from 'react-native';
 import { Button } from 'react-native-elements'
 
-import Screen from './Screen';
-import Settings from '../Settings'
+import BaseScreen from '../BaseScreen';
+import Settings from '../../lib/Settings'
 
 
-export default class SetupHubApiUrl extends Screen {
+export default class SetupHubApiUrlScreen extends BaseScreen {
   constructor(props) {
     super(props)
 
@@ -55,7 +55,7 @@ export default class SetupHubApiUrl extends Screen {
     Keyboard.dismiss()
 
     Settings.setHubApiUrl('http://' + this.state.ip + ':6543/-/')
-      .then(() => this.resetTo('setup.boot'))
+      .then(() => this.resetTo('bootScreen'))
   }
 }
 

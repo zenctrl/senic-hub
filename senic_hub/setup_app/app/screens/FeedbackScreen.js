@@ -5,10 +5,10 @@ import {
     WebView,
 } from 'react-native';
 
-import Screen from './Screen';
+import BaseScreen from './BaseScreen';
 
 
-export default class FeedbackScreen extends Screen {
+export default class FeedbackScreen extends BaseScreen {
   constructor(props) {
     super(props)
 

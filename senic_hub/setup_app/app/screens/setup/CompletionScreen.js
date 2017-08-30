@@ -7,10 +7,10 @@ import {
 } from 'react-native';
 
 import { Button } from 'react-native-elements';
-import Screen from './Screen'
-import Settings from '../Settings'
+import BaseScreen from '../BaseScreen'
+import Settings from '../../lib/Settings'
 
-export default class SetupCompletion extends Screen {
+export default class SetupCompletionScreen extends BaseScreen {
   constructor(props) {
     super(props)
 
@@ -30,7 +30,7 @@ export default class SetupCompletion extends Screen {
           <Button
             disabled={!this.state.configured}
             buttonStyle={styles.button}
-            onPress={() => this.resetTo('app.nuimosMenu', {nuimoId: this.props.nuimoId})}
+            onPress={() => this.resetTo('nuimosMenuScreen', {nuimoId: this.props.nuimoId})}
             title="Done" />
         </View>
       </View>

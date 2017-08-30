@@ -7,10 +7,10 @@ import {
   View,
 } from 'react-native';
 import { Button, List, ListItem } from 'react-native-elements'
-import Screen from './Screen'
-import Settings from '../Settings'
+import BaseScreen from '../BaseScreen'
+import Settings from '../../lib/Settings'
 
-export default class SetupDevices extends Screen {
+export default class SetupDevicesScreen extends BaseScreen {
   devicesPollInterval = 5000  // 5 seconds
   devicesPollTimer = null
 
@@ -52,7 +52,7 @@ export default class SetupDevices extends Screen {
           <Button
             buttonStyle={styles.button}
             disabled={this.state.devices.length === 0}
-            onPress={() => this.pushScreen('setup.completion', {nuimoId: this.props.nuimoId})}
+            onPress={() => this.pushScreen('setupCompletionScreen', {nuimoId: this.props.nuimoId})}
             title="Continue" />
         </View>
       </View>
@@ -89,7 +89,7 @@ export default class SetupDevices extends Screen {
       })
       .catch(error => {
         console.log('Failed polling devices:', error)
-        this.resetTo('setup.boot')
+        this.resetTo('bootScreen')
       })
   }
 

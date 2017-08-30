@@ -10,10 +10,10 @@ import {
 import { BleManager } from 'react-native-ble-plx';
 import { List, ListItem } from 'react-native-elements'
 
-import HubOnboarding from '../HubOnboarding'
-import Screen from './Screen'
+import HubOnboarding from '../../lib/HubOnboarding'
+import BaseScreen from '../BaseScreen'
 
-export default class SetupHub extends Screen {
+export default class SetupHubScreen extends BaseScreen {
   constructor(props) {
     super(props)
 
@@ -43,7 +43,7 @@ export default class SetupHub extends Screen {
     // otherwise it wouldn't be discovered in connected state
     if (HubOnboarding.hubDevice) {
       HubOnboarding.hubDevice.disconnect()
-        .catch(error => this.resetTo('setup.bluetoothConnectionFailure'))
+        .catch(error => this.resetTo('bluetoothConnectionFailureScreen'))
     }
   }
 
@@ -78,7 +78,7 @@ export default class SetupHub extends Screen {
 
     HubOnboarding.hubDevice = new HubOnboarding(device)
 
-    this.pushScreen('setup.wifi')
+    this.pushScreen('setupWifiScreen')
   }
 
   render() {

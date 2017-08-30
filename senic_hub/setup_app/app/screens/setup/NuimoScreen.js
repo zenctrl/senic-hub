@@ -6,10 +6,10 @@ import {
   View,
 } from 'react-native';
 import { Button } from 'react-native-elements';
-import Screen from './Screen'
-import Settings from '../Settings'
+import BaseScreen from '../BaseScreen'
+import Settings from '../../lib/Settings'
 
-export default class SetupNuimo extends Screen {
+export default class SetupNuimoScreen extends BaseScreen {
   constructor(props) {
     super(props)
 
@@ -41,7 +41,7 @@ export default class SetupNuimo extends Screen {
           <Button
             buttonStyle={styles.button}
             disabled={this.state.nuimos.length === 0}
-            onPress={() => this.pushScreen('setup.devices', {nuimoId: this.state.nuimos[0]})}
+            onPress={() => this.pushScreen('setupDevicesScreen', {nuimoId: this.state.nuimos[0]})}
             title="Continue" />
         </View>
       </View>
@@ -83,7 +83,7 @@ export default class SetupNuimo extends Screen {
       })
       .catch(error => {
         console.log('Failed to bootstrap nuimos:', error)
-        this.resetTo('setup.boot')
+        this.resetTo('bootScreen')
       })
   }
 }

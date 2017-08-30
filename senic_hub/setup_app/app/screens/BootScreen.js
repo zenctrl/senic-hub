@@ -7,11 +7,11 @@ import {
   View,
   Platform,
 } from 'react-native';
-import HubOnboarding from '../HubOnboarding'
-import Screen from './Screen.js';
-import Settings from '../Settings'
+import HubOnboarding from '../lib/HubOnboarding'
+import BaseScreen from './BaseScreen.js';
+import Settings from '../lib/Settings'
 
-export default class BootScreen extends Screen {
+export default class BootScreen extends BaseScreen {
   constructor(props) {
     super(props)
 
@@ -36,7 +36,7 @@ export default class BootScreen extends Screen {
     // connected.
     if (HubOnboarding.hubDevice) {
       HubOnboarding.hubDevice.disconnect()
-        .catch(error => this.resetTo('setup.bluetoothConnectionFailure'))
+        .catch(error => this.resetTo('bluetoothConnectionFailureScreen'))
     }
     this.detectHubReachabilityAndResetToNextScreenOnSuccess()
   }
@@ -49,7 +49,7 @@ export default class BootScreen extends Screen {
         return Settings.getHubApiUrl()
           .catch(() => {
             // No Hub API Url stored -> Start Hub onboarding
-            this.resetTo('setup.welcome')
+            this.resetTo('setupWelcomeScreen')
             throw new Error('No Hub API Url stored') // Cancel outer promise chain
           })
       })
@@ -88,16 +88,16 @@ export default class BootScreen extends Screen {
         if (hubInfo.onboarded) {
           this.fetchNuimoId()
             .then(nuimoId => {
-              this.resetTo('app.nuimosMenu', { nuimoId: nuimoId })
+              this.resetTo('nuimosMenuScreen', { nuimoId: nuimoId })
             })
             .catch(() => {
               // This case should not happen, because the Hub already said it's onboarded
-              this.resetTo('setup.nuimo')
+              this.resetTo('setupNuimoScreen')
             })
         }
         else {
           // We restart onboarding with Nuimo discovery if hub is reachable but not fully onboarded
-          this.resetTo('setup.nuimo')
+          this.resetTo('setupNuimoScreen')
         }
       })
   }
@@ -171,7 +171,7 @@ export default class BootScreen extends Screen {
 
   restartOnboarding() {
     Settings.resetHubApiUrl()
-      .then(() => this.resetTo('setup.welcome'))
+      .then(() => this.resetTo('setupWelcomeScreen'))
   }
 }
 

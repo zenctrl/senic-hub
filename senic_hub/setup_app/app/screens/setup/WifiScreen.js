@@ -10,11 +10,11 @@ import {
 import { List, ListItem } from 'react-native-elements'
 import { NetworkInfo } from 'react-native-network-info';
 
-import HubOnboarding, { WifiConnectionState } from '../HubOnboarding'
+import HubOnboarding, { WifiConnectionState } from '../../lib/HubOnboarding'
 import BluetoothRequiringScreen from './BluetoothRequiringScreen';
-import Settings from '../Settings'
+import Settings from '../../lib/Settings'
 
-export default class SetupWifi extends BluetoothRequiringScreen {
+export default class SetupWifiScreen extends BluetoothRequiringScreen {
   constructor(props) {
     super(props)
 
@@ -77,7 +77,7 @@ export default class SetupWifi extends BluetoothRequiringScreen {
       })
       .catch((error) => {
         console.warn(error)
-        this.resetTo('setup.bluetoothConnectionFailure')
+        this.resetTo('bluetoothConnectionFailureScreen')
       })
   }
 
@@ -95,10 +95,10 @@ export default class SetupWifi extends BluetoothRequiringScreen {
       // to locate the Hub at its API URL.
       HubOnboarding.hubDevice.readApiUrl()
         .then(apiUrl => Settings.setHubApiUrl(apiUrl))
-        .then(() => this.pushScreen('setup.boot'))
+        .then(() => this.pushScreen('bootScreen'))
     }
     else {
-      this.pushScreen('setup.wifiPassword', {ssid: ssid})
+      this.pushScreen('setupWifiPasswordScreen', {ssid: ssid})
     }
   }
 

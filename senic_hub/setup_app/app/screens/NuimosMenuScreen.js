@@ -1,8 +1,8 @@
 import React from 'react';
 import { SectionList, View, ListView, FlatList, StyleSheet, Text, Button } from 'react-native';
 import { List, ListItem } from 'react-native-elements';
-import Screen from './Screen'
-import Settings from '../Settings'
+import BaseScreen from './BaseScreen'
+import Settings from '../lib/Settings'
 
 import Swipeout from 'react-native-swipeout';
 
@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
   }
 });
 
-export default class NuimosMenu extends Screen {
+export default class NuimosMenuScreen extends BaseScreen {
   constructor(props) {
     super(props)
 
@@ -41,12 +41,12 @@ export default class NuimosMenu extends Screen {
       {
         title: "Add Nuimo",
         id: 'add',
-        onPress: () => this.pushScreen('setup.nuimo')
+        onPress: () => this.pushScreen('setupNuimoScreen')
       },
       {
         title: 'Settings',
         id: 'reset',
-        onPress: () => this.pushScreen('settings'),
+        onPress: () => this.pushScreen('settingsScreen'),
       },
     ])
   }
@@ -96,7 +96,7 @@ export default class NuimosMenu extends Screen {
         <ListItem
           title="Add an app"
           onPress={() => {
-            this.pushScreen('app.addComponent', { nuimoId: nuimoId})
+            this.pushScreen('addComponentScreen', { nuimoId: nuimoId})
           }} />
         </List>
         <View
@@ -134,7 +134,7 @@ export default class NuimosMenu extends Screen {
         <ListItem
           title={item.name}
           onPress={() => {
-            this.pushScreen('app.deviceSelection', {nuimoId: nuimoId, component: item})
+            this.pushScreen('deviceSelectionScreen', {nuimoId: nuimoId, component: item})
           }} />
       </Swipeout>
     );

@@ -9,12 +9,12 @@ import {
 } from 'react-native';
 import { Button } from 'react-native-elements'
 
-import HubOnboarding from '../HubOnboarding'
+import HubOnboarding from '../../lib/HubOnboarding'
 import BluetoothRequiringScreen from './BluetoothRequiringScreen';
-import Settings from '../Settings'
+import Settings from '../../lib/Settings'
 
 
-export default class SetupWifiPassword extends BluetoothRequiringScreen {
+export default class SetupWifiPasswordScreen extends BluetoothRequiringScreen {
   constructor(props) {
     super(props)
 
@@ -137,7 +137,7 @@ export default class SetupWifiPassword extends BluetoothRequiringScreen {
     // if we can reach Hub via its HTTP API. If that's the case then we will
     // automatically continue with the onboarding of Nuimo if the Hub isn't yet
     // fully onboarded.
-    this.resetTo('setup.boot')
+    this.resetTo('bootScreen')
   }
 }
 

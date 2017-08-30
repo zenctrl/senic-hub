@@ -9,11 +9,11 @@ import {
 
 import { BleManager } from 'react-native-ble-plx';
 
-import HubOnboarding from '../HubOnboarding'
-import Screen from './Screen.js';
-import Settings from '../Settings'
+import HubOnboarding from '../lib/HubOnboarding'
+import BaseScreen from './BaseScreen.js';
+import Settings from '../lib/Settings'
 
-export default class BluetoothConnectionFailureScreen extends Screen {
+export default class BluetoothConnectionFailureScreen extends BaseScreen {
 
     // When this screen is entered the bluetooth connection to the hub was lost
     // while provisioning the hub and before the Wifi connection was established.
@@ -52,7 +52,7 @@ export default class BluetoothConnectionFailureScreen extends Screen {
           <Button
             title="Continue"
             disabled={!this.state.bluetoothReenabled}
-            onPress={() => this.resetTo('setup.hub')} />
+            onPress={() => this.resetTo('setupHubScreen')} />
         </View>
       </View>
     );

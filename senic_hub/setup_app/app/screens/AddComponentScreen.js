@@ -1,10 +1,10 @@
 import React from 'react'
 import { FlatList } from 'react-native'
 import { List, ListItem } from 'react-native-elements'
-import Screen from './Screen'
-import Settings from '../Settings'
+import BaseScreen from './BaseScreen'
+import Settings from '../lib/Settings'
 
-export default class AddComponent extends Screen {
+export default class AddComponentScreen extends BaseScreen {
   constructor(props) {
     super(props)
 

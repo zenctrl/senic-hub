@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-export default class Screen extends Component {
+export default class BaseScreen extends Component {
   constructor(props) {
     super(props)
     this.props.navigator.setOnNavigatorEvent(this.onNavigatorEvent.bind(this))
