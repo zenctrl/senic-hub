@@ -105,6 +105,11 @@ def add_nuimo_component_view(request):
         except KeyError:
             return HTTPNotFound("No Nuimo with such ID")
 
+        group_number = [comp['name'] for comp in nuimo['components'] if " Group " in comp['name'] and component['ip_address'] in comp['name']]
+
+        for comp in nuimo['components']:
+            if component['name'] == comp['name'] and " Group " not in comp['name']:
+                component['name'] = component['name'] + " Group " + str(len(group_number) + 1)
         nuimo['components'].append(component)
         f.seek(0)  # We want to overwrite the config file with the new configuration
         yaml.dump(config, f, default_flow_style=False)
