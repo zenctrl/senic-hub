@@ -2,6 +2,7 @@ import logging
 
 from importlib import import_module
 from threading import Thread
+from os import system as system_call
 
 from nuimo import (Controller, ControllerListener, ControllerManager, Gesture, LedMatrix)
 
@@ -118,6 +119,7 @@ class NuimoApp(NuimoControllerListener):
         logger.debug("self manager stop %s", self.controller.mac_address)
 
     def process_gesture_event(self, event):
+        ip_addr = None
         if event.gesture in self.GESTURES_TO_IGNORE:
             logger.debug("Ignoring gesture event: %s", event)
             return
@@ -138,7 +140,18 @@ class NuimoApp(NuimoControllerListener):
             self.show_error_matrix()
             return
 
-        self.process_gesture(event.gesture, event.value)
+        if self.active_component.ip_address is not None:
+            ip_addr = self.active_component.ip_address
+            if self.check_connection_on_gesture(ip_addr) is True:
+                self.process_gesture(event.gesture, event.value)
+                return
+
+            else:
+                self.show_error_matrix()
+                return
+
+        # Process gestures for devices having no IP address in nuimo_app.cfg
+        self.process_gesture_event(event.gesture, event.value)
 
     def process_internal_gesture(self, gesture):
         if gesture == Gesture.SWIPE_UP:
@@ -258,6 +271,11 @@ class NuimoApp(NuimoControllerListener):
                 logger.info("IPC stop() received %s", self.controller.mac_address)
                 self.stop()
                 return
+
+    def check_connection_on_gesture(self, host_ip):
+        param = "-c 1 -w 1"
+        status = (system_call("ping " + param + " " + host_ip) == 0)
+        return status
 
 
 def get_component_instances(components, mac_address):

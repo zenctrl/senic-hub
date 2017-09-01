@@ -17,6 +17,13 @@ class BaseComponent:
 
     def __init__(self, component_config):
         self.component_id = component_config['id']
+        self.ip_address = None
+        try:
+            if component_config['ip_address'] is not None:
+                self.ip_address = component_config['ip_address']
+        except KeyError:
+            pass
+
         self.stopped = True
 
     def start(self):
