@@ -1,6 +1,7 @@
 import BootScreen              from './screens/BootScreen'
 import AddComponentScreen      from './screens/AddComponentScreen'
 import DeviceSelectionScreen   from './screens/DeviceSelectionScreen'
+import sonosFavoritesScreen    from './screens/sonosFavoritesScreen'
 import FeedbackScreen          from './screens/FeedbackScreen'
 import SettingsScreen          from './screens/SettingsScreen'
 import SetupCompletionScreen   from './screens/setup/CompletionScreen'
@@ -19,6 +20,7 @@ import { Navigation } from 'react-native-navigation'
 Navigation.registerComponent('bootScreen',               () => BootScreen)
 Navigation.registerComponent('addComponentScreen',       () => AddComponentScreen)
 Navigation.registerComponent('deviceSelectionScreen',    () => DeviceSelectionScreen)
+Navigation.registerComponent('sonosFavoritesScreen',     () => sonosFavoritesScreen)
 Navigation.registerComponent('nuimosMenuScreen',         () => NuimosMenuScreen)
 Navigation.registerComponent('feedbackScreen',           () => FeedbackScreen)
 Navigation.registerComponent('settingsScreen',           () => SettingsScreen)

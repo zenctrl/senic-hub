@@ -25,6 +25,18 @@ nuimos:
         type: sonos
         device_ids:
           - s1
+        station1:
+          title: "station1 title"
+          uri: 'station1 uri'
+          meta: 'station1 meta'
+        station2:
+          title: "station2 title"
+          uri: 'station2 uri'
+          meta: 'station2 meta'
+        station3:
+          title: "station3 title"
+          uri: 'station3 uri'
+          meta: 'station3 meta'
         ip_address: 127.0.0.1
         name: "Sonos Player S1"
   00:00:00:00:00:01:

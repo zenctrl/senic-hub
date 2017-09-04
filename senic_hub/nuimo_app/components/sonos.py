@@ -37,11 +37,19 @@ class Component(ThreadComponent):
         self.nuimo = None
         self.last_request_time = time()
 
-        self.favorites = self.sonos_controller.get_sonos_favorites()
+        self.station_id_1 = component_config.get('station1', None)
+        self.station_id_2 = component_config.get('station2', None)
+        self.station_id_3 = component_config.get('station3', None)
 
-        # TODO: playlist fixed to the first three entries - to be extended
-        if self.favorites['returned'] < 3:
-            self.favorites = None
+        if self.station_id_1 is None:
+            try:
+                favorites = self.sonos_controller.get_sonos_favorites(max_items=3)
+            except SoCoException:
+                self.nuimo.display_matrix(matrices.ERROR)
+            if favorites['returned'] >= 3:
+                self.station_id_1 = favorites['favorites'][0]
+                self.station_id_2 = favorites['favorites'][1]
+                self.station_id_3 = favorites['favorites'][2]
 
     def run(self):
         self.subscribe_to_events()
@@ -163,22 +171,22 @@ class Component(ThreadComponent):
 
     def on_longtouch_left(self):
         logger.debug("favorite left")
-        if self.favorites is not None:
-            self.play_track_playlist_or_album(self.favorites['favorites'][0], matrices.STATION1)
+        if self.station_id_1 is not None:
+            self.play_track_playlist_or_album(self.station_id_1, matrices.STATION1)
         else:
             self.nuimo.display_matrix(matrices.ERROR)
 
     def on_longtouch_bottom(self):
         logger.debug("favorite bottom")
-        if self.favorites is not None:
-            self.play_track_playlist_or_album(self.favorites['favorites'][1], matrices.STATION2)
+        if self.station_id_2 is not None:
+            self.play_track_playlist_or_album(self.station_id_2, matrices.STATION2)
         else:
             self.nuimo.display_matrix(matrices.ERROR)
 
     def on_longtouch_right(self):
         logger.debug("favorite right")
-        if self.favorites is not None:
-            self.play_track_playlist_or_album(self.favorites['favorites'][2], matrices.STATION3)
+        if self.station_id_3 is not None:
+            self.play_track_playlist_or_album(self.station_id_3, matrices.STATION3)
         else:
             self.nuimo.display_matrix(matrices.ERROR)
 

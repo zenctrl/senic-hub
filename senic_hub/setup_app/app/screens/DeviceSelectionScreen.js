@@ -3,11 +3,20 @@ import {
   FlatList,
   Switch,
   Text,
-  View
+  View,
+  StyleSheet
 } from 'react-native';
 import { List, ListItem } from 'react-native-elements';
 import BaseScreen from './BaseScreen'
 import Settings from '../lib/Settings'
+
+
+const styles = StyleSheet.create({
+  titleText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  }
+});
 
 export default class DeviceSelectionScreen extends BaseScreen {
   constructor(props) {
@@ -18,6 +27,9 @@ export default class DeviceSelectionScreen extends BaseScreen {
     this.state = {
       component: props.component,
       devices: [],
+      station1: {},
+      station2: {},
+      station3: {},
     }
 
     this.setTitle(props.component.type)
@@ -35,23 +47,81 @@ export default class DeviceSelectionScreen extends BaseScreen {
   }
 
   render() {
-    return (
-      <List>
-        <FlatList
-          data={this.state.devices}
-          renderItem={({item}) =>
-            <View>
-              <Switch
-                value={item.selected}
-                onValueChange={(value) => this.onDeviceSelectionChanged(item, value)}
-                />
-              <Text>{item.name}</Text>
-            </View>
-          }
-          keyExtractor={(device) => device.id}
+    const type = this.state.component.type
+    if (type == 'sonos') {
+      return (
+        <View>
+        <List>
+          <FlatList
+            data={this.state.devices}
+            renderItem={({item}) =>
+              <View>
+                <Switch
+                  value={item.selected}
+                  onValueChange={(value) => this.onDeviceSelectionChanged(item, value)}
+                  />
+                <Text>{item.name}</Text>
+              </View>
+            }
+            keyExtractor={(device) => device.id}
+          />
+        </List>
+        <View
+          style={{
+            borderBottomColor: 'black',
+            borderBottomWidth: 1,
+          }}
         />
-      </List>
-    );
+        <Text style={styles.titleText}> STATIONS </Text>
+        <List>
+        <ListItem
+          //roundAvatar
+          avatar={{uri:'http://www.drodd.com/images15/1-7.jpg'}}
+          title={this.state.station1.title}
+          onPress={() => {
+            this.pushScreen('sonosFavoritesScreen', {nuimoId: this.props.nuimoId, component: this.state.component, favoriteNumber: 1})
+          }}
+        />
+        <ListItem
+          //roundAvatar
+          avatar={{uri:'http://www.drodd.com/images15/2-23.jpg'}}
+          title={this.state.station2.title}
+          onPress={() => {
+            this.pushScreen('sonosFavoritesScreen', {nuimoId: this.props.nuimoId, component: this.state.component, favoriteNumber: 2})
+          }}
+        />
+        <ListItem
+          //roundAvatar
+          avatar={{uri:'http://www.drodd.com/images15/3-12.jpg'}}
+          title={this.state.station3.title}
+          onPress={() => {
+            this.pushScreen('sonosFavoritesScreen', {nuimoId: this.props.nuimoId, component: this.state.component, favoriteNumber: 3})
+          }}
+        />
+        </List>
+        </View>
+      );
+    } else {
+      return (
+        <View>
+        <List>
+          <FlatList
+            data={this.state.devices}
+            renderItem={({item}) =>
+              <View>
+                <Switch
+                  value={item.selected}
+                  onValueChange={(value) => this.onDeviceSelectionChanged(item, value)}
+                  />
+                <Text>{item.name}</Text>
+              </View>
+            }
+            keyExtractor={(device) => device.id}
+          />
+        </List>
+        </View>
+      );
+    }
   }
 
   didAppear() {
@@ -60,6 +130,7 @@ export default class DeviceSelectionScreen extends BaseScreen {
     (new Promise((res, rej) => res()))
       .then(() => that.fetchComponent())
       .then(() => that.fetchDevices())
+      .then(() => that.fetchStations())
       .catch((error) => console.log('error:', error))
   }
 
@@ -94,6 +165,22 @@ export default class DeviceSelectionScreen extends BaseScreen {
         )
         that.setState({devices: devices})
       })
+  }
+
+  fetchStations() {
+    let that = this
+    if (that.state.component.type == 'sonos'){
+      return fetch(Settings.HUB_API_URL + 'nuimos/' + this.props.nuimoId + '/components/' + that.state.component.id + '/nuimosonosfavs')
+        .then(response => {
+          if (!response.ok) throw new Error('Request failed: ' + response)
+          return response.json()
+        })
+        .then(response => {
+          that.setState({station1: response.station1})
+          that.setState({station2: response.station2})
+          that.setState({station3: response.station3})
+        })
+    }
   }
 
   onDeviceSelectionChanged(device, selected) {
