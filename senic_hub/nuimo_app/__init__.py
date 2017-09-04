@@ -19,7 +19,7 @@ class NuimoControllerListener(ControllerListener):
         logger.info("Connecting to Nuimo controller %s...", mac)
 
     def connect_succeeded(self):
-        mac = self.controller.mac_addressg
+        mac = self.controller.mac_address
         logger.info("Connected to Nuimo controller %s", mac)
 
     def connect_failed(self, error):
