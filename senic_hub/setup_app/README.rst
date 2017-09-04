@@ -29,7 +29,8 @@ One time setup
 --------------
 
 * Save ``setupapp-release-key.keystore`` file from 1Password entry ``Software/Senic Hub Android release key`` to ``senic_hub/setup_app/android/app/`` directory
-* Create a new entry in ``login`` keychain of ``application password`` kind called ``android_keystore``. Password can be copied from 1Password entry ``Software/Senic Hub Android release key``
+* For systems running Mac OS, create a new entry in ``login`` keychain of ``application password`` kind called ``android_keystore``. Password can be copied from 1Password entry ``Software/Senic Hub Android release key``
+* For systems running Linux, install ``libsecret-tools`` using ``sudo apt-get install libsecret-tools``. Create a new entry in ``login`` keychain of ``Stored Password`` kind called ``android_keystore`` by executing the command ``secret-tool store --label="android_keystore" android_keystore Senic``. Copy the password from 1Password entry ``Software/Senic Hub Android release key`` and paste in the prompt.
 
 Publish new beta app
 --------------------

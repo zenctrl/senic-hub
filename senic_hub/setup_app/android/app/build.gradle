@@ -16,6 +16,7 @@ repositories {
 }
 
 import com.android.build.OutputFile
+import org.apache.tools.ant.taskdefs.condition.Os
 
 /**
  * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets
@@ -105,11 +106,21 @@ def enableProguardInReleaseBuilds = false
 def getPassword(String keyChain) {
    def stdout = new ByteArrayOutputStream()
    def stderr = new ByteArrayOutputStream()
-   exec {
+   if (Os.isFamily(Os.FAMILY_UNIX)) {
+     exec {
+       commandLine 'secret-tool', 'lookup', 'android_keystore', 'Senic'
+       standardOutput = stdout
+       errorOutput = stderr
+       ignoreExitValue true
+       }
+   }
+   if (Os.isFamily(Os.FAMILY_MAC)) {
+     exec {
        commandLine 'security', '-q', 'find-generic-password', '-s', keyChain, '-w'
        standardOutput = stdout
        errorOutput = stderr
        ignoreExitValue true
+       }
    }
    //noinspection GroovyAssignabilityCheck
    stdout.toString().trim()
