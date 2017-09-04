@@ -19,7 +19,7 @@ class NuimoControllerListener(ControllerListener):
         logger.info("Connecting to Nuimo controller %s...", mac)
 
     def connect_succeeded(self):
-        mac = self.controller.mac_address
+        mac = self.controller.mac_addressg
         logger.info("Connected to Nuimo controller %s", mac)
 
     def connect_failed(self, error):
@@ -142,10 +142,9 @@ class NuimoApp(NuimoControllerListener):
 
         if self.active_component.ip_address is not None:
             ip_addr = self.active_component.ip_address
-            if self.check_connection_on_gesture(ip_addr) is True:
+            if self.is_device_responsive(ip_addr) is True:
                 self.process_gesture(event.gesture, event.value)
                 return
-
             else:
                 self.show_error_matrix()
                 return
@@ -272,7 +271,7 @@ class NuimoApp(NuimoControllerListener):
                 self.stop()
                 return
 
-    def check_connection_on_gesture(self, host_ip):
+    def is_device_responsive(self, host_ip):
         param = "-c 1 -w 1"
         status = (system_call("ping " + param + " " + host_ip) == 0)
         return status
