@@ -1,7 +1,7 @@
 import logging
 
 from pprint import pformat
-from random import random, seed
+from random import random, seed, sample
 from time import sleep, time
 
 from phue import Bridge
@@ -250,6 +250,7 @@ class Component(ThreadComponent):
 
         self.id = component_config['id']
         self.group_num = None
+        self.scenes = {}
 
         self.first = component_config['first']
 
@@ -287,6 +288,23 @@ class Component(ThreadComponent):
         self.station_id_2 = component_config.get('station2', None)
         self.station_id_3 = component_config.get('station3', None)
 
+        if not any((self.station_id_1, self.station_id_2, self.station_id_3)):
+            try:
+                self.scenes = self.bridge.get_scene()
+                self.scenes = {k: v for k, v in self.scenes.items() if v['lights'] == light_ids}
+
+                if len(list(self.scenes.keys())) >= 3:
+                    for scene in self.scenes:
+                        self.station_id_1 = scene if self.scenes[scene]['name'] == 'Nightlight' else self.station_id_1
+                        self.station_id_2 = scene if self.scenes[scene]['name'] == 'Relax' else self.station_id_2
+                        self.station_id_3 = scene if self.scenes[scene]['name'] == 'Concentrate' else self.station_id_3
+
+                    rands = sample(range(0, len(list(self.scenes.keys()))), 3)
+                    self.station_id_1 = list(self.scenes.keys())[rands[0]] if self.station_id_1 is None else self.station_id_1
+                    self.station_id_2 = list(self.scenes.keys())[rands[1]] if self.station_id_2 is None else self.station_id_2
+                    self.station_id_3 = list(self.scenes.keys())[rands[2]] if self.station_id_3 is None else self.station_id_3
+            except ConnectionResetError:
+                logger.error("Hue Bridge not reachable, handle exception")
         # seed random nr generator (used to get random color value)
         seed()
 
