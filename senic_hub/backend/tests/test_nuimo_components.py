@@ -227,3 +227,48 @@ def test_put_component_devices_of_unknown_nuimo_returns_404(route_url, browser):
         route_url('nuimo_component', mac_address='de:ad:be:ef:00:00'.replace(':', '-'), component_id='ph2'),
         {'device_ids': ['ph2-light-5']},
         status=404)
+
+
+@fixture
+def device_test_url(route_url):
+    return route_url('nuimo_device_test', mac_address='00:00:00:00:00:00'.replace(':', '-'), component_id='ph2', device_id='ph2-light-5')
+
+
+def test_get_invalid_device_returns_404(route_url, browser, temporary_nuimo_app_config_file, settings):
+    browser.get(route_url('nuimo_device_test', mac_address='00:00:00:00:00:00'.replace(':', '-'), component_id='ph2', device_id='invalid_device-id'), status=404)
+
+
+def test_get_device_test_returns_message(device_test_url, browser, temporary_nuimo_app_config_file, settings):
+    message = browser.get(device_test_url, status=200).json
+    device_id = device_test_url.rsplit('/')[-1]
+    assert message == {
+        'test_component': 'philips_hue',
+        'test_component_id': 'ph2',
+        'test_device_id': str(device_id),
+        'test_result': 'FAIL',
+        'message': 'ERROR_PHUE_PUT_REQUEST_FAIL'
+    }
+
+
+def test_get_device_test_fail_message(device_test_url, browser, temporary_nuimo_app_config_file):
+    device = browser.get(device_test_url, status=200).json
+    device_id = device_test_url.rsplit('/')[-1]
+    assert device == {
+        'test_component': 'philips_hue',
+        'test_component_id': 'ph2',
+        'test_device_id': str(device_id),
+        'test_result': 'FAIL',
+        'message': 'ERROR_PHUE_PUT_REQUEST_FAIL'
+    }
+
+
+def test_get_component_of_unknown_nuimo_test_returns_404(route_url, browser, temporary_nuimo_app_config_file, settings):
+    browser.get(route_url('nuimo_device_test', mac_address='de:ad:be:ef:00:00'.replace(':', '-'), component_id='ph2', device_id='ph2-light-5'), status=404)
+
+
+def test_get_invalid_component_test_returns_404(route_url, browser, temporary_nuimo_app_config_file, settings):
+    browser.get(route_url('nuimo_device_test', mac_address='00:00:00:00:00:00'.replace(':', '-'), component_id='invalid-id', device_id='ph2-light-5'), status=404)
+
+
+def test_get_invalid_device_test_returns_404(route_url, browser, temporary_nuimo_app_config_file, settings):
+    browser.get(route_url('nuimo_device_test', mac_address='00:00:00:00:00:00'.replace(':', '-'), component_id='ph2', device_id='invalid-id'), status=404)

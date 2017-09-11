@@ -37,9 +37,9 @@ nuimo_component_service = Service(
 )
 
 
-nuimo_component_test_service = Service(
-    name='nuimo_test',
-    path=service_path('nuimos/{mac_address:[a-z0-9\-]+}/components/{component_id:[a-z0-9\-]+}/test/{sub_component_id:[a-z0-9\-]+}'),
+nuimo_device_test_service = Service(
+    name='nuimo_device_test',
+    path=service_path('nuimos/{mac_address:[a-z0-9\-]+}/components/{component_id:[a-z0-9\-]+}/test/{device_id:[a-z0-9\-]+}'),
     renderer='json',
     accept='application/json'
 )
@@ -246,53 +246,66 @@ def modify_nuimo_component(request):
     return get_nuimo_component_view(request)
 
 
-# Send a GET request in the form of HUB_URL/nuimos/<nuimo_mac_address>/components/<component_id>/test/<sub_device_id>
-# If device has no sub-device, <sub_device_id> will be same as <device_id>
-@nuimo_component_test_service.get()
+# Send a GET request in the form of HUB_URL/nuimos/<nuimo_mac_address>/components/<component_id>/test/<device_id>
+# If device has no sub-device, <device_id> will be same as <device_id>
+@nuimo_device_test_service.get()
 def get_test_response(request):
-    device_id = request.matchdict['component_id']
+    component_id = request.matchdict['component_id']
     nuimo_id = request.matchdict['mac_address'].replace('-', ':')
-    sub_device_id = request.matchdict['sub_component_id']
+    device_id = request.matchdict['device_id']
 
     nuimo_app_config_path = request.registry.settings['nuimo_app_config_path']
 
     with open(nuimo_app_config_path, 'r') as f:
         config = yaml.load(f)
 
-    device_details = get_device_details(config, nuimo_id, device_id)
-    device_type = device_details['device_type']
+        try:
+            nuimo = config['nuimos'][nuimo_id]
+        except KeyError:
+            return HTTPNotFound("No Nuimo with such ID")
 
-    if device_type is None:
-        return {
-            'test_result': 'FAIL',
-            'message': 'ERROR_DEVICE_TYPE_NOT_FOUND'
-        }
+        components = nuimo['components']
 
-    if device_type == "philips_hue":
-        blink_result = test_blink_phue(device_details['device_ip'], device_details['device_username'], sub_device_id)
+        try:
+            component = next(c for c in components if c['id'] == component_id)
+        except StopIteration:
+            return HTTPNotFound("Component :" + component_id + "for Nuimo :" + nuimo_id + " ---> Not Found")
+
+        try:
+            next(d for d in iter(component['device_ids']) if d == device_id)
+        except StopIteration:
+            return HTTPNotFound("Device : " + device_id + " not found in the list ")
+
+    component_type = component['type']
+    component_ip = component['ip_address']
+    component_username = component['username']
+
+    if component_type == "philips_hue":  # pragma: no cover
+        blink_result = test_blink_phue(component_ip, component_username, device_id)
         if blink_result is not None:
             return {
-                'test_device': device_type,
-                'test_device_id': device_id,
-                'test_sub_device_id': str(sub_device_id),
+                'test_component': component_type,
+                'test_component_id': component_id,
+                'test_device_id': str(device_id),
                 'test_result': 'PASS',
-                'message': blink_result
+                'message': 'BLINK_SUCCESSFUL'
             }
 
         else:
             return {
-                'test_device': device_type,
-                'test_device_id': device_id,
-                'test_sub_device_id': str(sub_device_id),
+                'test_component': component_type,
+                'test_component_id': component_id,
+                'test_device_id': str(device_id),
                 'test_result': 'FAIL',
                 'message': 'ERROR_PHUE_PUT_REQUEST_FAIL'
             }
 
-    # # TODO : Add short audio test for sonos
-    # # if device_type == 'sonos':
+    # TODO : Add short audio test for sonos
+    # if component_type == 'sonos':
 
 
-def test_blink_phue(device_ip, device_username, sub_device_id):
+def test_blink_phue(component_ip, component_username, id):  # pragma: no cover
+    device_id = id.split('-')[2]
     param_high = json.dumps({
         "on": True,
         "bri": 250
@@ -301,40 +314,14 @@ def test_blink_phue(device_ip, device_username, sub_device_id):
         "on": True,
         "bri": 0
     })
-    request_url = "http://" + device_ip + "/api/" + str(device_username) + "/lights/" + str(sub_device_id) + "/state"
+    request_url = "http://" + component_ip + "/api/" + str(component_username) + "/lights/" + str(device_id) + "/state"
     try:
         requests.put(request_url, data=param_low)
         time.sleep(0.5)
         requests.put(request_url, data=param_high)
         time.sleep(0.5)
-        response = requests.put(request_url, data=param_low)
-        return response
+        requests.put(request_url, data=param_low)
+        return 1
 
     except:
         return None
-
-
-def get_device_details(config, nuimo_id, device_id):
-
-    try:
-        components = config['nuimos'][nuimo_id]['components']
-        device_type = None
-        device_ip = None
-        device_username = None
-        for component in components:
-            if component['id'] == device_id:
-                device_type = component['type']
-                device_ip = component['ip_address']
-                try:
-                    device_username = component['username']
-                except KeyError:
-                    pass
-                break
-    except KeyError:
-        pass
-
-    return {
-        'device_type': device_type,
-        'device_ip': device_ip,
-        'device_username': device_username
-    }
