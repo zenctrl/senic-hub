@@ -251,7 +251,7 @@ def modify_nuimo_component(request):
 @nuimo_device_test_service.get()
 def get_test_response(request):
     component_id = request.matchdict['component_id']
-    nuimo_id = request.matchdict['mac_address'].replace('-', ':')
+    mac_address = request.matchdict['mac_address'].replace('-', ':')
     device_id = request.matchdict['device_id']
 
     nuimo_app_config_path = request.registry.settings['nuimo_app_config_path']
@@ -260,7 +260,7 @@ def get_test_response(request):
         config = yaml.load(f)
 
         try:
-            nuimo = config['nuimos'][nuimo_id]
+            nuimo = config['nuimos'][mac_address]
         except KeyError:
             return HTTPNotFound("No Nuimo with such ID")
 
@@ -269,7 +269,7 @@ def get_test_response(request):
         try:
             component = next(c for c in components if c['id'] == component_id)
         except StopIteration:
-            return HTTPNotFound("Component :" + component_id + "for Nuimo :" + nuimo_id + " ---> Not Found")
+            return HTTPNotFound("Component :" + component_id + "for Nuimo :" + mac_address + " ---> Not Found")
 
         try:
             next(d for d in iter(component['device_ids']) if d == device_id)
@@ -306,21 +306,34 @@ def get_test_response(request):
 
 def test_blink_phue(component_ip, component_username, id):  # pragma: no cover
     device_id = id.split('-')[2]
+    request_url_get_default = "http://" + component_ip + "/api/" + str(component_username) + "/lights/" + str(device_id)
+    try:
+        default_state = requests.get(request_url_get_default).json()
+        state_default = default_state['state']['on']
+        bri_default = default_state['state']['bri']
+
+    except:
+        return None
+
     param_high = json.dumps({
         "on": True,
         "bri": 250
     })
     param_low = json.dumps({
-        "on": True,
+        "on": False,
         "bri": 0
     })
-    request_url = "http://" + component_ip + "/api/" + str(component_username) + "/lights/" + str(device_id) + "/state"
+    param_default = json.dumps({
+        "on": state_default,
+        "bri": bri_default
+    })
+    request_url_put = "http://" + component_ip + "/api/" + str(component_username) + "/lights/" + str(device_id) + "/state"
     try:
-        requests.put(request_url, data=param_low)
+        requests.put(request_url_put, data=param_high)
         time.sleep(0.5)
-        requests.put(request_url, data=param_high)
+        requests.put(request_url_put, data=param_low)
         time.sleep(0.5)
-        requests.put(request_url, data=param_low)
+        requests.put(request_url_put, data=param_default)
         return 1
 
     except:

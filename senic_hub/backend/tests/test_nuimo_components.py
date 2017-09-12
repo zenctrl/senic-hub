@@ -238,18 +238,8 @@ def test_get_invalid_device_returns_404(route_url, browser, temporary_nuimo_app_
     browser.get(route_url('nuimo_device_test', mac_address='00:00:00:00:00:00'.replace(':', '-'), component_id='ph2', device_id='invalid_device-id'), status=404)
 
 
-def test_get_device_test_returns_message(device_test_url, browser, temporary_nuimo_app_config_file, settings):
-    message = browser.get(device_test_url, status=200).json
-    device_id = device_test_url.rsplit('/')[-1]
-    assert message == {
-        'test_component': 'philips_hue',
-        'test_component_id': 'ph2',
-        'test_device_id': str(device_id),
-        'test_result': 'FAIL',
-        'message': 'ERROR_PHUE_PUT_REQUEST_FAIL'
-    }
-
-
+# Test case for a successful blinking of the Philips hue light cannot be tested without implmementing a Philips Hue Mockup
+# Thus, the test case for successful blinking has not been added.
 def test_get_device_test_fail_message(device_test_url, browser, temporary_nuimo_app_config_file):
     device = browser.get(device_test_url, status=200).json
     device_id = device_test_url.rsplit('/')[-1]
