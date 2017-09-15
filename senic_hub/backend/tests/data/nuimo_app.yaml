@@ -13,6 +13,15 @@ nuimos:
         ip_address: 127.0.0.2
         username: light_bringer
         name: "Philips Hue Bridge 2"
+        station1:
+          name: "station1 name"
+          id: 'station1 id'
+        station2:
+          name: "station2 name"
+          id: 'station2 id'
+        station3:
+          name: "station3 name"
+          id: 'station3 id'
 
       - id: soundtouch1
         type: media_player

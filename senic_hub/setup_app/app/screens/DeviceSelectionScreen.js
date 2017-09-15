@@ -4,7 +4,8 @@ import {
   Switch,
   Text,
   View,
-  StyleSheet
+  StyleSheet,
+  ScrollView
 } from 'react-native';
 import { List, ListItem } from 'react-native-elements';
 import BaseScreen from './BaseScreen'
@@ -47,81 +48,7 @@ export default class DeviceSelectionScreen extends BaseScreen {
   }
 
   render() {
-    const type = this.state.component.type
-    if (type == 'sonos') {
-      return (
-        <View>
-        <List>
-          <FlatList
-            data={this.state.devices}
-            renderItem={({item}) =>
-              <View>
-                <Switch
-                  value={item.selected}
-                  onValueChange={(value) => this.onDeviceSelectionChanged(item, value)}
-                  />
-                <Text>{item.name}</Text>
-              </View>
-            }
-            keyExtractor={(device) => device.id}
-          />
-        </List>
-        <View
-          style={{
-            borderBottomColor: 'black',
-            borderBottomWidth: 1,
-          }}
-        />
-        <Text style={styles.titleText}> STATIONS </Text>
-        <List>
-        <ListItem
-          //roundAvatar
-          avatar={{uri:'http://www.drodd.com/images15/1-7.jpg'}}
-          title={this.state.station1.title}
-          onPress={() => {
-            this.pushScreen('sonosFavoritesScreen', {nuimoId: this.props.nuimoId, component: this.state.component, favoriteNumber: 1})
-          }}
-        />
-        <ListItem
-          //roundAvatar
-          avatar={{uri:'http://www.drodd.com/images15/2-23.jpg'}}
-          title={this.state.station2.title}
-          onPress={() => {
-            this.pushScreen('sonosFavoritesScreen', {nuimoId: this.props.nuimoId, component: this.state.component, favoriteNumber: 2})
-          }}
-        />
-        <ListItem
-          //roundAvatar
-          avatar={{uri:'http://www.drodd.com/images15/3-12.jpg'}}
-          title={this.state.station3.title}
-          onPress={() => {
-            this.pushScreen('sonosFavoritesScreen', {nuimoId: this.props.nuimoId, component: this.state.component, favoriteNumber: 3})
-          }}
-        />
-        </List>
-        </View>
-      );
-    } else {
-      return (
-        <View>
-        <List>
-          <FlatList
-            data={this.state.devices}
-            renderItem={({item}) =>
-              <View>
-                <Switch
-                  value={item.selected}
-                  onValueChange={(value) => this.onDeviceSelectionChanged(item, value)}
-                  />
-                <Text>{item.name}</Text>
-              </View>
-            }
-            keyExtractor={(device) => device.id}
-          />
-        </List>
-        </View>
-      );
-    }
+    return this.renderFavorites()
   }
 
   didAppear() {
@@ -132,6 +59,66 @@ export default class DeviceSelectionScreen extends BaseScreen {
       .then(() => that.fetchDevices())
       .then(() => that.fetchStations())
       .catch((error) => console.log('error:', error))
+  }
+
+
+  renderFavorites() {
+    var type = this.state.component.type
+    if (type == 'philips_hue') type = 'philipsHue'
+    return (
+      <View>
+      <ScrollView>
+      <List>
+        <FlatList
+          data={this.state.devices}
+          renderItem={({item}) =>
+            <View>
+              <Switch
+                value={item.selected}
+                onValueChange={(value) => this.onDeviceSelectionChanged(item, value)}
+                />
+              <Text>{item.name}</Text>
+            </View>
+          }
+          keyExtractor={(device) => device.id}
+        />
+      </List>
+      <View
+        style={{
+          borderBottomColor: 'black',
+          borderBottomWidth: 1,
+        }}
+      />
+      <Text style={styles.titleText}> STATIONS </Text>
+      <List>
+      <ListItem
+        //roundAvatar
+        avatar={{uri:'http://www.drodd.com/images15/1-7.jpg'}}
+        title={type == 'sonos' ? this.state.station1.title : this.state.station1.name}
+        onPress={() => {
+          this.pushScreen( type + 'FavoritesScreen', {nuimoId: this.props.nuimoId, component: this.state.component, favoriteNumber: 1})
+        }}
+      />
+      <ListItem
+        //roundAvatar
+        avatar={{uri:'http://www.drodd.com/images15/2-23.jpg'}}
+        title={type == 'sonos' ? this.state.station2.title : this.state.station2.name}
+        onPress={() => {
+          this.pushScreen( type + 'FavoritesScreen', {nuimoId: this.props.nuimoId, component: this.state.component, favoriteNumber: 2})
+        }}
+      />
+      <ListItem
+        //roundAvatar
+        avatar={{uri:'http://www.drodd.com/images15/3-12.jpg'}}
+        title={type == 'sonos' ? this.state.station3.title : this.state.station3.name}
+        onPress={() => {
+          this.pushScreen( type + 'FavoritesScreen', {nuimoId: this.props.nuimoId, component: this.state.component, favoriteNumber: 3})
+        }}
+      />
+      </List>
+      </ScrollView>
+      </View>
+    );
   }
 
   fetchComponent() {
@@ -171,6 +158,17 @@ export default class DeviceSelectionScreen extends BaseScreen {
     let that = this
     if (that.state.component.type == 'sonos'){
       return fetch(Settings.HUB_API_URL + 'nuimos/' + this.props.nuimoId + '/components/' + that.state.component.id + '/nuimosonosfavs')
+        .then(response => {
+          if (!response.ok) throw new Error('Request failed: ' + response)
+          return response.json()
+        })
+        .then(response => {
+          that.setState({station1: response.station1})
+          that.setState({station2: response.station2})
+          that.setState({station3: response.station3})
+        })
+    } else if (that.state.component.type == 'philips_hue'){
+      return fetch(Settings.HUB_API_URL + 'nuimos/' + this.props.nuimoId + '/components/' + that.state.component.id + '/nuimophuefavs')
         .then(response => {
           if (!response.ok) throw new Error('Request failed: ' + response)
           return response.json()

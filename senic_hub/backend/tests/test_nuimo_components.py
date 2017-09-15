@@ -166,6 +166,18 @@ def test_get_component_returns_component(component_url, browser, temporary_nuimo
         'name': 'Philips Hue Bridge 2',
         'ip_address': '127.0.0.2',
         'username': 'light_bringer',
+        'station1': {
+            "id": "station1 id",
+            "name": "station1 name"
+        },
+        'station2': {
+            "id": "station2 id",
+            "name": "station2 name"
+        },
+        'station3': {
+            "id": "station3 id",
+            "name": "station3 name"
+        }
     }
 
 

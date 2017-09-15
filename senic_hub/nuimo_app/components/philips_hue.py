@@ -291,20 +291,21 @@ class Component(ThreadComponent):
         if not any((self.station_id_1, self.station_id_2, self.station_id_3)):
             try:
                 self.scenes = self.bridge.get_scene()
-                self.scenes = {k: v for k, v in self.scenes.items() if v['lights'] == light_ids}
-
-                if len(list(self.scenes.keys())) >= 3:
-                    for scene in self.scenes:
-                        self.station_id_1 = scene if self.scenes[scene]['name'] == 'Nightlight' else self.station_id_1
-                        self.station_id_2 = scene if self.scenes[scene]['name'] == 'Relax' else self.station_id_2
-                        self.station_id_3 = scene if self.scenes[scene]['name'] == 'Concentrate' else self.station_id_3
-
-                    rands = sample(range(0, len(list(self.scenes.keys()))), 3)
-                    self.station_id_1 = list(self.scenes.keys())[rands[0]] if self.station_id_1 is None else self.station_id_1
-                    self.station_id_2 = list(self.scenes.keys())[rands[1]] if self.station_id_2 is None else self.station_id_2
-                    self.station_id_3 = list(self.scenes.keys())[rands[2]] if self.station_id_3 is None else self.station_id_3
             except ConnectionResetError:
                 logger.error("Hue Bridge not reachable, handle exception")
+
+            self.scenes = {k: v for k, v in self.scenes.items() if v['lights'] == light_ids}
+
+            if len(list(self.scenes.keys())) >= 3:
+                for scene in self.scenes:
+                    self.station_id_1 = {'id': scene, 'name': self.scenes[scene]['name']} if self.scenes[scene]['name'] == 'Nightlight' else self.station_id_1
+                    self.station_id_2 = {'id': scene, 'name': self.scenes[scene]['name']} if self.scenes[scene]['name'] == 'Relax' else self.station_id_2
+                    self.station_id_3 = {'id': scene, 'name': self.scenes[scene]['name']} if self.scenes[scene]['name'] == 'Concentrate' else self.station_id_3
+
+                rands = sample(range(0, len(list(self.scenes.keys()))), 3)
+                self.station_id_1 = {'id': list(self.scenes.keys())[rands[0]], 'name': self.scenes[list(self.scenes.keys())[rands[0]]]['name']} if self.station_id_1 is None else self.station_id_1
+                self.station_id_2 = {'id': list(self.scenes.keys())[rands[1]], 'name': self.scenes[list(self.scenes.keys())[rands[1]]]['name']} if self.station_id_2 is None else self.station_id_2
+                self.station_id_3 = {'id': list(self.scenes.keys())[rands[2]], 'name': self.scenes[list(self.scenes.keys())[rands[2]]]['name']} if self.station_id_3 is None else self.station_id_3
         # seed random nr generator (used to get random color value)
         seed()
 
@@ -336,19 +337,19 @@ class Component(ThreadComponent):
     def on_longtouch_left(self):
         logger.debug("on_longtouch_left()")
         if self.station_id_1 is not None:
-            self.bridge.activate_scene('0', self.station_id_1)
+            self.bridge.activate_scene('0', self.station_id_1['id'])
             self.nuimo.display_matrix(matrices.STATION1)
 
     def on_longtouch_bottom(self):
         logger.debug("on_longtouch_bottom()")
         if self.station_id_2 is not None:
-            self.bridge.activate_scene('0', self.station_id_2)
+            self.bridge.activate_scene('0', self.station_id_2['id'])
             self.nuimo.display_matrix(matrices.STATION2)
 
     def on_longtouch_right(self):
         logger.debug("on_longtouch_right()")
         if self.station_id_3 is not None:
-            self.bridge.activate_scene('0', self.station_id_3)
+            self.bridge.activate_scene('0', self.station_id_3['id'])
             self.nuimo.display_matrix(matrices.STATION3)
 
     def set_light_attributes(self, **attributes):
