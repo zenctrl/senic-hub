@@ -41,7 +41,7 @@ class Component(ThreadComponent):
         self.station_id_2 = component_config.get('station2', None)
         self.station_id_3 = component_config.get('station3', None)
 
-        if self.station_id_1 is None:
+        if not any((self.station_id_1, self.station_id_2, self.station_id_3)):
             try:
                 favorites = self.sonos_controller.get_sonos_favorites(max_items=3)
             except SoCoException:
@@ -172,23 +172,26 @@ class Component(ThreadComponent):
     def on_longtouch_left(self):
         logger.debug("favorite left")
         if self.station_id_1 is not None:
-            self.play_track_playlist_or_album(self.station_id_1, matrices.STATION1)
-        else:
-            self.nuimo.display_matrix(matrices.ERROR)
+            try:
+                self.play_track_playlist_or_album(self.station_id_1, matrices.STATION1)
+            except SoCoException:
+                self.nuimo.display_matrix(matrices.ERROR)
 
     def on_longtouch_bottom(self):
         logger.debug("favorite bottom")
         if self.station_id_2 is not None:
-            self.play_track_playlist_or_album(self.station_id_2, matrices.STATION2)
-        else:
-            self.nuimo.display_matrix(matrices.ERROR)
+            try:
+                self.play_track_playlist_or_album(self.station_id_2, matrices.STATION2)
+            except SoCoException:
+                self.nuimo.display_matrix(matrices.ERROR)
 
     def on_longtouch_right(self):
         logger.debug("favorite right")
         if self.station_id_3 is not None:
-            self.play_track_playlist_or_album(self.station_id_3, matrices.STATION3)
-        else:
-            self.nuimo.display_matrix(matrices.ERROR)
+            try:
+                self.play_track_playlist_or_album(self.station_id_3, matrices.STATION3)
+            except SoCoException:
+                self.nuimo.display_matrix(matrices.ERROR)
 
     def play_track_playlist_or_album(self, src, matrix):
         try:

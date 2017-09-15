@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
   }
 });
 
-export default class DeviceSelectionScreen extends BaseScreen {
+export default class sonosFavoritesScreen extends BaseScreen {
   constructor(props) {
     super(props)
 
@@ -59,7 +59,6 @@ export default class DeviceSelectionScreen extends BaseScreen {
       .then(() => that.fetchFavorites())
       .catch((error) => console.log('error:', error))
   }
-
 
   fetchFavorites() {
     let that = this
