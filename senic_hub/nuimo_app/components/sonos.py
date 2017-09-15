@@ -37,6 +37,8 @@ class Component(ThreadComponent):
         self.nuimo = None
         self.last_request_time = time()
 
+        self.sonos_joined_controllers = []
+
         self.station_id_1 = component_config.get('station1', None)
         self.station_id_2 = component_config.get('station2', None)
         self.station_id_3 = component_config.get('station3', None)
@@ -50,6 +52,11 @@ class Component(ThreadComponent):
                 self.station_id_1 = favorites['favorites'][0]
                 self.station_id_2 = favorites['favorites'][1]
                 self.station_id_3 = favorites['favorites'][2]
+
+        if len(self.sonos_controller.group.members) > 1 and self.sonos_controller.group.coordinator.ip_address == component_config['ip_address']:
+            for sonos_controller in self.sonos_controller.group.members:
+                if sonos_controller.ip_address != component_config['ip_address']:
+                    self.sonos_joined_controllers.append(SoCo(sonos_controller.ip_address))
 
     def run(self):
         self.subscribe_to_events()
@@ -99,6 +106,9 @@ class Component(ThreadComponent):
                 delta = round(self.volume_range.stop * delta)
                 self.volume = clamp_value(self.volume + delta, self.volume_range)
                 self.sonos_controller.volume = self.volume
+                if self.sonos_joined_controllers != []:
+                    for sonos_joined_controller in self.sonos_joined_controllers:
+                        sonos_joined_controller.volume = self.volume
 
                 logger.debug("volume update delta: %s volume: %s", delta, self.volume)
 

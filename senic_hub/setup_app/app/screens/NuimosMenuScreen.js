@@ -85,7 +85,7 @@ export default class NuimosMenuScreen extends BaseScreen {
       <View>
         <Text style={styles.titleText}> {item.name} </Text>
         <View style={styles.container}>
-          <Text style={styles.btn} onPress={() => { this.deleteNuimo(nuimoId)}}> - </Text>
+          <Button title=" - " style={styles.btn} onPress={() => { this.deleteNuimo(nuimoId)}} />
         </View>
         <List>
         <FlatList
@@ -133,6 +133,8 @@ export default class NuimosMenuScreen extends BaseScreen {
         backgroundColor='transparent'>
         <ListItem
           title={item.name}
+          // disabled ListItem should be styled coherently
+          disabled={item.type == 'sonos' && item.join && !item.join.master ? true : false}
           onPress={() => {
             this.pushScreen('deviceSelectionScreen', {nuimoId: nuimoId, component: item})
           }} />

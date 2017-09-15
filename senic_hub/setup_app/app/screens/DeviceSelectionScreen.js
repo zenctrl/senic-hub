@@ -143,10 +143,16 @@ export default class DeviceSelectionScreen extends BaseScreen {
         return response.json()
       })
       .then(response => {
+        if (that.state.component.type == 'philips_hue'){
         devices = response.devices
           .filter(device => device.type == that.state.component.type)
           .filter(device => !(device.virtual || false))
           .filter(device => device.id.includes(that.state.component.device_ids[0].split('-')[0]))
+        }
+        else if (that.state.component.type == 'sonos'){
+        devices = response.devices
+          .filter(device => device.type == that.state.component.type)
+        }
         devices.forEach(device =>
           device.selected = that.state.component.device_ids.indexOf(device.id) > -1
         )

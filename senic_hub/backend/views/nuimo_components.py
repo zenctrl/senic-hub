@@ -14,6 +14,7 @@ import yaml
 import requests
 import json
 import time
+import soco
 
 logger = getLogger(__name__)
 
@@ -236,6 +237,33 @@ def modify_nuimo_component(request):
             component = next(c for c in components if c['id'] == component_id)
         except StopIteration:
             raise HTTPNotFound
+
+        # JOIN two SONOS Speakers
+        if component['type'] == 'sonos' and (len(component['device_ids']) > 1 or len(device_ids) > 1):  # pragma: no cover,
+            for device in device_ids:
+                if device not in component['device_ids']:
+                    try:
+                        join_component = next(c for c in components if device in c['device_ids'])
+                    except StopIteration:
+                        raise HTTPNotFound
+                    soco_instance = soco.SoCo(component['ip_address'])
+                    soco_joining_instance = soco.SoCo(join_component['ip_address'])
+                    soco_joining_instance.join(soco_instance)
+                    join_component['join'] = {'master': False, 'ip_address': component['ip_address']}
+                    if component.get('join', None):
+                        component['join'][join_component['ip_address']] = join_component['device_ids'][0]
+                    else:
+                        component['join'] = {'master': True, join_component['ip_address']: [join_component['device_ids'][0]]}
+            for device in component['device_ids']:
+                if device not in device_ids:
+                    try:
+                        unjoin_component = next(c for c in components if device in c['device_ids'] and c is not component)
+                    except StopIteration:
+                        raise HTTPNotFound
+                    soco_unjoining_instance = soco.SoCo(unjoin_component['ip_address'])
+                    soco_unjoining_instance.unjoin()
+                    del unjoin_component['join']
+                    del component['join'][unjoin_component['ip_address']]
 
         component['device_ids'] = device_ids
 

@@ -8,6 +8,8 @@ from pyramid.httpexceptions import HTTPNotFound
 import yaml
 from .. import supervisor
 
+import soco
+
 logger = getLogger(__name__)
 
 
@@ -62,15 +64,59 @@ def get_connected_nuimos(request):
 
 
 @configured_nuimos.get()
-def get_configured_nuimos(request):
+def get_configured_nuimos(request):  # pragma: no cover,
     nuimo_app_config_path = request.registry.settings['nuimo_app_config_path']
     nuimos = []
+
+    with open(nuimo_app_config_path, 'r+') as f:
+        config = yaml.load(f)
+        for mac_address in config['nuimos']:
+            # check if New Sonos Groups have been created
+            components = config['nuimos'][mac_address].get('components', [])
+            master_component = None
+            slave_components = []
+            for component in components:
+                if component['type'] == 'sonos':
+                    try:
+                        sonos = soco.SoCo(component['ip_address'])
+                        join = component.get('join', None)
+                        if len(component['device_ids']) != len(sonos.group.members) or join:
+                            if len(sonos.group.members) > 1:
+                                # JOIN from Sonos app
+                                # TODO to be extended when just a speaker is removed from a group (e.g. group members decreased from 3 to 2)
+                                if sonos.group.coordinator.ip_address == component['ip_address']:
+                                    component['join'] = {'master': True}
+                                    master_component = component
+                                else:
+                                    component['join'] = {'master': False, 'ip_address': sonos.group.coordinator.ip_address}
+                                    slave_components.append(component)
+                            elif join:
+                                # UNJOIN from Sonos app
+                                if join['master']:
+                                    for i, device in enumerate(component['device_ids']):
+                                        for key, value in component['join'].items():
+                                            if device == value:
+                                                del component['device_ids'][i]
+                                del component['join']
+                    except soco.SoCoException:
+                        continue
+            if master_component:
+                for slave_component in slave_components:
+                    # TODO: extend to multiple groups handling
+                    if slave_component['device_ids'][0] not in master_component['device_ids']:
+                        master_component['device_ids'].extend(slave_component['device_ids'])
+                    master_component['join'][slave_component['ip_address']] = slave_component['device_ids'][0]
+
+        f.seek(0)  # We want to overwrite the config file with the new configuration
+        f.truncate()
+        yaml.dump(config, f, default_flow_style=False)
+
     with open(nuimo_app_config_path, 'r') as f:
         config = yaml.load(f)
-    for mac_address in config['nuimos']:
-        temp = config['nuimos'][mac_address]
-        temp['mac_address'] = mac_address
-        nuimos.append(temp)
+        for mac_address in config['nuimos']:
+            temp = config['nuimos'][mac_address]
+            temp['mac_address'] = mac_address
+            nuimos.append(temp)
 
     return {'nuimos': nuimos}
 

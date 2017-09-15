@@ -295,6 +295,11 @@ def get_component_instances(components, mac_address):
             first = False
         else:
             component['first'] = False
+
+        # join Sonos speakers
+        join = component.get('join', None)
+        if join and join['master'] is False:
+            continue
         logger.info("Importing module %s", module_name)
         # FIXME: don't ignore errors, this is just a workaround!
         try:
