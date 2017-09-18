@@ -28,7 +28,7 @@ Install dependencies on macos
 Using homebrew do this::
 
     brew install python3
-    pip install -U tox
+    pip3 install -U tox
 
 
 Install dependencies on FreeBSD
