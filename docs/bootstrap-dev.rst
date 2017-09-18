@@ -9,7 +9,7 @@ The git repository is hosted at `GitHub <https://github.com/>`_. We have a 'mast
 
 If you don't already have a GitHub account, create a new one and add your public SSH key (you won't get access via HTTP), then fork the repository to your own account, i.e. like so::
 
-    # git clone git@github.com:getsenic/senic-hub.git
+    # git clone -o getsenic git@github.com:getsenic/senic-hub.git
     # cd senic-hub
     # git remote add XXX -f git@github.com:XXX/senic-hub 
 
