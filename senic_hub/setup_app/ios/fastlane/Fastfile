@@ -10,7 +10,7 @@ platform :ios do
       path: "SenicHubSetup.xcodeproj"
     )
     match(
-      type: "adhoc",
+      type: "development",
       git_url: "git@github.com:getsenic/senic-hub-certs.git",
       force_for_new_devices: true
     )
