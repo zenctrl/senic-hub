@@ -67,26 +67,19 @@ def discover_and_merge_devices(devices_path, now):
     discovered_devices = discover_devices()
 
     try:
-        with open_locked(devices_path, 'a+') as f:
-            if f.tell() == 0:  # File is empty, i.e. it was just created
-                known_devices = []
-            else:
-                f.seek(0, 0)
-                known_devices = json.load(f)
+        with open_locked(devices_path, 'r') as f:
+            known_devices = json.load(f)
+    except IOError:
+        known_devices = []
 
-            merged_devices = merge_devices(known_devices, discovered_devices, now)
+    merged_devices = merge_devices(known_devices, discovered_devices, now)
 
-            add_authentication_status(merged_devices)
-            add_device_details(merged_devices)
-            add_homeassistant_entity_ids(merged_devices)
+    add_authentication_status(merged_devices)
+    add_device_details(merged_devices)
+    add_homeassistant_entity_ids(merged_devices)
 
-            f.seek(0, 0)
-            f.truncate()
-            json.dump(merged_devices, f)
-
-    except OSError as e:
-        logging.error("Could not open devices file %s", devices_path)
-        logging.error(e, exc_info=True)
+    with open_locked(devices_path, 'w') as f:
+        json.dump(merged_devices, f)
 
 
 def discover_devices(discovery_class=NetworkDiscovery):

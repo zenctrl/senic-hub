@@ -8,6 +8,8 @@ from cornice.service import Service
 from pyramid.httpexceptions import HTTPBadGateway, HTTPBadRequest, HTTPNotFound
 from pyramid.response import FileResponse
 
+from json.decoder import JSONDecodeError
+
 from .. import supervisor
 
 from ..config import path
@@ -31,12 +33,7 @@ def devices_list_view(request):
     Returns list of discovered devices/bridges.
 
     """
-    fs_path = request.registry.settings['devices_path']
-
-    if os.path.exists(fs_path):
-        return FileResponse(fs_path, request)
-    else:
-        return []
+    return read_json(request.registry.settings['devices_path'], [])
 
 
 discover_service = Service(
@@ -150,7 +147,7 @@ def get_device(device_list_path, device_id):
         raise HTTPNotFound("Device discovery was not run...")
 
     with open_locked(device_list_path, 'r') as f:
-        devices = json.loads(f.read())
+        devices = json.load(f)
 
     device = next((x for x in devices if x["id"] == device_id), None)
     if device is None:
@@ -160,29 +157,32 @@ def get_device(device_list_path, device_id):
 
 
 def update_device(device, settings, username):
-    with open_locked(settings['devices_path'], 'a+') as f:
-        f.seek(0, 0)
-        devices = json.loads(f.read())
+    try:
+        with open_locked(settings['devices_path'], 'r') as f:
+            devices = json.loads(f.read())
+    except (FileNotFoundError, JSONDecodeError):
+        # if we don't have the devices.json file, there are no devices to
+        # authenticate
+        return
 
-        device["extra"]["username"] = username
+    device["extra"]["username"] = username
 
-        if device['authenticated'] and username:
-            bridge = PhilipsHueBridgeApiClient(device["ip"], username)
+    if device['authenticated'] and username:
+        bridge = PhilipsHueBridgeApiClient(device["ip"], username)
 
-            device['extra']['lights'] = bridge.get_lights()
+        device['extra']['lights'] = bridge.get_lights()
 
-        device_index = [i for (i, d) in enumerate(devices) if d["id"] == device["id"]].pop()
+    device_index = [i for (i, d) in enumerate(devices) if d["id"] == device["id"]].pop()
 
-        devices[device_index] = device
+    devices[device_index] = device
 
-        f.seek(0, 0)
-        f.truncate()
+    with open_locked(settings['devices_path'], 'w') as f:
         json.dump(devices, f)
 
 
 def read_json(file_path, default=None):
     try:
-        with open(file_path) as f:
+        with open_locked(file_path, 'r') as f:
             return json.load(f)
     except FileNotFoundError:
         return default
