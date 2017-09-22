@@ -54,13 +54,6 @@ def test_devices_are_discovered_and_merged_with_empty_devices_file(
     # discover_devices_mock.assert_called_once()
 
 
-@patch('senic_hub.backend.device_discovery.discover_devices')
-@patch('senic_hub.backend.device_discovery.open_locked')
-def test_devices_are_discovered_catches_os_error(open_locked_mock, discover_devices_mock):
-    open_locked_mock.side_effect = [OSError('Foo has eaten the bar')]
-    discover_and_merge_devices('any/path', datetime.utcnow())
-
-
 def test_add_authentication_status_sets_authenticated_if_authentication_not_required():
     device = dict(authenticationRequired=False)
     add_authentication_status([device])

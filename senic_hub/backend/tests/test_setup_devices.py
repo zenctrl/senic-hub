@@ -26,7 +26,7 @@ def discover_url(route_url):
 
 @fixture
 def no_device_file(settings):
-    settings['devices_path'] = '/no/such/file'
+    settings['devices_path'] = 'no/such/file'
     return settings
 
 

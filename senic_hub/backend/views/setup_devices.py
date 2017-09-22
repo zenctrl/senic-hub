@@ -6,7 +6,6 @@ import os.path
 from cornice.service import Service
 
 from pyramid.httpexceptions import HTTPBadGateway, HTTPBadRequest, HTTPNotFound
-from pyramid.response import FileResponse
 
 from json.decoder import JSONDecodeError
 
@@ -156,7 +155,7 @@ def get_device(device_list_path, device_id):
     return device
 
 
-def update_device(device, settings, username):
+def update_device(device, settings, username):  # pragma: no cover
     try:
         with open_locked(settings['devices_path'], 'r') as f:
             devices = json.loads(f.read())
@@ -184,5 +183,5 @@ def read_json(file_path, default=None):
     try:
         with open_locked(file_path, 'r') as f:
             return json.load(f)
-    except FileNotFoundError:
+    except (FileNotFoundError, JSONDecodeError):
         return default

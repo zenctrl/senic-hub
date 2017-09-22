@@ -16,6 +16,7 @@ from os.path import abspath
 from datetime import datetime, timedelta
 from pyramid.paster import get_app, setup_logging
 from requests.exceptions import ConnectionError
+from json.decoder import JSONDecodeError
 
 from .lockfile import open_locked
 from .network_discovery import NetworkDiscovery
@@ -69,7 +70,7 @@ def discover_and_merge_devices(devices_path, now):
     try:
         with open_locked(devices_path, 'r') as f:
             known_devices = json.load(f)
-    except IOError:
+    except (FileNotFoundError, JSONDecodeError):
         known_devices = []
 
     merged_devices = merge_devices(known_devices, discovered_devices, now)
