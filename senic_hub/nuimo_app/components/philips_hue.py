@@ -327,7 +327,7 @@ class Component(ThreadComponent):
             logger.error("Socket Error: ", socketerror)
         if not reachable_lights:
             lights = EmptyLightSet()
-        elif len(reachable_lights) > 10:
+        elif len(reachable_lights) > 1:
             lights = Group(self.bridge, reachable_lights, self.group_num, self.first)
         else:
             lights = LightSet(self.bridge, reachable_lights, self.group_num, self.first)
@@ -381,7 +381,7 @@ class Component(ThreadComponent):
             else:
                 self.nuimo.display_matrix(matrices.LIGHT_OFF)
 
-        elif 'on' in attributes and ('bri' in attributes or 'bri_inc' in attributes):
+        elif 'bri' in attributes or 'bri_inc' in attributes:
             if self.lights.brightness:
                 matrix = matrices.progress_bar(self.lights.brightness / self.delta_range.stop)
                 self.nuimo.display_matrix(matrix, fading=True, ignore_duplicates=True)
