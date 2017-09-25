@@ -248,7 +248,10 @@ def modify_nuimo_component(request):
                         raise HTTPNotFound
                     soco_instance = soco.SoCo(component['ip_address'])
                     soco_joining_instance = soco.SoCo(join_component['ip_address'])
-                    soco_joining_instance.join(soco_instance)
+                    try:
+                        soco_joining_instance.join(soco_instance)
+                    except soco.SoCoException:
+                        return HTTPNotFound("No Sonos with such ip address")
                     join_component['join'] = {'master': False, 'ip_address': component['ip_address']}
                     if component.get('join', None):
                         component['join'][join_component['ip_address']] = join_component['device_ids'][0]
@@ -261,7 +264,11 @@ def modify_nuimo_component(request):
                     except StopIteration:
                         raise HTTPNotFound
                     soco_unjoining_instance = soco.SoCo(unjoin_component['ip_address'])
-                    soco_unjoining_instance.unjoin()
+                    try:
+                        if soco_unjoining_instance.player_name != soco_unjoining_instance.group.coordinator.player_name:
+                            soco_unjoining_instance.unjoin()
+                    except soco.SoCoException:
+                        return HTTPNotFound("Speaker is not unjoinable or not reachable")
                     del unjoin_component['join']
                     del component['join'][unjoin_component['ip_address']]
 

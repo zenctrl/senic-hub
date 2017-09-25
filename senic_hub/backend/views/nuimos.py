@@ -110,6 +110,7 @@ def get_configured_nuimos(request):  # pragma: no cover,
                                                 del component['device_ids'][i]
                                 del component['join']
                     except soco.SoCoException:
+                        logger.info("Sonos device non reachable %s", component['ip_address'])
                         continue
             if master_component:
                 for slave_component in slave_components:

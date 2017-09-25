@@ -55,7 +55,7 @@ class Component(ThreadComponent):
 
         if len(self.sonos_controller.group.members) > 1 and self.sonos_controller.group.coordinator.ip_address == component_config['ip_address']:
             for sonos_controller in self.sonos_controller.group.members:
-                if sonos_controller.ip_address != component_config['ip_address']:
+                if sonos_controller.ip_address != component_config['ip_address'] and sonos_controller.player_name != self.sonos_controller.group.coordinator.player_name:
                     self.sonos_joined_controllers.append(SoCo(sonos_controller.ip_address))
 
     def run(self):

@@ -64,7 +64,12 @@ export default class NuimosMenuScreen extends BaseScreen {
         return response.json()
       })
       .then((nuimos) => {
-        this.setState({ nuimos: nuimos.nuimos })
+        nuimos = nuimos.nuimos;
+        for (var i=0; i<nuimos.length; i++){
+          nuimos[i].components = nuimos[i].components
+          .filter(component => !component.join || (component.join && component.join.master))
+        }
+        this.setState({ nuimos: nuimos });
       })
       .catch((error) => console.error(error))
   }
