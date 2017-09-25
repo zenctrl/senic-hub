@@ -8,11 +8,16 @@ from nuimo import (Controller, ControllerListener, ControllerManager, Gesture, L
 
 from . import matrices
 
+import time
+
 
 logger = logging.getLogger(__name__)
 
 
 class NuimoControllerListener(ControllerListener):
+
+    is_app_disconnection = False
+    connection_failed = False
 
     def started_connecting(self):
         mac = self.controller.mac_address
@@ -20,17 +25,20 @@ class NuimoControllerListener(ControllerListener):
 
     def connect_succeeded(self):
         mac = self.controller.mac_address
+        self.connection_failed = False
         logger.info("Connected to Nuimo controller %s", mac)
 
     def connect_failed(self, error):
         mac = self.controller.mac_address
+        self.connection_failed = True
         logger.critical("Connection failed %s: %s", mac, error)
         self.controller.connect()
 
     def disconnect_succeeded(self):
         mac = self.controller.mac_address
         logger.warn("Disconnected from %s, reconnecting...", mac)
-        self.controller.connect()
+        if not self.is_app_disconnection:
+            self.controller.connect()
 
     def services_resolved(self):
         mac = self.controller.mac_address
@@ -94,6 +102,9 @@ class NuimoApp(NuimoControllerListener):
         ipc_thread = Thread(target=self.listen_to_ipc_queue, args=(ipc_queue,), daemon=True)
         ipc_thread.start()
 
+        connection_thread = Thread(target=self.check_nuimo_connection, daemon=True)
+        connection_thread.start()
+
         self.manager = ControllerManager(self.ble_adapter_name)
         self.manager.is_adapter_powered = True
 
@@ -114,6 +125,7 @@ class NuimoApp(NuimoControllerListener):
             self.active_component.stop()
 
         self.controller.disconnect()
+        self.is_app_disconnection = True
         logger.info("Disconnected from Nuimo controller %s", self.controller.mac_address)
         self.manager.stop()
         logger.debug("self manager stop %s", self.controller.mac_address)
@@ -270,6 +282,13 @@ class NuimoApp(NuimoControllerListener):
                 logger.info("IPC stop() received %s", self.controller.mac_address)
                 self.stop()
                 return
+
+    def check_nuimo_connection(self):
+        while True:
+            time.sleep(5)
+            if self.controller and self.controller.is_connected() is False and self.connection_failed is True:
+                logger.info("not Connected, retry a connection every 5 seconds")
+                self.controller.connect()
 
     def is_device_responsive(self, host_ip):
         param = "-c 1 -w 1"
