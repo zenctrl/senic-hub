@@ -288,6 +288,7 @@ def get_test_response(request):
     component_id = request.matchdict['component_id']
     mac_address = request.matchdict['mac_address'].replace('-', ':')
     device_id = request.matchdict['device_id']
+    hub_ip = request.registry.settings['hub_ip_address']
 
     nuimo_app_config_path = request.registry.settings['nuimo_app_config_path']
 
@@ -313,7 +314,7 @@ def get_test_response(request):
 
     component_type = component['type']
     component_ip = component['ip_address']
-    component_username = component['username']
+    component_username = component.get('username', None)  # Not all components have a username (like Sonos)
 
     if component_type == "philips_hue":  # pragma: no cover
         blink_result = test_blink_phue(component_ip, component_username, device_id)
@@ -335,8 +336,24 @@ def get_test_response(request):
                 'message': 'ERROR_PHUE_PUT_REQUEST_FAIL'
             }
 
-    # TODO : Add short audio test for sonos
-    # if component_type == 'sonos':
+    if component_type == "sonos":  # pragma: no cover
+        test_result = test_ring_sonos(component_ip, hub_ip)
+        if test_result is True:
+            return {
+                'test_component': component_type,
+                'test_component_id': component_id,
+                'test_device_id': str(device_id),
+                'test_result': 'PASS',
+                'message': 'TEST_SUCCESSFUL'
+            }
+        else:
+            return {
+                'test_component': component_type,
+                'test_component_id': component_id,
+                'test_device_id': str(device_id),
+                'test_result': 'FAIL',
+                'message': 'ERROR_SONOS_TEST_PLAY_FAIL'
+            }
 
 
 def test_blink_phue(component_ip, component_username, id):  # pragma: no cover
@@ -373,3 +390,31 @@ def test_blink_phue(component_ip, component_username, id):  # pragma: no cover
 
     except:
         return None
+
+
+def test_ring_sonos(component_ip, hub_ip):   # pragma: no cover
+    test_speaker = soco.SoCo(component_ip)
+    if hub_ip is None:
+        logger.error("Unable to extract Hub IP Address.")
+        return False
+    # The lighttpd server is configured to listen on port 81
+    # Resource files are stored in /www/pages/resources .. (on the hub)
+    port = 81
+    uri_test = "http://" + hub_ip + ":" + str(port) + "/resources/swblaster.mp3"
+    try:
+        test_speaker.volume = 10
+        test_speaker.play_uri(uri_test)
+        test_speaker.get_current_track_info()
+        time.sleep(2)
+        test_speaker.stop()
+        try:
+            test_speaker.play_from_queue(0)
+            test_speaker.stop()
+        except soco.SoCoException:
+            # No action required, as the queue is empty.
+            pass
+        return True
+
+    except (soco.SoCoException, HTTPNotFound) as e:
+        logger.error("Error while testing Sonos: " + str(e))
+        return False

@@ -35,6 +35,7 @@ def settings():
         'joined_wifi_path': asset_path('joined_wifi.json'),
         'homeassistant_data_path': asset_path(),
         'homeassistant_config_path': asset_path('configuration.yaml'),
+        'hub_ip_address': '0.0.0.0'
     }
 
 
