@@ -371,7 +371,8 @@ def test_blink_phue(component_ip, component_username, id):  # pragma: no cover
         state_default = default_state['state']['on']
         bri_default = default_state['state']['bri']
 
-    except:
+    except Exception as e:
+        logger.error("Error while testing Sonos: " + str(e))
         return False
 
     param_high = json.dumps({
@@ -395,7 +396,7 @@ def test_blink_phue(component_ip, component_username, id):  # pragma: no cover
         requests.put(request_url_put, data=param_default, timeout=1)
         return True
 
-    except Exception as e
+    except Exception as e:
         logger.error("Error while testing PHue: " + str(e))
         return False
 
