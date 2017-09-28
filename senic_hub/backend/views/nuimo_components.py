@@ -372,7 +372,7 @@ def test_blink_phue(component_ip, component_username, id):  # pragma: no cover
         bri_default = default_state['state']['bri']
 
     except:
-        return None
+        return False
 
     param_high = json.dumps({
         "on": True,
@@ -395,8 +395,8 @@ def test_blink_phue(component_ip, component_username, id):  # pragma: no cover
         requests.put(request_url_put, data=param_default, timeout=1)
         return True
 
-    except:
-        logger.error("Error while testing PHue: ")
+    except Exception as e
+        logger.error("Error while testing PHue: " + str(e))
         return False
 
 
