@@ -7,6 +7,7 @@ from ..config import path as service_path
 from pyramid.httpexceptions import HTTPNotFound
 import yaml
 from .. import supervisor
+from colander import MappingSchema, String, SchemaNode, Length
 
 import soco
 import gatt
@@ -99,6 +100,38 @@ def get_configured_nuimos(request):  # pragma: no cover,
             nuimos.append(temp)
 
     return {'nuimos': nuimos}
+
+
+class ModifyNameSchema(MappingSchema):
+    mac_address = SchemaNode(String())
+    modified_name = SchemaNode(String(), validator=Length(min=1))
+
+
+@configured_nuimos.put(schema=ModifyNameSchema)
+def modify_nuimo_name(request):  # pragma: no cover
+    # TODO: Modify name of a particular nuimo
+    mac_address = request.validated['mac_address'].replace('-', ':')
+    mod_name = request.validated['modified_name']
+
+    with open(request.registry.settings['nuimo_app_config_path'], 'r+') as f:
+        config = yaml.load(f)
+
+        try:
+            target_nuimo = config['nuimos'][mac_address]
+        except KeyError:
+            return HTTPNotFound("No Nuimo with such ID")
+
+        target_nuimo['name'] = mod_name
+
+        f.seek(0)
+        f.truncate()
+        yaml.dump(config, f, default_flow_style=False)
+
+    return {
+        'mac_address': mac_address,
+        'modified_name': mod_name,
+        'message': 'SUCCESS'
+    }
 
 
 # TODO: add testcases
