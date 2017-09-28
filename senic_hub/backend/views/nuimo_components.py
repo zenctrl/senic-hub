@@ -397,7 +397,7 @@ def test_blink_phue(component_ip, component_username, id):  # pragma: no cover
 
     except:
         logger.error("Error while testing PHue: ")
-        return None
+        return False
 
 
 def test_ring_sonos(component_ip, hub_ip):   # pragma: no cover
