@@ -81,7 +81,7 @@ def get_configured_nuimos(request):  # pragma: no cover,
             controller = Controller(mac_address=mac_address, manager=manager)
             config['nuimos'][mac_address]['is_connected'] = controller.is_connected()
             if config['nuimos'][mac_address]['is_connected']:
-                config['nuimos'][mac_address]['battery_level'] = get_nuimo_battery_level(mac_address, manager)
+                config['nuimos'][mac_address]['battery_level'] = None
 
             # check if New Sonos Groups have been created
             components = config['nuimos'][mac_address].get('components', [])
