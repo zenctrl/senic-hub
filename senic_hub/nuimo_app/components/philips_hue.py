@@ -189,9 +189,7 @@ class LightSet(HueBase):
         logger.debug("state: %s", pformat(self._state))
 
         self._on = all(s['on'] for s in self._state.values())
-        brightness = min(s['bri'] for s in self._state.values())
-        if self._on or brightness != 1 or self._brightness is None:
-            self._brightness = brightness
+        self._brightness = min(s['bri'] for s in self._state.values())
 
         logger.debug("on: %s brightness: %s", self._on, self._brightness)
 
@@ -231,8 +229,7 @@ class Group(HueBase):
         logger.debug("group state: %s", pformat(state))
 
         self._on = state['state']['all_on']
-        if self._on or state['action']['bri'] != 1 or self._brightness is None:
-            self._brightness = state['action']['bri']
+        self._brightness = state['action']['bri']
 
         self._state = state
 
@@ -327,7 +324,7 @@ class Component(ThreadComponent):
             logger.error("Socket Error: ", socketerror)
         if not reachable_lights:
             lights = EmptyLightSet()
-        elif len(reachable_lights) > 1:
+        elif len(reachable_lights) > 10:
             lights = Group(self.bridge, reachable_lights, self.group_num, self.first)
         else:
             lights = LightSet(self.bridge, reachable_lights, self.group_num, self.first)
@@ -341,7 +338,7 @@ class Component(ThreadComponent):
         return reachable
 
     def on_button_press(self):
-        self.set_light_attributes(on=not self.lights.on, bri=self.lights.brightness)
+        self.set_light_attributes(on=not self.lights.on)
 
     def on_longtouch_left(self):
         logger.debug("on_longtouch_left()")
