@@ -367,7 +367,7 @@ def test_blink_phue(component_ip, component_username, id):  # pragma: no cover
     device_id = id.split('-')[2]
     request_url_get_default = "http://" + component_ip + "/api/" + str(component_username) + "/lights/" + str(device_id)
     try:
-        default_state = requests.get(request_url_get_default).json()
+        default_state = requests.get(request_url_get_default, timeout=1).json()
         state_default = default_state['state']['on']
         bri_default = default_state['state']['bri']
 
@@ -396,7 +396,7 @@ def test_blink_phue(component_ip, component_username, id):  # pragma: no cover
         return True
 
     except:
-        logger.error("Error while testing PHue: " + str(e))
+        logger.error("Error while testing PHue: ")
         return None
 
 
