@@ -9,6 +9,7 @@ from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound
 
 from ..config import path as service_path
 from .setup_devices import get_device
+from .nuimos import is_device_responsive
 
 import yaml
 import requests
@@ -248,15 +249,18 @@ def modify_nuimo_component(request):
                         raise HTTPNotFound
                     soco_instance = soco.SoCo(component['ip_address'])
                     soco_joining_instance = soco.SoCo(join_component['ip_address'])
-                    try:
-                        soco_joining_instance.join(soco_instance)
-                    except soco.SoCoException:
-                        return HTTPNotFound("No Sonos with such ip address")
-                    join_component['join'] = {'master': False, 'ip_address': component['ip_address']}
-                    if component.get('join', None):
-                        component['join'][join_component['ip_address']] = join_component['device_ids'][0]
+                    if is_device_responsive(component['ip_address']) and is_device_responsive(join_component['ip_address']):
+                        try:
+                            soco_joining_instance.join(soco_instance)
+                        except (requests.exceptions.RequestException, soco.SoCoException):
+                            return HTTPNotFound("No Sonos with such ip address")
+                        join_component['join'] = {'master': False, 'ip_address': component['ip_address']}
+                        if component.get('join', None):
+                            component['join'][join_component['ip_address']] = join_component['device_ids'][0]
+                        else:
+                            component['join'] = {'master': True, join_component['ip_address']: [join_component['device_ids'][0]]}
                     else:
-                        component['join'] = {'master': True, join_component['ip_address']: [join_component['device_ids'][0]]}
+                        return HTTPNotFound("Sonos device not reachable")
             for device in component['device_ids']:
                 if device not in device_ids:
                     try:
@@ -264,13 +268,16 @@ def modify_nuimo_component(request):
                     except StopIteration:
                         raise HTTPNotFound
                     soco_unjoining_instance = soco.SoCo(unjoin_component['ip_address'])
-                    try:
-                        if soco_unjoining_instance.player_name != soco_unjoining_instance.group.coordinator.player_name:
-                            soco_unjoining_instance.unjoin()
-                    except soco.SoCoException:
-                        return HTTPNotFound("Speaker is not unjoinable or not reachable")
-                    del unjoin_component['join']
-                    del component['join'][unjoin_component['ip_address']]
+                    if is_device_responsive(component['ip_address']) and is_device_responsive(unjoin_component['ip_address']):
+                        try:
+                            if soco_unjoining_instance.player_name != soco_unjoining_instance.group.coordinator.player_name:
+                                soco_unjoining_instance.unjoin()
+                        except (requests.exceptions.RequestException, soco.SoCoException):
+                            return HTTPNotFound("Speaker is not unjoinable or not reachable")
+                        del unjoin_component['join']
+                        del component['join'][unjoin_component['ip_address']]
+                    else:
+                        return HTTPNotFound("Sonos device not reachable")
 
         component['device_ids'] = device_ids
 

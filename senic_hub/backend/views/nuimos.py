@@ -1,6 +1,6 @@
 from cornice.service import Service
 from logging import getLogger
-from os import path
+from os import path, system
 from .. import nuimo_setup
 # TODO: We better rename `config.path` to something else. Conflicts with `os.path`
 from ..config import path as service_path
@@ -11,6 +11,7 @@ from .. import supervisor
 import soco
 import gatt
 import binascii
+import requests
 from nuimo import Controller, ControllerManager
 
 logger = getLogger(__name__)
@@ -84,40 +85,7 @@ def get_configured_nuimos(request):  # pragma: no cover,
 
             # check if New Sonos Groups have been created
             components = config['nuimos'][mac_address].get('components', [])
-            master_component = None
-            slave_components = []
-            for component in components:
-                if component['type'] == 'sonos':
-                    try:
-                        sonos = soco.SoCo(component['ip_address'])
-                        join = component.get('join', None)
-                        if len(component['device_ids']) != len(sonos.group.members) or join:
-                            if len(sonos.group.members) > 1:
-                                # JOIN from Sonos app
-                                # TODO to be extended when just a speaker is removed from a group (e.g. group members decreased from 3 to 2)
-                                if sonos.group.coordinator.ip_address == component['ip_address']:
-                                    component['join'] = {'master': True}
-                                    master_component = component
-                                else:
-                                    component['join'] = {'master': False, 'ip_address': sonos.group.coordinator.ip_address}
-                                    slave_components.append(component)
-                            elif join:
-                                # UNJOIN from Sonos app
-                                if join['master']:
-                                    for i, device in enumerate(component['device_ids']):
-                                        for key, value in component['join'].items():
-                                            if device == value:
-                                                del component['device_ids'][i]
-                                del component['join']
-                    except soco.SoCoException:
-                        logger.info("Sonos device non reachable %s", component['ip_address'])
-                        continue
-            if master_component:
-                for slave_component in slave_components:
-                    # TODO: extend to multiple groups handling
-                    if slave_component['device_ids'][0] not in master_component['device_ids']:
-                        master_component['device_ids'].extend(slave_component['device_ids'])
-                    master_component['join'][slave_component['ip_address']] = slave_component['device_ids'][0]
+            check_sonos_update(components)
 
         f.seek(0)  # We want to overwrite the config file with the new configuration
         f.truncate()
@@ -185,3 +153,51 @@ def get_nuimo_battery_level(mac_address, manager):  # pragma: no cover,
 
     manager.run()
     return device.battery_level
+
+
+def check_sonos_update(components):  # pragma: no cover,
+    master_component = None
+    slave_components = []
+    for component in components:
+        if component['type'] == 'sonos':
+            try:
+                if is_device_responsive(component['ip_address']):
+                    component['is_reachable'] = True
+                    sonos = soco.SoCo(component['ip_address'])
+                    component['room_name'] = sonos.player_name
+                    join = component.get('join', None)
+                    if len(component['device_ids']) != len(sonos.group.members) or join:
+                        if len(sonos.group.members) > 1:
+                            # JOIN from Sonos app
+                            # TODO to be extended when just a speaker is removed from a group (e.g. group members decreased from 3 to 2)
+                            if sonos.group.coordinator.ip_address == component['ip_address']:
+                                component['join'] = {'master': True}
+                                master_component = component
+                            else:
+                                component['join'] = {'master': False, 'ip_address': sonos.group.coordinator.ip_address}
+                                slave_components.append(component)
+                        elif join:
+                            # UNJOIN from Sonos app
+                            if join['master']:
+                                for i, device in enumerate(component['device_ids']):
+                                    for key, value in component['join'].items():
+                                        if device == value:
+                                            del component['device_ids'][i]
+                            del component['join']
+                else:
+                    component['is_reachable'] = False
+            except (requests.exceptions.RequestException, soco.SoCoException):
+                logger.info("Sonos device non reachable %s", component['ip_address'])
+                continue
+    if master_component:
+        for slave_component in slave_components:
+            # TODO: extend to multiple groups handling
+            if slave_component['device_ids'][0] not in master_component['device_ids']:
+                master_component['device_ids'].extend(slave_component['device_ids'])
+            master_component['join'][slave_component['ip_address']] = slave_component['device_ids'][0]
+
+
+def is_device_responsive(host_ip):  # pragma: no cover,
+    param = "-c 1 -w 1"
+    status = (system("ping " + param + " " + host_ip) == 0)
+    return status
