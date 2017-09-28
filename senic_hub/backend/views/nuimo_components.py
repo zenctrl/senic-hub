@@ -388,14 +388,15 @@ def test_blink_phue(component_ip, component_username, id):  # pragma: no cover
     })
     request_url_put = "http://" + component_ip + "/api/" + str(component_username) + "/lights/" + str(device_id) + "/state"
     try:
-        requests.put(request_url_put, data=param_high)
+        requests.put(request_url_put, data=param_high, timeout=1)
         time.sleep(0.5)
-        requests.put(request_url_put, data=param_low)
+        requests.put(request_url_put, data=param_low, timeout=1)
         time.sleep(0.5)
-        requests.put(request_url_put, data=param_default)
-        return 1
+        requests.put(request_url_put, data=param_default, timeout=1)
+        return True
 
     except:
+        logger.error("Error while testing PHue: " + str(e))
         return None
 
 
