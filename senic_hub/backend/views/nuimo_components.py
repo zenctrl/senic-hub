@@ -325,7 +325,7 @@ def get_test_response(request):
 
     if component_type == "philips_hue":  # pragma: no cover
         blink_result = test_blink_phue(component_ip, component_username, device_id)
-        if blink_result is not None:
+        if blink_result is True:
             return {
                 'test_component': component_type,
                 'test_component_id': component_id,
