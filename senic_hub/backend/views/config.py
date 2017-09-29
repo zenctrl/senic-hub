@@ -17,7 +17,7 @@ configuration_service = Service(
 
 
 @configuration_service.post()
-def configuration_view(request):
+def post_configuration(request):
     stop_program('device_discovery')
 
     create_configuration_files_and_restart_apps(request.registry.settings)
@@ -26,6 +26,7 @@ def configuration_view(request):
     # TODO: Add D-Bus interface to Nuimo and wait for its ready signal
     sleep(10.0)
 
+
 @configuration_service.delete()
-def configuration_view(request):
+def delete_configuration(request):
     subprocess.Popen(['/usr/bin/senic_hub_factory_reset'])
