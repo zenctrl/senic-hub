@@ -16,7 +16,6 @@ The hub is divided into the following modules:
 - The (RESTful) **backend** – a `pyramid <http://docs.pylonsproject.org/projects/pyramid/en/latest/>`_ application that clients talk to via HTTP
 - The **Nuimo application** – the entity that the *nuimo controller* talks to via bluetooth
 - **bluenetd** – a process that implements a bluetooth hub for clients to connect to during onboarding
-- **setup_app** – a cross-platform, react native app that runs on iOS and Android and which talks bluetooth and HTTP with the bluenetd and the backend to setup and configure the hub
 - Additionally the hub also consists of an instance of `homeassistant <https://home-assistant.io/>`_ but since that is an unmodified instance of the latest supported version its sources are not part of this repository
 
 All of these components are controlled using supervisord.

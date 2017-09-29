@@ -115,7 +115,6 @@ def sync_src():
             '--exclude', '/deployment',
             '--exclude', '/dist',
             '--exclude', '/docs',
-            '--exclude', '/senic_hub/setup_app',
             '--exclude', '/venv',
             '.',
             '{host_string}:%s' % destination)
