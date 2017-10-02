@@ -22,6 +22,7 @@ def configure(global_config, **settings):
     config.begin()
     scan_ignore = ['.tests', '.testing', '.netwatch']
     config.include('cornice')
+    config.include('cornice_swagger')
     config.scan(ignore=scan_ignore)
     config.registry.crypto_settings = crypto_settings(global_config, **settings)
     config.commit()

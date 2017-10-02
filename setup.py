@@ -16,7 +16,7 @@ if platform.system() == 'Linux':
         # backend
         'click',
         'colander',
-        'cornice<2.0',
+        'cornice==2.3.0',
         'cryptoyaml',
         'netdisco==0.9.2',
         'nuimo>=0.3.0,<0.4.0',
@@ -24,6 +24,7 @@ if platform.system() == 'Linux':
         'pyramid_tm',
         'pytz',
         'requests',
+        'cornice_swagger',
         # nuimo_app
         'websocket-client>=0.40.0',
         'soco==0.12',
@@ -45,6 +46,7 @@ else:
         'pyramid_tm',
         'pytz',
         'requests',
+        'cornice_swagger',
         # nuimo_app
         'websocket-client>=0.40.0',
         'soco==0.12',

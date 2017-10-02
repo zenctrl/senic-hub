@@ -5,19 +5,23 @@ from cornice.service import Service
 from ..commands import create_configuration_files_and_restart_apps
 from ..config import path
 from ..supervisor import stop_program
+from .api_descriptions import descriptions as desc
+from cornice.validators import colander_body_validator
 import subprocess
 
 
 configuration_service = Service(
     name='configuration',
     path=path('config'),
+    description=desc.get('configuration_service'),
     renderer='json',
     accept='application/json',
 )
 
 
-@configuration_service.post()
+@configuration_service.post(validators=(colander_body_validator,))
 def post_configuration(request):
+
     stop_program('device_discovery')
 
     create_configuration_files_and_restart_apps(request.registry.settings)

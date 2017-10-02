@@ -4,7 +4,7 @@ from cornice.service import Service
 from pkg_resources import get_distribution
 
 from ..config import path, get_logger
-
+from .api_descriptions import descriptions as desc
 
 log = get_logger(__name__)
 
@@ -12,6 +12,7 @@ log = get_logger(__name__)
 app_info = Service(
     name='appinfo',
     path=path(''),
+    description=desc.get('app_info'),
     renderer='json',
     accept='application/json')
 

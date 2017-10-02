@@ -4,6 +4,8 @@ from logging import getLogger
 from cornice.service import Service
 
 from ..config import path as service_path
+from .api_descriptions import descriptions as desc
+from cornice.validators import colander_body_validator
 
 
 logger = getLogger(__name__)
@@ -12,12 +14,13 @@ logger = getLogger(__name__)
 devices_service = Service(
     name='devices',
     path=service_path('devices'),
+    description=desc.get('devices_service'),
     renderer='json',
     accept='application/json',
 )
 
 
-@devices_service.get()
+@devices_service.get(validators=(colander_body_validator,))
 def nuimo_components_view(request):
     devices_path = request.registry.settings['devices_path']
 

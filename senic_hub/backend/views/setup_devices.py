@@ -6,14 +6,14 @@ import os.path
 from cornice.service import Service
 
 from pyramid.httpexceptions import HTTPBadGateway, HTTPBadRequest, HTTPNotFound
-
 from json.decoder import JSONDecodeError
-
+from cornice.validators import colander_body_validator
 from .. import supervisor
 
 from ..config import path
 from ..device_discovery import PhilipsHueBridgeApiClient, UnauthenticatedDeviceError, UpstreamError
 from ..lockfile import open_locked
+from .api_descriptions import descriptions as desc
 
 
 logger = logging.getLogger(__name__)
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 list_service = Service(
     name='devices_list',
     path=path('setup/devices'),
+    description=desc.get('list_service'),
     renderer='json',
 )
 
@@ -43,7 +44,7 @@ discover_service = Service(
 )
 
 
-@discover_service.post()
+@discover_service.post(validators=(colander_body_validator,))
 def devices_discover_view(request):
     """
     Trigger device discovery daemon restart to force a new device
@@ -62,7 +63,7 @@ authenticate_service = Service(
 )
 
 
-@authenticate_service.post()
+@authenticate_service.post(validators=(colander_body_validator,))
 def devices_authenticate_view(request):
     """
     NOTE: This view updates HASS configuration files. No locking is

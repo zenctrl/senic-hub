@@ -3,10 +3,15 @@ from logging import getLogger
 from os import path, system
 from .. import nuimo_setup
 # TODO: We better rename `config.path` to something else. Conflicts with `os.path`
+from cornice.validators import colander_body_validator
+# import colander
+
 from ..config import path as service_path
 from pyramid.httpexceptions import HTTPNotFound
 import yaml
 from .. import supervisor
+
+from .api_descriptions import descriptions as desc
 from colander import MappingSchema, String, SchemaNode, Length
 
 import soco
@@ -21,6 +26,7 @@ logger = getLogger(__name__)
 connected_nuimos = Service(
     name='connected_nuimos',
     path=service_path('nuimos'),
+    description=desc.get('connected_nuimos'),
     renderer='json',
     accept='application/json')
 
@@ -28,6 +34,7 @@ connected_nuimos = Service(
 configured_nuimos = Service(
     name='configured_nuimos',
     path=service_path('confnuimos'),
+    description=desc.get('configured_nuimos'),
     renderer='json',
     accept='application/json')
 
@@ -35,12 +42,13 @@ configured_nuimos = Service(
 nuimo_service = Service(
     name='nuimo_services',
     path=service_path('nuimos/{mac_address:[a-z0-9\-]+}'),
+    description=desc.get('nuimo_service'),
     renderer='json',
     accept='application/json',
 )
 
 
-@connected_nuimos.post()
+@connected_nuimos.post(validators=(colander_body_validator,))
 def bootstrap_nuimos(request):  # pragma: no cover,
     adapter_name = request.registry.settings.get('bluetooth_adapter_name', 'hci0')
     required_mac_address = request.registry.settings.get('nuimo_mac_address')

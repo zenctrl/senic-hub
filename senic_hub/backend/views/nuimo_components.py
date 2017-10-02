@@ -5,10 +5,12 @@ from uuid import uuid4
 from colander import Length, MappingSchema, SchemaNode, SequenceSchema, String
 
 from cornice.service import Service
+from cornice.validators import colander_body_validator
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound
 
 from ..config import path as service_path
 from .setup_devices import get_device
+from .api_descriptions import descriptions as desc
 from .nuimos import is_device_responsive
 
 import yaml
@@ -26,6 +28,7 @@ HOME_ASSISTANT_COMPONENT_TYPES = {'light', 'media_player'}
 nuimo_components_service = Service(
     name='nuimo_components',
     path=service_path('nuimos/{mac_address:[a-z0-9\-]+}/components'),
+    description=desc.get('nuimo_components_service'),
     renderer='json',
     accept='application/json',
 )
@@ -34,6 +37,7 @@ nuimo_components_service = Service(
 nuimo_component_service = Service(
     name='nuimo_component',
     path=service_path('nuimos/{mac_address:[a-z0-9\-]+}/components/{component_id:[a-z0-9\-]+}'),
+    description=desc.get('nuimo_component_service'),
     renderer='json',
     accept='application/json',
 )
@@ -42,6 +46,7 @@ nuimo_component_service = Service(
 nuimo_device_test_service = Service(
     name='nuimo_device_test',
     path=service_path('nuimos/{mac_address:[a-z0-9\-]+}/components/{component_id:[a-z0-9\-]+}/test/{device_id:[a-z0-9\-]+}'),
+    description=desc.get('nuimo_device_test_service'),
     renderer='json',
     accept='application/json'
 )
@@ -87,7 +92,7 @@ class AddComponentSchema(MappingSchema):
     device_ids = DeviceIdsSchema(validator=Length(min=1))
 
 
-@nuimo_components_service.post(schema=AddComponentSchema)
+@nuimo_components_service.post(schema=AddComponentSchema, validators=(colander_body_validator,))
 def add_nuimo_component_view(request):
     device_ids = request.validated['device_ids']
     mac_address = request.matchdict['mac_address'].replace('-', ':')
@@ -217,7 +222,7 @@ class ModifyComponentSchema(MappingSchema):
     device_ids = DeviceIdsSchema(validator=Length(min=1))
 
 
-@nuimo_component_service.put(schema=ModifyComponentSchema)
+@nuimo_component_service.put(schema=ModifyComponentSchema, validators=(colander_body_validator,))
 def modify_nuimo_component(request):
     component_id = request.matchdict['component_id']
     mac_address = request.matchdict['mac_address'].replace('-', ':')

@@ -7,6 +7,8 @@ import yaml
 from soco import SoCo, SoCoException
 
 from colander import MappingSchema, SchemaNode, String, Int, Range
+from cornice.validators import colander_body_validator
+from .api_descriptions import descriptions as desc
 
 logger = getLogger(__name__)
 
@@ -14,6 +16,7 @@ logger = getLogger(__name__)
 nuimo_sonos_favorites = Service(
     name='nuimo_sonos_favorites',
     path=service_path('nuimos/{mac_address:[a-z0-9\-]+}/components/{component_id:[a-z0-9\-]+}/nuimosonosfavs'),
+    description=desc.get('nuimo_sonos_favorites'),
     renderer='json',
     accept='application/json')
 
@@ -21,6 +24,7 @@ nuimo_sonos_favorites = Service(
 sonos_favorites = Service(
     name='sonos_favorites',
     path=service_path('nuimos/{mac_address:[a-z0-9\-]+}/components/{component_id:[a-z0-9\-]+}/sonosfavs'),
+    description=desc.get('sonos_favorites'),
     renderer='json',
     accept='application/json')
 
@@ -84,7 +88,7 @@ class PutSonosFavSchema(MappingSchema):
     item = itemSchema()
 
 
-@nuimo_sonos_favorites.put(schema=PutSonosFavSchema)
+@nuimo_sonos_favorites.put(schema=PutSonosFavSchema, validators=(colander_body_validator,))
 def put_nuimo_sonos_favorite(request):
     nuimo_app_config_path = request.registry.settings['nuimo_app_config_path']
     mac_address = request.matchdict['mac_address'].replace('-', ':')

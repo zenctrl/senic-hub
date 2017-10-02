@@ -8,6 +8,8 @@ import phue
 from random import sample
 
 from colander import MappingSchema, SchemaNode, String, Int, Range
+from cornice.validators import colander_body_validator
+from .api_descriptions import descriptions as desc
 
 logger = getLogger(__name__)
 
@@ -15,6 +17,7 @@ logger = getLogger(__name__)
 nuimo_philips_hue_favorites = Service(
     name='nuimo_philips_hue_favorites',
     path=service_path('nuimos/{mac_address:[a-z0-9\-]+}/components/{component_id:[a-z0-9\-]+}/nuimophuefavs'),
+    description=desc.get('nuimo_philips_hue_favorites'),
     renderer='json',
     accept='application/json')
 
@@ -22,6 +25,7 @@ nuimo_philips_hue_favorites = Service(
 philips_hue_favorites = Service(
     name='philips_hue_favorites',
     path=service_path('nuimos/{mac_address:[a-z0-9\-]+}/components/{component_id:[a-z0-9\-]+}/phuefavs'),
+    description=desc.get('philips_hue_favorites'),
     renderer='json',
     accept='application/json')
 
@@ -91,7 +95,7 @@ class PutPhueFavSchema(MappingSchema):
     item = itemSchema()
 
 
-@nuimo_philips_hue_favorites.put(schema=PutPhueFavSchema)
+@nuimo_philips_hue_favorites.put(schema=PutPhueFavSchema, validators=(colander_body_validator,))
 def put_nuimo_philips_hue_favorite(request):
     nuimo_app_config_path = request.registry.settings['nuimo_app_config_path']
     mac_address = request.matchdict['mac_address'].replace('-', ':')
