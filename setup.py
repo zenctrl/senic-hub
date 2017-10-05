@@ -38,7 +38,7 @@ else:
         # backend
         'click',
         'colander',
-        'cornice<2.0',
+        'cornice==2.3.0',
         'cryptoyaml',
         'netdisco==0.9.2',
         'nuimo>=0.3.0,<0.4.0',
