@@ -73,7 +73,7 @@ def nuimo_components_view(request):
 
     try:
         nuimo = config['nuimos'][mac_address]
-    except KeyError:
+    except (KeyError, TypeError):
         return HTTPNotFound("No Nuimo with such ID")
 
     components = [
@@ -120,7 +120,7 @@ def add_nuimo_component_view(request):
 
         try:
             nuimo = config['nuimos'][mac_address]
-        except KeyError:
+        except (KeyError, TypeError):
             return HTTPNotFound("No Nuimo with such ID")
 
         group_number = [comp['name'] for comp in nuimo['components'] if " Group " in comp['name'] and component['ip_address'] in comp['name']]
@@ -182,7 +182,7 @@ def get_nuimo_component_view(request):
 
     try:
         nuimo = config['nuimos'][mac_address]
-    except KeyError:
+    except (KeyError, TypeError):
         return HTTPNotFound("No Nuimo with such ID")
 
     components = nuimo['components']
@@ -201,7 +201,7 @@ def delete_nuimo_component_view(request):
 
         try:
             nuimo = config['nuimos'][mac_address]
-        except KeyError:
+        except (KeyError, TypeError):
             return HTTPNotFound("No Nuimo with such ID")
 
         components = nuimo['components']
@@ -234,7 +234,7 @@ def modify_nuimo_component(request):
 
         try:
             nuimo = config['nuimos'][mac_address]
-        except KeyError:
+        except (KeyError, TypeError):
             return HTTPNotFound("No Nuimo with such ID")
 
         components = nuimo['components']
@@ -309,7 +309,7 @@ def get_test_response(request):
 
         try:
             nuimo = config['nuimos'][mac_address]
-        except KeyError:
+        except (KeyError, TypeError):
             return HTTPNotFound("No Nuimo with such ID")
 
         components = nuimo['components']

@@ -40,7 +40,7 @@ def get_nuimo_sonos_favorites(request):
 
         try:
             nuimo = config['nuimos'][mac_address]
-        except KeyError:
+        except (KeyError, TypeError):
             return HTTPNotFound("No Nuimo with such ID")
 
         components = nuimo['components']
@@ -101,7 +101,7 @@ def put_nuimo_sonos_favorite(request):
 
         try:
             nuimo = config['nuimos'][mac_address]
-        except KeyError:
+        except (KeyError, TypeError):
             return HTTPNotFound("No Nuimo with such ID")
 
         components = nuimo['components']
@@ -132,7 +132,7 @@ def get_sonos_favorites(request):  # pragma: no cover,
 
     try:
         nuimo = config['nuimos'][mac_address]
-    except KeyError:
+    except (KeyError, TypeError):
         return HTTPNotFound("No Nuimo with such ID")
 
     components = nuimo['components']

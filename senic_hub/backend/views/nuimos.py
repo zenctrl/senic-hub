@@ -151,7 +151,7 @@ def delete_nuimo(request):  # pragma: no cover,
 
         try:
             config['nuimos'][mac_address]
-        except KeyError:
+        except (KeyError, TypeError):
             return HTTPNotFound("No Nuimo with such ID")
 
         del config['nuimos'][mac_address]
