@@ -77,9 +77,7 @@ def main(config):
         queues[mac_addr].put({'method': 'stop'})
         processes[mac_addr].join()
 
-    os.system('/etc/init.d/bluetooth stop')
-    time.sleep(1)
-    os.system('/etc/init.d/bluetooth start')
+    os.system('systemctl restart bluetooth')
 
     logger.info("Stopped all nuimo apps")
 
