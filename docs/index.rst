@@ -8,3 +8,4 @@
 .. toctree::
     :maxdepth: 3
 
+    development
