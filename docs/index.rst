@@ -8,4 +8,3 @@
 .. toctree::
     :maxdepth: 3
 
-    bootstrap-dev
