@@ -2,29 +2,23 @@
 [macro:hub-base]
 user = root
 ssh-fingerprints = ignore
-# password config for bootstrapping only
-password-fallback = true
 ansible-ansible_python_interpreter = python2.7
+ansible-devpi_index = getsenic/master
+ansible-hub_development_mode = True
+fabfile = ../fab_nanopi.py
 roles =
-    ubuntu-build
-    hub-ubuntu
-    hub-hass
-
-[plain-instance:vboxhub]
-<= macro:hub-base
-ip = 192.168.56.5
-port = 22
-ansible-eth_dns = 8.8.8.8
-roles =
-    ubuntu-build
-    hub-ubuntu
-    hub-hass
     hub-develop
 
-[plain-instance:vboxbuild]
-ip = 192.168.56.4
-user = root
-ssh-fingerprints = ignore
-ansible-eth_dns = 178.19.223.1
-roles =
-    ubuntu-bluez
+[plain-instance:devhub]
+<= macro:hub-base
+ip = XXX
+
+# you can configure the development role like so:
+# ansible-source_transport = git
+# this will check out a git clone on the board, this is useful if you prefer to work remotely
+# via ssh and also perform the git commits there, instead of syncing them
+# in that case it's also advisable to set the following two parameters, as they will then be
+# used to configure the git client on the board accordingly:
+#
+# ansible-build_user_email =
+# ansible-build_user_fullname =

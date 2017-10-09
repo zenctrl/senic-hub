@@ -1,7 +1,4 @@
-target = pi3hub
-boot_ip =
-authorized_keys = authorized_keys
-configure_ethernet = yes
+sddev=XXX
 
 install: bin/ploy etc/ploy.conf
 
@@ -19,7 +16,31 @@ etc/ploy.conf:
 osx-deps:
 	brew install python openssl libffi
 
+# downloading and writing a development image
+downloads:
+	mkdir -p downloads
+
+download-os: downloads
+	wget -c --show-progress https://bob.senic.com/senic-os/releases/senic-os-dev-senic-hub-beta.sdimg -o downloads/senic-os-dev-senic-hub-beta.sdimg
+	wget -c https://bob.senic.com/senic-os/releases/u-boot-sunxi-with-spl.bin -o downloads/u-boot-sunxi-with-spl.bin
+
+write-os:
+	# first write the sdimg:
+	sudo dd bs=2m of=/dev/$(sddev) if=downloads/senic-os-dev-senic-hub-beta.sdimg
+	# then write the boot partition (you can ignore errors re: "invalid argument")
+	-sudo dd bs=1024 of=/dev/$(sddev) seek=8 if=downloads/u-boot-sunxi-with-spl.bin
+
+write-osx:
+	# make sure the disk is not mounted
+	-diskutil unmountDisk /dev/$(sddev)
+	# first write the sdimg:
+	sudo dd bs=2m of=/dev/$(sddev) if=senic-os/$(oshost)/$(osuser)/$(osenv)/senic-os-dev-senic-hub-beta.sdimg
+	diskutil unmountDisk /dev/$(sddev)
+	# then write the boot partition (you can ignore errors re: "invalid argument")
+	-sudo dd bs=1024 of=/dev/$(sddev) seek=8 if=senic-os/$(oshost)/$(osuser)/$(osenv)/u-boot-sunxi-with-spl.bin
+	-diskutil unmountDisk /dev/$(sddev)
+
 clean:
 	git clean -fXd
 
-.PHONY: install clean
+.PHONY: install clean download-os

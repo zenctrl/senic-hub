@@ -1,90 +1,96 @@
-Provisioning and configuring the hub
-------------------------------------
+Developing for the hub
+======================
 
-On OSX first run ``make osx-deps``, this will use homebrew to install the required system dependencies, namely, Python 3 and some development headers.
+While the backend application is written in Python and thus principally platform independent, in actuality it contains a lot of Linux- and hardware specific code that basically mandates that any development version of the stack needs to run on the hub hardware.
+
+This section describes how to get a development board up and running so you can develop features for the hub.
+
+To this end Senic provides special images that provide a developer-friendly environment and have been built with OpenEmbedded's debug flags enabled.
+
+In addition, we provide some Ansible based configuration (called roles) that further customize such a development image according to your preferences (i.e. whether to perform a git checkout on the board or upload and synchronize with a local checkout of the sources).
+
+To bootstrap a physical development board you will need to:
+
+ - prepare a local environment
+
+ - download a development image
+
+ - write it to an SD card
+
+ - boot the device from it
+
+ - either onboard it using the setup app or access it via serial console and configure the network manually
+
+ - apply development role(s) as required
+
+
+Preparing the local environment
+-------------------------------
+
+To apply the development role you will need a local installation of Ansible, as well as some other dependencies.
+Since they are all written in Python(2) we can install them in a local virtualenv (without possibly polluting your global Python installation).
+
+On OSX first run ``make osx-deps``, this will use homebrew to install the required system dependencies, namely, Python 2 and some development headers.
 
 Next, run ``make`` to install the development tools locally.
 
-For development and testing we provision either a RasperberryPI3, PINE64, NanoPI Neo Air or a vagrant based Virtualbox instance using an ubuntu base image that we then customize using ansible.
 
-Bootstrapping vagrant
-=====================
+Downloading the development image
+---------------------------------
 
-Assuming fairly recent installations of vagrant and Virtualbox, you can simply run `vagrant up hub` and it will download the required base image and bootstrap it automatically.
-
-
-Bootstrapping a development board
-=================================
-
-To bootstrap a physical development board you will need to
-
-- download the appropriate base image
-
-- write it to an SD card
-
-- boot the device from it
-
-- figure out the IP address that the device has been given
-
-- bootstrap the device using that IP address (at the end of which it will have the 'real' IP address that it has been configured to have - this way we can have known IP addresses for configuration)
-
-To download the base image use `make download-XXX` where `XXX` is one of `pi3`, `nanopi` or `pine64`.
-
-Then write the image to an SD card using your tool of choice (https://etcher.io/ seems like a fluffy choice for OSX) and boot the board, making sure you have a working DHCP setup.
-
-The first step is to bootstrap the booted board into a state where we can configure it via ansible.
-This is done using a helper tool called `ploy` which is a modular configuration system that (in this case) combines `ansible <http://docs.ansible.com/ansible/>`_ and `fabric <http://www.fabfile.org/>`_.
-The `Makefile` installs a local instance of `ploy` and its dependencies by default, so you should run `make` first.
-
-After booting the device you need to figure out the IP address it has been given.
-
-Next, create an entry in `etc/ploy.conf` using one of the existing entries as an example.
-
-Then run `make bootstrap target=XXX` where `XXX` is the name you have given in the configuration file.
-
-If you don't want to use the IP address given via DHCP you can set the desired IP in the configuration and pass the current IP address via the `boot_ip` parameter like so::
-
-    make bootstrap target=XXX boot_ip=192.168.1.39
-
-After a minute or two, the board should reboot and is now ready for action.
+With all the tools in place, you next must download the development image.
+This can be achieved via ``make download-os``.
+This will download the main image, as well as the boot partition.
 
 
-Bootstrapping the RasperberryPI3
-********************************
+Writing the image to an SD card
+-------------------------------
 
-The default login is `pi3/raspberry`. 
+Currently the "burn" process is split into two parts, as the we have now working boot partition as part of the main image, so we need to 'patch' the image with a working boot partition after writing the main image.
 
-To enable SSH you can either
+Again, we provide a convenience target in the Makefile. To avoid accidentally deleting your harddrive, you must provide it with the name of your SD card reader explicitly, i.e. like so::
 
-a) mount the SD card and create a file named `ssh`::
-    
-    sudo touch /Volumes/boot/ssh
+    make write-os sddev=da0
 
-b) boot from it, login via console and `sudo touch /boot/ssh`
+Note, that in some cases you may receive an "Invalid argument" error, however, this can be safely ignored.
 
-During bootstrapping you will be asked (once) for the password and from then on you can log in using the SSH key you configured.
+Once completed, insert the card in the hub and power it up.
 
 
-Bootstrapping the NanoPI Air
-****************************
+Network access
+--------------
 
-Since the Air doesn't have an ethernet port we need to access the serial console in order to perform wifi setup before we can run bootstrapping.
+To develop on the board, you will first need to give it network access.
+This can be either achieved using the regular setup app on your iOS or Android device or by connecting to the serial console.
 
-Ideally the four required pins will have been soldered already, but if you are really careful, you can even create a connection without soldering, since you only really need it for a short initial time.
+To do the latter, connect via TTY (i.e. ``sudo screen /dev/tty.usbserial 115200``) and then run::
 
-The colors are::
+    nmcli dev wifi con <SSID> password <PASSWORD> ifname wlan0
 
-    RED:    5V
-    BLACK:  GND
-    GREEN:  RX
-    WHITE:  TX
+Either way, the device should now be reachable via TCP/IP and since it's been built as a development image, you already have SSH access as ``root`` but in order to run the development playbooks you will first need to upload your own SSH public key, i.e. like so::
 
-You can access the serial console using `screen`, i.e. like so::
+    scp ~/.ssh/id_rsa.pub root@192.168.1.165:/home/root/.ssh/authorized_keys
 
-    screen  /dev/cu.usbserial 115200 -L
+Now the device is properly reachable via SSH and you can apply the development role after updating the section `plain-instance:hub` of `senic-hub/development/etc/ploy.conf` by supplying the actual IP address that you have been assigned with::
 
-On first boot the (friendly) armbian distro will let you login with `root/1234` via the console and will force you to change it manually to something else and then will ask you to create a sudo user. You can safely abort that part with ctrl-c.
+    [plain-instance:hub]
+    ....
+    ip = <HUB's IP ADDRESS>
 
-Next run `nmtui-connect YOUR_ROUTER_SSID` and enter the password (you *will* need to attach an antenna to the board).
+Now from `senic-hub/development` run::
 
-You can then use the IP address given via DHCP to bootstrap. Note, that setting a custom, static address is currently not supported.
+    `bin/ploy configure hub`
+
+
+Resetting the hub
+-----------------
+
+If we want to put the hub into delivery state, we want to stop all daemons, delete all logs and unprovision Wi-Fi (again)::
+
+    supervisorctl stop all
+    rm /srv/senic_hub/data/*
+    nmcli con
+    nmcli con del <CONNECTION NAME FROM PREVIOUS STEP>
+
+Now the board can be onboarded using the app (again).
+
