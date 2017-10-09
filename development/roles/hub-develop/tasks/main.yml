@@ -13,14 +13,6 @@
     groups: sudo
     append: yes
 
-- name: upload git completion and prompt
-  copy:
-    src: "{{item}}"
-    dest: "/usr/share/bash-completion/{{item}}"
-  with_items:
-    - git-completion.bash
-    - git-prompt.sh
-
 - name: configure shell
   become: true
   become_user: "{{item.name}}"

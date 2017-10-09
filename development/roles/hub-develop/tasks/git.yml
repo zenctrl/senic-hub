@@ -1,3 +1,11 @@
+- name: upload git completion and prompt
+  copy:
+    src: "{{item}}"
+    dest: "/usr/share/bash-completion/{{item}}"
+  with_items:
+    - git-completion.bash
+    - git-prompt.sh
+
 - name: enable github deploy access
   become: true
   become_user: "{{build_user}}"
