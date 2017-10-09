@@ -1,10 +1,6 @@
-# convenience makefile to set up the backend for local development
+# convenience makefile to generate the documentation and upload releases
+# it requires a global installation of tox
 python_version = 3
-
-all: venv/bin/pserve
-
-tests: venv/bin/py.test
-	@venv/bin/py.test
 
 venv/bin/python$(python_version) venv/bin/pip venv/bin/pserve venv/bin/py.test venv/bin/devpi: 
 	tox -e develop --notest
@@ -18,4 +14,4 @@ docs:
 clean:
 	git clean -fXd
 
-.PHONY: clean tests upload
+.PHONY: clean upload
