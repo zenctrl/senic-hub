@@ -13,14 +13,6 @@
     groups: sudo
     append: yes
 
-- name: upload git completion and prompt
-  copy:
-    src: "{{item}}"
-    dest: "/usr/share/bash-completion/{{item}}"
-  with_items:
-    - git-completion.bash
-    - git-prompt.sh
-
 - name: configure shell
   become: true
   become_user: "{{item.name}}"
@@ -122,6 +114,14 @@
   pip:
     name: "-e {{backend_deploy_location}}/src/"
     executable: /usr/bin/pip3
+  when: source_transport == 'rsync'
+  tags: spv
+
+- name: install source version
+  pip:
+    name: "-e /home/{{build_user}}/senic-hub"
+    executable: /usr/bin/pip3
+  when: source_transport == 'git'
   tags: spv
 
 - name: make sure the development version of the hub is now running

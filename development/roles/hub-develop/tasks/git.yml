@@ -1,3 +1,11 @@
+- name: upload git completion and prompt
+  copy:
+    src: "{{item}}"
+    dest: "/usr/share/bash-completion/{{item}}"
+  with_items:
+    - git-completion.bash
+    - git-prompt.sh
+
 - name: enable github deploy access
   become: true
   become_user: "{{build_user}}"
@@ -71,10 +79,6 @@
       sm = submodule
       reha = reset --hard
       feta = fetch --all
-      lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
-      lga = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative --branches --remotes
-      lol = log --graph --decorate --pretty=oneline --abbrev-commit
-      lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
       pure = pull --rebase
 
 

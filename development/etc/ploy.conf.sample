@@ -1,0 +1,24 @@
+# vi:syntax=dosini
+[macro:hub-base]
+user = root
+ssh-fingerprints = ignore
+ansible-ansible_python_interpreter = python2.7
+ansible-devpi_index = getsenic/master
+ansible-hub_development_mode = True
+fabfile = ../fab_nanopi.py
+roles =
+    hub-develop
+
+[plain-instance:devhub]
+<= macro:hub-base
+ip = XXX
+
+# you can configure the development role like so:
+# ansible-source_transport = git
+# this will check out a git clone on the board, this is useful if you prefer to work remotely
+# via ssh and also perform the git commits there, instead of syncing them
+# in that case it's also advisable to set the following two parameters, as they will then be
+# used to configure the git client on the board accordingly:
+#
+# ansible-build_user_email =
+# ansible-build_user_fullname =

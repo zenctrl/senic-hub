@@ -1,6 +1,8 @@
+/etc/ploy.conf
 /pip-selfcheck.json
 /etc/known_hosts
 /bin/
 /include/
+/lib/
 /.vagrant
 /.vault_password_file
