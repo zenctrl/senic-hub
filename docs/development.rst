@@ -33,7 +33,7 @@ OSx
 
 :: 
 
-    git clone git@github.com:getsenic/senic-hub.git
+    git clone https://github.com/getsenic/senic-hub.git
     cd senic-hub/development
     make osx-deps
     make
@@ -48,7 +48,7 @@ Ubuntu
 
 :: 
 
-    git clone git@github.com:getsenic/senic-hub.git
+    git clone https://github.com/getsenic/senic-hub.git
     cd senic-hub/development
     make ubuntu-deps
     make
