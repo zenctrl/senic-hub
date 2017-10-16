@@ -14,7 +14,7 @@ etc/ploy.conf:
 	cp etc/ploy.conf.sample etc/ploy.conf
 
 osx-deps:
-	brew install python openssl libffi
+	brew install python openssl libffi wget
 
 
 ubuntu-deps:
