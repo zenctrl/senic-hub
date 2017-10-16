@@ -37,11 +37,11 @@ write-os:
 write-os-ubuntu:
 	-sudo umount /dev/$(sddev)*
 	# first write the sdimg:
-	sudo dd bs=2M of=/dev/$(sddev) if=senic-os/$(oshost)/$(osuser)/$(osenv)/senic-os-dev-senic-hub-beta.sdimg status=progress
+	sudo dd bs=2M of=/dev/$(sddev) if=downloads/senic-os-dev-senic-hub-beta.sdimg status=progress
 	# then write the boot partition (you can ignore errors re: "invalid argument")
 	sleep 1
 	-sudo umount /dev/$(sddev)*
-	sudo dd bs=1024 of=/dev/$(sddev) seek=8 if=senic-os/$(oshost)/$(osuser)/$(osenv)/u-boot-sunxi-with-spl.bin status=progress
+	sudo dd bs=1024 of=/dev/$(sddev) seek=8 if=downloads/u-boot-sunxi-with-spl.bin status=progress
 	-sudo umount /dev/$(sddev)*
 
 
@@ -49,10 +49,10 @@ write-osx:
 	# make sure the disk is not mounted
 	-diskutil unmountDisk /dev/$(sddev)
 	# first write the sdimg:
-	sudo dd bs=2m of=/dev/$(sddev) if=senic-os/$(oshost)/$(osuser)/$(osenv)/senic-os-dev-senic-hub-beta.sdimg
+	sudo dd bs=2m of=/dev/$(sddev) if=downloads/senic-os-dev-senic-hub-beta.sdimg
 	diskutil unmountDisk /dev/$(sddev)
 	# then write the boot partition (you can ignore errors re: "invalid argument")
-	-sudo dd bs=1024 of=/dev/$(sddev) seek=8 if=senic-os/$(oshost)/$(osuser)/$(osenv)/u-boot-sunxi-with-spl.bin
+	-sudo dd bs=1024 of=/dev/$(sddev) seek=8 if=downloads/u-boot-sunxi-with-spl.bin
 	-diskutil unmountDisk /dev/$(sddev)
 
 clean:
