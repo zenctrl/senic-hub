@@ -14,9 +14,11 @@ from .. import supervisor
 from .api_descriptions import descriptions as desc
 from colander import MappingSchema, String, SchemaNode, Length
 
+import mmap
+import os
+import struct
+
 import soco
-import gatt
-import binascii
 import requests
 from nuimo import Controller, ControllerManager
 
@@ -89,8 +91,6 @@ def get_configured_nuimos(request):  # pragma: no cover,
             # check Nuimo connection Status
             controller = Controller(mac_address=mac_address, manager=manager)
             config['nuimos'][mac_address]['is_connected'] = controller.is_connected()
-            if config['nuimos'][mac_address]['is_connected']:
-                config['nuimos'][mac_address]['battery_level'] = None
 
             # check if New Sonos Groups have been created
             components = config['nuimos'][mac_address].get('components', [])
@@ -105,6 +105,7 @@ def get_configured_nuimos(request):  # pragma: no cover,
         for mac_address in config['nuimos']:
             temp = config['nuimos'][mac_address]
             temp['mac_address'] = mac_address
+            temp['battery_level'] = get_nuimo_battery_level(mac_address)
             nuimos.append(temp)
 
     return {'nuimos': nuimos}
@@ -165,35 +166,15 @@ def delete_nuimo(request):  # pragma: no cover,
 
 # TODO: if required, due to performance issues, can be implemented in a separate endpoint
 # TODO: add a timeout in order to handle bluetooth unexpected behaviour
-def get_nuimo_battery_level(mac_address, manager):  # pragma: no cover,
-
-    class AnyDevice(gatt.Device):
-        battery_level = None
-
-        def services_resolved(self):
-            super().services_resolved()
-
-            device_information_service = next(
-                s for s in self.services
-                if s.uuid == '0000180f-0000-1000-8000-00805f9b34fb')
-
-            firmware_version_characteristic = next(
-                c for c in device_information_service.characteristics
-                if c.uuid == '00002a19-0000-1000-8000-00805f9b34fb')
-
-            firmware_version_characteristic.read_value()
-
-        def characteristic_value_updated(self, characteristic, value):
-            hexvalue = binascii.hexlify(value)
-            self.battery_level = int(hexvalue, 16)
-            logger.info("Battery Level: %d ", self.battery_level)
-            manager.stop()
-
-    device = AnyDevice(mac_address=mac_address, manager=manager)
-    device.connect()
-
-    manager.run()
-    return device.battery_level
+def get_nuimo_battery_level(mac_address):  # pragma: no cover,
+    try:
+        fd = os.open('/tmp/' + mac_address.replace(':', '-'), os.O_RDONLY)
+    except FileNotFoundError:
+        logger.error("No memory mapped file named %s, return None battery level", mac_address.replace(':', '-'))
+        return None
+    buf = mmap.mmap(fd, mmap.PAGESIZE, mmap.MAP_SHARED, mmap.PROT_READ)
+    result, = struct.unpack('i', buf[:4])
+    return result
 
 
 def check_sonos_update(components):  # pragma: no cover,
