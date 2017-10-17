@@ -58,7 +58,7 @@ def sync_src():
             '--exclude', '__pycache__',
             '--exclude', 'node_modules',
             '--exclude', '/build',
-            '--exclude', '/deployment',
+            '--exclude', '/development',
             '--exclude', '/dist',
             '--exclude', '/docs',
             '--exclude', '/venv',

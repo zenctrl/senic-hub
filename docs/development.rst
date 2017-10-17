@@ -24,6 +24,43 @@ To bootstrap a physical development board you will need to:
  - apply development role(s) as required
 
 
+Quick reference
+---------------
+
+Done to `Network access`
+
+OSx
+~~~
+
+::
+
+    git clone https://github.com/getsenic/senic-hub.git
+    cd senic-hub/development
+    make osx-deps
+    make
+    make download-os
+    # Insert SD card into your pc
+    # Change sdxxx with your card device file
+    make write-osx sddev=sdXXX
+    # Plug card into the hub
+Ubuntu
+~~~~~~
+
+
+::
+
+    git clone https://github.com/getsenic/senic-hub.git
+    cd senic-hub/development
+    make ubuntu-deps
+    make
+    make download-os
+    # Insert SD card into your pc
+    # Change sdxxx with your card device file
+    make write-os-ubuntu sddev=sdXXX
+    # Plug card into the hub
+
+
+
 Preparing the local environment
 -------------------------------
 
@@ -85,12 +122,8 @@ Now from `senic-hub/development` run::
 Resetting the hub
 -----------------
 
-If we want to put the hub into delivery state, we want to stop all daemons, delete all logs and unprovision Wi-Fi (again)::
+To put the hub into delivery state, manually run the following script (or press the "factory reset" button for more than 3 seconds) to delete all logs and unprovision Wi-Fi::
 
-    supervisorctl stop all
-    rm /srv/senic_hub/data/*
-    nmcli con
-    nmcli con del <CONNECTION NAME FROM PREVIOUS STEP>
+    /usr/bin/senic_hub_factory_reset
 
-Now the board can be onboarded using the app (again).
-
+Now the board can be once again onboarded using the app.

@@ -2,14 +2,17 @@ import logging
 
 from importlib import import_module
 from threading import Thread
-from os import system as system_call
+
+import ctypes
+import mmap
+import os
+import struct
 
 from nuimo import (Controller, ControllerListener, ControllerManager, Gesture, LedMatrix)
 
 from . import matrices
 
 import time
-
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +81,16 @@ class NuimoApp(NuimoControllerListener):
         self.ble_adapter_name = ble_adapter_name
         self.controller = None
         self.mac_address = mac_address
+        self.battery_level = None
+
+        # memory map using mmap to store nuimo battery level
+        fd = os.open('/tmp/' + self.mac_address.replace(':', '-'), os.O_CREAT | os.O_TRUNC | os.O_RDWR)
+        assert os.write(fd, b'\x00' * mmap.PAGESIZE) == mmap.PAGESIZE
+        buf = mmap.mmap(fd, mmap.PAGESIZE, mmap.MAP_SHARED, mmap.PROT_WRITE)
+        self.bl = ctypes.c_int.from_buffer(buf)
+        self.bl.value = 0
+        offset = struct.calcsize(self.bl._type_)
+        assert buf[offset] == 0
 
     def set_components(self, components):
         previously_active = self.active_component
@@ -140,6 +153,12 @@ class NuimoApp(NuimoControllerListener):
 
         if event.gesture in self.INTERNAL_GESTURES:
             self.process_internal_gesture(event.gesture)
+            return
+
+        if event.gesture == Gesture.BATTERY_LEVEL:
+            logger.info("gesture BATTERY LEVEL %d", event.value)
+            self.battery_level = event.value
+            self.update_battery_level()
             return
 
         if not self.active_component:
@@ -292,8 +311,11 @@ class NuimoApp(NuimoControllerListener):
 
     def is_device_responsive(self, host_ip):
         param = "-c 1 -w 1"
-        status = (system_call("ping " + param + " " + host_ip) == 0)
+        status = (os.system("ping " + param + " " + host_ip) == 0)
         return status
+
+    def update_battery_level(self):
+        self.bl.value = self.battery_level
 
 
 def get_component_instances(components, mac_address):

@@ -189,7 +189,9 @@ class LightSet(HueBase):
         logger.debug("state: %s", pformat(self._state))
 
         self._on = all(s['on'] for s in self._state.values())
-        self._brightness = min(s['bri'] for s in self._state.values())
+        brightness = min(s['bri'] for s in self._state.values())
+        if self._on or brightness != 1 or self._brightness is None:
+            self._brightness = brightness
 
         logger.debug("on: %s brightness: %s", self._on, self._brightness)
 
@@ -229,7 +231,8 @@ class Group(HueBase):
         logger.debug("group state: %s", pformat(state))
 
         self._on = state['state']['all_on']
-        self._brightness = state['action']['bri']
+        if self._on or state['action']['bri'] != 1 or self._brightness is None:
+            self._brightness = state['action']['bri']
 
         self._state = state
 
@@ -338,7 +341,7 @@ class Component(ThreadComponent):
         return reachable
 
     def on_button_press(self):
-        self.set_light_attributes(on=not self.lights.on)
+        self.set_light_attributes(on=not self.lights.on, bri=self.lights.brightness)
 
     def on_longtouch_left(self):
         logger.debug("on_longtouch_left()")
@@ -378,7 +381,7 @@ class Component(ThreadComponent):
             else:
                 self.nuimo.display_matrix(matrices.LIGHT_OFF)
 
-        elif 'bri' in attributes or 'bri_inc' in attributes:
+        elif 'on' in attributes or 'bri_inc' in attributes:
             if self.lights.brightness:
                 matrix = matrices.progress_bar(self.lights.brightness / self.delta_range.stop)
                 self.nuimo.display_matrix(matrix, fading=True, ignore_duplicates=True)
