@@ -300,7 +300,7 @@ def get_test_response(request):
     component_id = request.matchdict['component_id']
     mac_address = request.matchdict['mac_address'].replace('-', ':')
     device_id = request.matchdict['device_id']
-    hub_ip = request.registry.settings['hub_ip_address']
+    hub_ip = get_current_ip()
 
     nuimo_app_config_path = request.registry.settings['nuimo_app_config_path']
 
@@ -432,3 +432,29 @@ def test_ring_sonos(component_ip, hub_ip):   # pragma: no cover
     except (soco.SoCoException, HTTPNotFound) as e:
         logger.error("Error while testing Sonos: " + str(e))
         return False
+
+
+def get_current_ip():  # pragma: no cover
+    try:
+        import NetworkManager
+    except:
+        logger.error("Unable to import NetworkManager")
+        return None
+    try:
+        nm_devices = NetworkManager.NetworkManager.GetDevices()
+        nm_device = dict([(d.Interface, d) for d in nm_devices])
+    except AttributeError as e:
+        logger.warning("Error while trying to get NetworkManager device : " + e)
+        return None
+
+    wlan_device = nm_device.get('wlan0', None)
+    if not wlan_device:
+        logger.error("Couldn't find the Network Adapter")
+        return None
+
+    if not wlan_device.Ip4Config:
+        return None
+
+    addr = wlan_device.Ip4Config.AddressData[0].get('address', None)
+    logger.info("Updating IP Address of Hub to " + addr)
+    return addr
