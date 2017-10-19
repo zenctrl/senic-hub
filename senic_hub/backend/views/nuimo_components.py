@@ -328,7 +328,7 @@ def get_test_response(request):
     component_ip = component['ip_address']
     component_username = component.get('username', None)  # Not all components have a username (like Sonos)
 
-    if component_type == "philips_hue":  # pragma: no cover
+    if component_type == "philips_hue":
         blink_result = test_blink_phue(component_ip, component_username, device_id)
         if blink_result is True:
             return {
@@ -368,7 +368,7 @@ def get_test_response(request):
             }
 
 
-def test_blink_phue(component_ip, component_username, id):  # pragma: no cover
+def test_blink_phue(component_ip, component_username, id):
     device_id = id.split('-')[2]
     request_url_get_default = "http://" + component_ip + "/api/" + str(component_username) + "/lights/" + str(device_id)
     try:

@@ -3,6 +3,7 @@ from pytest import fixture, yield_fixture
 from tempfile import NamedTemporaryFile
 
 import yaml
+import responses
 
 from senic_hub.backend.views.nuimo_components import create_component
 
@@ -250,9 +251,42 @@ def test_get_invalid_device_returns_404(route_url, browser, temporary_nuimo_app_
     browser.get(route_url('nuimo_device_test', mac_address='00:00:00:00:00:00'.replace(':', '-'), component_id='ph2', device_id='invalid_device-id'), status=404)
 
 
-# Test case for a successful blinking of the Philips hue light cannot be tested without implmementing a Philips Hue Mockup
-# Thus, the test case for successful blinking has not been added.
 def test_get_device_test_fail_message(device_test_url, browser, temporary_nuimo_app_config_file):
+    device = browser.get(device_test_url, status=200).json
+    device_id = device_test_url.rsplit('/')[-1]
+    assert device == {
+        'test_component': 'philips_hue',
+        'test_component_id': 'ph2',
+        'test_device_id': str(device_id),
+        'test_result': 'FAIL',
+        'message': 'ERROR_PHUE_PUT_REQUEST_FAIL'
+    }
+
+
+@responses.activate
+def test_get_device_test_pass_message(device_test_url, browser, temporary_nuimo_app_config_file):
+
+    state = {'state': {'on': True, 'bri': 30}}
+
+    responses.add(responses.GET, 'http://127.0.0.2/api/light_bringer/lights/5', json=state, status=200)
+    responses.add(responses.PUT, 'http://127.0.0.2/api/light_bringer/lights/5/state', json={}, status=200)
+    device = browser.get(device_test_url, status=200).json
+    device_id = device_test_url.rsplit('/')[-1]
+    assert device == {
+        'test_component': 'philips_hue',
+        'test_component_id': 'ph2',
+        'test_device_id': str(device_id),
+        'test_result': 'PASS',
+        'message': 'BLINK_SUCCESSFUL'
+    }
+
+
+@responses.activate
+def test_get_device_test_fail_message_due_to_put_exception(device_test_url, browser, temporary_nuimo_app_config_file):
+
+    state = {'state': {'on': True, 'bri': 30}}
+
+    responses.add(responses.GET, 'http://127.0.0.2/api/light_bringer/lights/5', json=state, status=200)
     device = browser.get(device_test_url, status=200).json
     device_id = device_test_url.rsplit('/')[-1]
     assert device == {
