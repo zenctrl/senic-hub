@@ -50,6 +50,14 @@ nuimo_service = Service(
 )
 
 
+check_for_update_service = Service(
+    name='check_for_update_service',
+    path=service_path('update'),
+    renderer='json',
+    accept='application/json',
+)
+
+
 @connected_nuimos.post(validators=(colander_body_validator,))
 def bootstrap_nuimos(request):  # pragma: no cover,
     adapter_name = request.registry.settings.get('bluetooth_adapter_name', 'hci0')
@@ -109,6 +117,39 @@ def get_configured_nuimos(request):  # pragma: no cover,
             nuimos.append(temp)
 
     return {'nuimos': nuimos}
+
+prev_battery_level = {}
+
+
+@check_for_update_service.get()
+def get_update_service(request):  # pragma: no cover,
+    nuimo_app_config_path = request.registry.settings['nuimo_app_config_path']
+    is_updated = False
+    with open(nuimo_app_config_path, 'r') as f:
+        config = yaml.load(f)
+    adapter_name = request.registry.settings.get('bluetooth_adapter_name', 'hci0')
+    manager = ControllerManager(adapter_name=adapter_name)
+    for mac_address in config['nuimos']:
+        # check Nuimo connection Status
+        controller = Controller(mac_address=mac_address, manager=manager)
+        is_updated = True if config['nuimos'][mac_address]['is_connected'] != controller.is_connected() else is_updated
+        if is_updated:
+            return get_configured_nuimos(request)
+        if controller.is_connected():
+            global prev_battery_level
+            prev_nuimo_battery_level = prev_battery_level.get(mac_address, None)
+            is_updated = True if prev_nuimo_battery_level and prev_nuimo_battery_level != get_nuimo_battery_level(mac_address) else is_updated
+            prev_battery_level[mac_address] = get_nuimo_battery_level(mac_address)
+            if is_updated:
+                return get_configured_nuimos(request)
+
+        # check if New Sonos Groups have been created
+        components = config['nuimos'][mac_address].get('components', [])
+        is_updated = check_if_sonos_is_updated(components)
+        if is_updated:
+            return get_configured_nuimos(request)
+
+    return {'is_updated': is_updated}
 
 
 class ModifyNameSchema(MappingSchema):
@@ -217,6 +258,24 @@ def check_sonos_update(components):  # pragma: no cover,
             if slave_component['device_ids'][0] not in master_component['device_ids']:
                 master_component['device_ids'].extend(slave_component['device_ids'])
             master_component['join'][slave_component['ip_address']] = slave_component['device_ids'][0]
+
+
+def check_if_sonos_is_updated(components):  # pragma: no cover,
+    for component in components:
+        if component['type'] == 'sonos':
+            try:
+                if is_device_responsive(component['ip_address']) != component['is_reachable']:
+                    return True
+                if is_device_responsive(component['ip_address']):
+                    sonos = soco.SoCo(component['ip_address'])
+                    if component['room_name'] != sonos.player_name:
+                        return True
+                    if len(component['device_ids']) != len(sonos.group.members):
+                        return True
+            except (requests.exceptions.RequestException, soco.SoCoException):
+                logger.info("Sonos device non reachable %s", component['ip_address'])
+                continue
+    return False
 
 
 def is_device_responsive(host_ip):  # pragma: no cover,
