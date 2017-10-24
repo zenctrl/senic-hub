@@ -67,8 +67,8 @@ def main(config):
             processes[mac_addr] = Process(target=app.start, args=(ipc_queue,))
             processes[mac_addr].start()
 
-    except FileNotFoundError:
-        logger.error("File not found : nuimo_app.cfg")
+    except FileNotFoundError as e:
+        logger.error(e)
 
     while True:
         try:
@@ -104,8 +104,8 @@ def update_from_config_file(config_path, queues, nuimo_apps, processes, ha_api_u
                 nuimo_apps[mac_addr] = components
             # TODO: add nuimos without restart nuimo_app code
 
-    except FileNotFoundError:
-        logger.error("File not found : nuimo_app.cfg [update_from_config_file]")
+    except FileNotFoundError as e:
+        logger.error(e)
 
 
 def watch_config_changes(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name):

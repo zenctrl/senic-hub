@@ -82,8 +82,8 @@ def discover_and_merge_devices(devices_path, now):
     try:
         with open_locked(devices_path, 'w') as f:
             json.dump(merged_devices, f)
-    except (FileNotFoundError, JSONDecodeError):  # pragma: no cover
-        logger.error("File Not Found : devices_path")
+    except (FileNotFoundError, JSONDecodeError) as e:  # pragma: no cover
+        logger.error(e)
 
 
 def discover_devices(discovery_class=NetworkDiscovery):

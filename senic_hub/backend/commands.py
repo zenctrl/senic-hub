@@ -23,7 +23,7 @@ def create_configuration_files_and_restart_apps(settings):
     try:
         with open(settings['devices_path'], 'r') as f:
             devices = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError) as e:
+    except (FileNotFoundError, json.decoder.JSONDecodeError) as e:
         logger.error(e)
 
     homeassistant_config_path = settings['homeassistant_config_path']

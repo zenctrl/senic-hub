@@ -117,8 +117,8 @@ def get_configured_nuimos(request):  # pragma: no cover,
                 temp['battery_level'] = get_nuimo_battery_level(mac_address)
                 nuimos.append(temp)
 
-    except FileNotFoundError:
-        logger.error('File Not Found - nuimo_app_config (get_configured_nuimos) ')
+    except FileNotFoundError as e:
+        logger.error(e)
 
     return {'nuimos': nuimos}
 
