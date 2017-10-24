@@ -20,8 +20,11 @@ import os.path
 
 def create_configuration_files_and_restart_apps(settings):
     # generate homeassistant config & restart supervisor app
-    with open(settings['devices_path'], 'r') as f:
-        devices = json.load(f)
+    try:
+        with open(settings['devices_path'], 'r') as f:
+            devices = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        logger.error(e)
 
     homeassistant_config_path = settings['homeassistant_config_path']
     with open(homeassistant_config_path, 'w') as f:

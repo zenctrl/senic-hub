@@ -55,16 +55,20 @@ def main(config):
     elif not queues:
         logger.error("No Nuimos configured and can't watch config for changes!")
 
-    with open(config_path, 'r') as f:
-        config = yaml.load(f)
-    for mac_addr in config['nuimos']:
-        components = config['nuimos'][mac_addr].get('components', [])
-        app = NuimoApp(ha_api_url, ble_adapter_name, mac_addr, components)
-        ipc_queue = Queue()
-        queues[mac_addr] = ipc_queue
-        nuimo_apps[mac_addr] = components
-        processes[mac_addr] = Process(target=app.start, args=(ipc_queue,))
-        processes[mac_addr].start()
+    try:
+        with open(config_path, 'r') as f:
+            config = yaml.load(f)
+        for mac_addr in config['nuimos']:
+            components = config['nuimos'][mac_addr].get('components', [])
+            app = NuimoApp(ha_api_url, ble_adapter_name, mac_addr, components)
+            ipc_queue = Queue()
+            queues[mac_addr] = ipc_queue
+            nuimo_apps[mac_addr] = components
+            processes[mac_addr] = Process(target=app.start, args=(ipc_queue,))
+            processes[mac_addr].start()
+
+    except FileNotFoundError:
+        logger.error("File not found : nuimo_app.cfg")
 
     while True:
         try:
@@ -83,21 +87,25 @@ def main(config):
 
 
 def update_from_config_file(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name):
-    with open(config_path, 'r') as f:
-        config = yaml.load(f)
+    try:
+        with open(config_path, 'r') as f:
+            config = yaml.load(f)
 
-    updated_nuimos = config['nuimos']
+        updated_nuimos = config['nuimos']
 
-    # TODO: remove nuimos without restart nuimo_app code
+        # TODO: remove nuimos without restart nuimo_app code
 
-    for mac_addr in updated_nuimos.keys():
-        components = updated_nuimos[mac_addr].get('components', [])
-        if mac_addr in nuimo_apps and components != nuimo_apps[mac_addr]:
-            logger.debug("nuimo_apps= %s", nuimo_apps[mac_addr])
-            logger.info("Updating app for Nuimo with address: %s", mac_addr)
-            queues[mac_addr].put({'method': 'set_components', 'components': components})
-            nuimo_apps[mac_addr] = components
-        # TODO: add nuimos without restart nuimo_app code
+        for mac_addr in updated_nuimos.keys():
+            components = updated_nuimos[mac_addr].get('components', [])
+            if mac_addr in nuimo_apps and components != nuimo_apps[mac_addr]:
+                logger.debug("nuimo_apps= %s", nuimo_apps[mac_addr])
+                logger.info("Updating app for Nuimo with address: %s", mac_addr)
+                queues[mac_addr].put({'method': 'set_components', 'components': components})
+                nuimo_apps[mac_addr] = components
+            # TODO: add nuimos without restart nuimo_app code
+
+    except FileNotFoundError:
+        logger.error("File not found : nuimo_app.cfg [update_from_config_file]")
 
 
 def watch_config_changes(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name):

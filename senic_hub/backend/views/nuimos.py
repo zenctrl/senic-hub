@@ -91,30 +91,34 @@ def get_configured_nuimos(request):  # pragma: no cover,
     nuimo_app_config_path = request.registry.settings['nuimo_app_config_path']
     nuimos = []
 
-    with open(nuimo_app_config_path, 'r+') as f:
-        config = yaml.load(f)
-        adapter_name = request.registry.settings.get('bluetooth_adapter_name', 'hci0')
-        manager = ControllerManager(adapter_name=adapter_name)
-        for mac_address in config['nuimos']:
-            # check Nuimo connection Status
-            controller = Controller(mac_address=mac_address, manager=manager)
-            config['nuimos'][mac_address]['is_connected'] = controller.is_connected()
+    try:
+        with open(nuimo_app_config_path, 'r+') as f:
+            config = yaml.load(f)
+            adapter_name = request.registry.settings.get('bluetooth_adapter_name', 'hci0')
+            manager = ControllerManager(adapter_name=adapter_name)
+            for mac_address in config['nuimos']:
+                # check Nuimo connection Status
+                controller = Controller(mac_address=mac_address, manager=manager)
+                config['nuimos'][mac_address]['is_connected'] = controller.is_connected()
 
-            # check if New Sonos Groups have been created
-            components = config['nuimos'][mac_address].get('components', [])
-            check_sonos_update(components)
+                # check if New Sonos Groups have been created
+                components = config['nuimos'][mac_address].get('components', [])
+                check_sonos_update(components)
 
-        f.seek(0)  # We want to overwrite the config file with the new configuration
-        f.truncate()
-        yaml.dump(config, f, default_flow_style=False)
+            f.seek(0)  # We want to overwrite the config file with the new configuration
+            f.truncate()
+            yaml.dump(config, f, default_flow_style=False)
 
-    with open(nuimo_app_config_path, 'r') as f:
-        config = yaml.load(f)
-        for mac_address in config['nuimos']:
-            temp = config['nuimos'][mac_address]
-            temp['mac_address'] = mac_address
-            temp['battery_level'] = get_nuimo_battery_level(mac_address)
-            nuimos.append(temp)
+        with open(nuimo_app_config_path, 'r') as f:
+            config = yaml.load(f)
+            for mac_address in config['nuimos']:
+                temp = config['nuimos'][mac_address]
+                temp['mac_address'] = mac_address
+                temp['battery_level'] = get_nuimo_battery_level(mac_address)
+                nuimos.append(temp)
+
+    except FileNotFoundError:
+        logger.error('File Not Found - nuimo_app_config (get_configured_nuimos) ')
 
     return {'nuimos': nuimos}
 

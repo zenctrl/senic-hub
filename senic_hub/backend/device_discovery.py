@@ -79,8 +79,11 @@ def discover_and_merge_devices(devices_path, now):
     add_device_details(merged_devices)
     add_homeassistant_entity_ids(merged_devices)
 
-    with open_locked(devices_path, 'w') as f:
-        json.dump(merged_devices, f)
+    try:
+        with open_locked(devices_path, 'w') as f:
+            json.dump(merged_devices, f)
+    except (FileNotFoundError, JSONDecodeError):  # pragma: no cover
+        logger.error("File Not Found : devices_path")
 
 
 def discover_devices(discovery_class=NetworkDiscovery):
