@@ -284,6 +284,9 @@ class PhilipsHueBridgeApiClient:
 
         return True
 
+    def get_scene(self):
+        return self._request(self.bridge_url + '/' + self.username + '/scenes', method="GET", payload={})
+
     @username_required
     def get_state(self):
         url = "{}/{}".format(self.bridge_url, self.username)
