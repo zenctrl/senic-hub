@@ -161,7 +161,7 @@ class ModifyNameSchema(MappingSchema):
     modified_name = SchemaNode(String(), validator=Length(min=1))
 
 
-@configured_nuimos.put(schema=ModifyNameSchema)
+@configured_nuimos.put(schema=ModifyNameSchema, validators=(colander_body_validator,))
 def modify_nuimo_name(request):  # pragma: no cover
     # TODO: Modify name of a particular nuimo
     mac_address = request.validated['mac_address'].replace('-', ':')
