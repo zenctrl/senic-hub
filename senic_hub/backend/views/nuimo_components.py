@@ -413,7 +413,7 @@ def test_ring_sonos(component_ip, hub_ip):   # pragma: no cover
         return False
     # The lighttpd server is configured to listen on port 81
     # Resource files are stored in /www/pages/resources .. (on the hub)
-    port = 81
+    port = 80
     uri_test = "http://" + hub_ip + ":" + str(port) + "/resources/swblaster.mp3"
     try:
         test_speaker.volume = 10
