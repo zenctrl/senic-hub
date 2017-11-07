@@ -313,21 +313,6 @@ class Component(ThreadComponent):
                 self.station_id_1 = {'id': list(self.scenes.keys())[rands[0]], 'name': self.scenes[list(self.scenes.keys())[rands[0]]]['name']} if self.station_id_1 is None else self.station_id_1
                 self.station_id_2 = {'id': list(self.scenes.keys())[rands[1]], 'name': self.scenes[list(self.scenes.keys())[rands[1]]]['name']} if self.station_id_2 is None else self.station_id_2
                 self.station_id_3 = {'id': list(self.scenes.keys())[rands[2]], 'name': self.scenes[list(self.scenes.keys())[rands[2]]]['name']} if self.station_id_3 is None else self.station_id_3
-        else:
-            try:
-                self.scenes = self.bridge.get_scene()
-            except ConnectionResetError:
-                logger.error("Hue Bridge not reachable, handle exception")
-            except socket.error as socketerror:
-                logger.error("Socket Error: ", socketerror)
-
-            self.scenes = {k: v for k, v in self.scenes.items() if v['lights'] == light_ids}
-            logger.info(self.scenes)
-            if self.scenes == {}:
-                self.station_id_1 = None
-                self.station_id_2 = None
-                self.station_id_3 = None
-
         # seed random nr generator (used to get random color value)
         seed()
 
