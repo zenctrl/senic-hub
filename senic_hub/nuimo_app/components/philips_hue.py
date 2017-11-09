@@ -252,7 +252,6 @@ class Component(ThreadComponent):
         super().__init__(component_config)
 
         self.bridge = Bridge(component_config['ip_address'], component_config['username'])
-
         self.id = component_config['id']
         self.group_num = None
         self.scenes = {}
@@ -296,6 +295,7 @@ class Component(ThreadComponent):
         if not any((self.station_id_1, self.station_id_2, self.station_id_3)):
             try:
                 self.scenes = self.bridge.get_scene()
+                logger.info(self.scenes)
             except ConnectionResetError:
                 logger.error("Hue Bridge not reachable, handle exception")
             except socket.error as socketerror:
@@ -305,14 +305,14 @@ class Component(ThreadComponent):
 
             if len(list(self.scenes.keys())) >= 3:
                 for scene in self.scenes:
-                    self.station_id_1 = {'id': scene, 'name': self.scenes[scene]['name']} if self.scenes[scene]['name'] == 'Nightlight' else self.station_id_1
-                    self.station_id_2 = {'id': scene, 'name': self.scenes[scene]['name']} if self.scenes[scene]['name'] == 'Relax' else self.station_id_2
-                    self.station_id_3 = {'id': scene, 'name': self.scenes[scene]['name']} if self.scenes[scene]['name'] == 'Concentrate' else self.station_id_3
+                    self.station_id_1 = {'name': self.scenes[scene]['name']} if self.scenes[scene]['name'] == 'Nightlight' else self.station_id_1
+                    self.station_id_2 = {'name': self.scenes[scene]['name']} if self.scenes[scene]['name'] == 'Relax' else self.station_id_2
+                    self.station_id_3 = {'name': self.scenes[scene]['name']} if self.scenes[scene]['name'] == 'Concentrate' else self.station_id_3
 
                 rands = sample(range(0, len(list(self.scenes.keys()))), 3)
-                self.station_id_1 = {'id': list(self.scenes.keys())[rands[0]], 'name': self.scenes[list(self.scenes.keys())[rands[0]]]['name']} if self.station_id_1 is None else self.station_id_1
-                self.station_id_2 = {'id': list(self.scenes.keys())[rands[1]], 'name': self.scenes[list(self.scenes.keys())[rands[1]]]['name']} if self.station_id_2 is None else self.station_id_2
-                self.station_id_3 = {'id': list(self.scenes.keys())[rands[2]], 'name': self.scenes[list(self.scenes.keys())[rands[2]]]['name']} if self.station_id_3 is None else self.station_id_3
+                self.station_id_1 = {'name': self.scenes[list(self.scenes.keys())[rands[0]]]['name']} if self.station_id_1 is None else self.station_id_1
+                self.station_id_2 = {'name': self.scenes[list(self.scenes.keys())[rands[1]]]['name']} if self.station_id_2 is None else self.station_id_2
+                self.station_id_3 = {'name': self.scenes[list(self.scenes.keys())[rands[2]]]['name']} if self.station_id_3 is None else self.station_id_3
         # seed random nr generator (used to get random color value)
         seed()
 
@@ -346,19 +346,19 @@ class Component(ThreadComponent):
     def on_longtouch_left(self):
         logger.debug("on_longtouch_left()")
         if self.station_id_1 is not None:
-            self.bridge.activate_scene('0', self.station_id_1['id'])
+            self.set_station(1, self.station_id_1['name'])
             self.nuimo.display_matrix(matrices.STATION1)
 
     def on_longtouch_bottom(self):
         logger.debug("on_longtouch_bottom()")
         if self.station_id_2 is not None:
-            self.bridge.activate_scene('0', self.station_id_2['id'])
+            self.set_station(2, self.station_id_2['name'])
             self.nuimo.display_matrix(matrices.STATION2)
 
     def on_longtouch_right(self):
         logger.debug("on_longtouch_right()")
         if self.station_id_3 is not None:
-            self.bridge.activate_scene('0', self.station_id_3['id'])
+            self.set_station(3, self.station_id_3['name'])
             self.nuimo.display_matrix(matrices.STATION3)
 
     def set_light_attributes(self, **attributes):
@@ -422,6 +422,27 @@ class Component(ThreadComponent):
                 prev_sync_time = now
 
             sleep(0.05)
+
+    def set_station(self, station_number, station_name):
+        scenes = self.bridge.get_scene()
+        scenes_list = []
+        for scene in scenes:
+            scenes[scene]['id'] = scene
+            scenes_list.append(scenes[scene])
+
+        active_ids = []
+        for s in scenes_list:
+            if s['name'] == station_name:
+                active_ids.append(s['id'])
+        if station_number == 1:
+            for id in active_ids:
+                self.bridge.activate_scene('0', id)
+        elif station_number == 2:
+            for id in active_ids:
+                self.bridge.activate_scene('0', id)
+        elif station_number == 3:
+            for id in active_ids:
+                self.bridge.activate_scene('0', id)
 
     def send_updates(self):
         delta = round(clamp_value(self.delta_range.stop * self.delta, self.delta_range))

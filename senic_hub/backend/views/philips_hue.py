@@ -70,14 +70,14 @@ def get_nuimo_philips_hue_favorites(request):
 
             if len(list(scenes.keys())) >= 3:
                 for scene in scenes:
-                    component['station1'] = station1 = {'id': scene, 'name': scenes[scene]['name']} if scenes[scene]['name'] == 'Nightlight' else station1
-                    component['station2'] = station2 = {'id': scene, 'name': scenes[scene]['name']} if scenes[scene]['name'] == 'Relax' else station2
-                    component['station3'] = station3 = {'id': scene, 'name': scenes[scene]['name']} if scenes[scene]['name'] == 'Concentrate' else station3
+                    component['station1'] = station1 = {'name': scenes[scene]['name']} if scenes[scene]['name'] == 'Nightlight' else station1
+                    component['station2'] = station2 = {'name': scenes[scene]['name']} if scenes[scene]['name'] == 'Relax' else station2
+                    component['station3'] = station3 = {'name': scenes[scene]['name']} if scenes[scene]['name'] == 'Concentrate' else station3
 
                 rands = sample(range(0, len(list(scenes.keys()))), 3)
-                component['station1'] = station1 = {'id': list(scenes.keys())[rands[0]], 'name': scenes[list(scenes.keys())[rands[0]]]['name']} if station1 is None else station1
-                component['station2'] = station2 = {'id': list(scenes.keys())[rands[0]], 'name': scenes[list(scenes.keys())[rands[0]]]['name']} if station2 is None else station2
-                component['station3'] = station3 = {'id': list(scenes.keys())[rands[0]], 'name': scenes[list(scenes.keys())[rands[0]]]['name']} if station3 is None else station3
+                component['station1'] = station1 = {'name': scenes[list(scenes.keys())[rands[0]]]['name']} if station1 is None else station1
+                component['station2'] = station2 = {'name': scenes[list(scenes.keys())[rands[0]]]['name']} if station2 is None else station2
+                component['station3'] = station3 = {'name': scenes[list(scenes.keys())[rands[0]]]['name']} if station3 is None else station3
             f.seek(0)  # We want to overwrite the config file with the new configuration
             f.truncate()
             yaml.dump(config, f, default_flow_style=False)
@@ -102,6 +102,7 @@ def put_nuimo_philips_hue_favorite(request):
     component_id = request.matchdict['component_id']
     item = request.validated['item']
     number = request.validated['number']
+    logger.info(request)
 
     with open(nuimo_app_config_path, 'r+') as f:
         config = yaml.load(f)
@@ -165,5 +166,12 @@ def get_philips_hue_favorites(request):  # pragma: no cover,
     for scene in scenes:
         scenes[scene]['id'] = scene
         scenes_list.append(scenes[scene])
+
+    sc = []
+    for s in scenes_list:
+        sc.append(s['name'])
+
+    scenes_name_list = list(set(sc))
+    logger.info(scenes_name_list)
 
     return {'favorites': scenes_list}
