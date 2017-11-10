@@ -7,7 +7,7 @@ import yaml
 import phue
 from random import sample
 
-from colander import MappingSchema, SchemaNode, String, Int, Range
+from colander import MappingSchema, SchemaNode, String, Int, Range, Length
 from cornice.validators import colander_body_validator
 from .api_descriptions import descriptions as desc
 
@@ -71,8 +71,8 @@ def get_nuimo_philips_hue_favorites(request):
             if len(list(scenes.keys())) >= 3:
                 for scene in scenes:
                     component['station1'] = station1 = {'name': scenes[scene]['name']} if scenes[scene]['name'] == 'Nightlight' else station1
-                    component['station2'] = station2 = {'name': scenes[scene]['name']} if scenes[scene]['name'] == 'Relax' else station2
-                    component['station3'] = station3 = {'name': scenes[scene]['name']} if scenes[scene]['name'] == 'Concentrate' else station3
+                    component['station1'] = station2 = {'name': scenes[scene]['name']} if scenes[scene]['name'] == 'Relax' else station2
+                    component['station1'] = station3 = {'name': scenes[scene]['name']} if scenes[scene]['name'] == 'Concentrate' else station3
 
                 rands = sample(range(0, len(list(scenes.keys()))), 3)
                 component['station1'] = station1 = {'name': scenes[list(scenes.keys())[rands[0]]]['name']} if station1 is None else station1
@@ -85,14 +85,9 @@ def get_nuimo_philips_hue_favorites(request):
     return {'station1': station1, 'station2': station2, 'station3': station3}
 
 
-class itemSchema(MappingSchema):
-    id = SchemaNode(String())
-    name = SchemaNode(String())
-
-
 class PutPhueFavSchema(MappingSchema):
     number = SchemaNode(Int(), validator=Range(1, 3))
-    item = itemSchema()
+    name = SchemaNode(String(), validator=Length(min=1))
 
 
 @nuimo_philips_hue_favorites.put(schema=PutPhueFavSchema, validators=(colander_body_validator,))
@@ -100,8 +95,8 @@ def put_nuimo_philips_hue_favorite(request):
     nuimo_app_config_path = request.registry.settings['nuimo_app_config_path']
     mac_address = request.matchdict['mac_address'].replace('-', ':')
     component_id = request.matchdict['component_id']
-    item = request.validated['item']
-    number = request.validated['number']
+    station_name = request.validated['name']
+    station_number = request.validated['number']
     logger.info(request)
 
     with open(nuimo_app_config_path, 'r+') as f:
@@ -122,7 +117,8 @@ def put_nuimo_philips_hue_favorite(request):
         if component['type'] != 'philips_hue':
             return HTTPNotFound("No Philips Hue Component with such ID")
 
-        component['station' + str(number)] = item
+        station = {'name': station_name}
+        component['station' + str(station_number)] = station
 
         f.seek(0)  # We want to overwrite the config file with the new configuration
         f.truncate()
@@ -174,4 +170,8 @@ def get_philips_hue_favorites(request):  # pragma: no cover,
     scenes_name_list = list(set(sc))
     logger.info(scenes_name_list)
 
-    return {'favorites': scenes_list}
+    scene_response = {'favorites': []}
+    for s in scenes_name_list:
+        scene_response['favorites'].append({'name': s})
+
+    return scene_response

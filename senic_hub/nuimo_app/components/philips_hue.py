@@ -1,9 +1,8 @@
 import logging
 
 from pprint import pformat
-from random import random, seed, sample
 from time import sleep, time
-
+from random import random
 from phue import Bridge
 
 from . import ThreadComponent, clamp_value
@@ -308,13 +307,6 @@ class Component(ThreadComponent):
                     self.station_id_1 = {'name': self.scenes[scene]['name']} if self.scenes[scene]['name'] == 'Nightlight' else self.station_id_1
                     self.station_id_2 = {'name': self.scenes[scene]['name']} if self.scenes[scene]['name'] == 'Relax' else self.station_id_2
                     self.station_id_3 = {'name': self.scenes[scene]['name']} if self.scenes[scene]['name'] == 'Concentrate' else self.station_id_3
-
-                rands = sample(range(0, len(list(self.scenes.keys()))), 3)
-                self.station_id_1 = {'name': self.scenes[list(self.scenes.keys())[rands[0]]]['name']} if self.station_id_1 is None else self.station_id_1
-                self.station_id_2 = {'name': self.scenes[list(self.scenes.keys())[rands[1]]]['name']} if self.station_id_2 is None else self.station_id_2
-                self.station_id_3 = {'name': self.scenes[list(self.scenes.keys())[rands[2]]]['name']} if self.station_id_3 is None else self.station_id_3
-        # seed random nr generator (used to get random color value)
-        seed()
 
     def create_lights(self, light_ids):
         reachable_lights = None

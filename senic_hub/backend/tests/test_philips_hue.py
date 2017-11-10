@@ -28,15 +28,12 @@ def test_get_nuimo_philips_hue_favorites_returns_nuimo_favorites(nuimo_philips_h
 
     assert set(nuimo_favorites) == set({
         'station1': {
-            "id": "station1 id",
             "name": "station1 name"
         },
         'station2': {
-            "id": "station2 id",
             "name": "station2 name"
         },
         'station3': {
-            "id": "station3 id",
             "name": "station3 name"
         }
     })
@@ -57,47 +54,32 @@ def test_get_nuimo_philips_hue_favorites_for_wrong_component_type_returns_404(ro
 def test_put_nuimo_philips_hue_favorites(nuimo_philips_hue_favourl, browser, temporary_nuimo_app_config_file, settings):
     browser.put_json(nuimo_philips_hue_favourl, {
         "number": 1,
-        "item": {
-            "id": "station1 new id",
-            "name": "station1 new name"
-        }
+        "name": "station1 new name"
     }, status=200)
 
     with open(settings['nuimo_app_config_path'], 'r') as f:
         config = yaml.load(f)
 
     component = next(c for c in config['nuimos']['00:00:00:00:00:00']['components'] if c['id'] == 'ph2')
-    assert set(component['station1']) == set({
-        "id": "station1 new id",
-        "name": "station1 new name"
-    })
+    assert component['station1']['name'] == "station1 new name"
 
 
 def test_put_nuimo_philips_hue_favorites_for_invalid_component_returns_404(route_url, browser, temporary_nuimo_app_config_file, settings):
     browser.put_json(route_url('nuimo_philips_hue_favorites', mac_address='00:00:00:00:00:00'.replace(':', '-'), component_id='invalid-id'), {
         "number": 1,
-        "item": {
-            "id": "station1 new id",
-            "name": "station1 new name"
-        }
+        "name": "station1 new name"
     }, status=404)
 
 
 def test_put_nuimo_philips_hue_favorites_for_invalid_nuimo_returns_404(route_url, browser, temporary_nuimo_app_config_file, settings):
     browser.put_json(route_url('nuimo_philips_hue_favorites', mac_address='de:ad:be:ef:00:00'.replace(':', '-'), component_id='ph2'), {
         "number": 1,
-        "item": {
-            "id": "station1 new id",
-            "name": "station1 new name"
-        }
+        "name": "station1 new name"
     }, status=404)
 
 
 def test_put_nuimo_philips_hue_favorites_for_wrong_component_type_returns_404(route_url, browser, temporary_nuimo_app_config_file, settings):
     browser.put_json(route_url('nuimo_philips_hue_favorites', mac_address='00:00:00:00:00:00'.replace(':', '-'), component_id='s1'), {
         "number": 1,
-        "item": {
-            "id": "station1 new id",
-            "name": "station1 new name"
-        }
+        "name": "station1 new name"
     }, status=404)
