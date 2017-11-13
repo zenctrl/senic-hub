@@ -319,11 +319,6 @@ def get_test_response(request):
         except StopIteration:
             return HTTPNotFound("Component :" + component_id + "for Nuimo :" + mac_address + " ---> Not Found")
 
-        try:
-            next(d for d in iter(component['device_ids']) if d == device_id)
-        except StopIteration:
-            return HTTPNotFound("Device : " + device_id + " not found in the list ")
-
     component_type = component['type']
     component_ip = component['ip_address']
     component_username = component.get('username', None)  # Not all components have a username (like Sonos)

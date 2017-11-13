@@ -300,8 +300,4 @@ def test_get_component_of_unknown_nuimo_test_returns_404(route_url, browser, tem
 
 
 def test_get_invalid_component_test_returns_404(route_url, browser, temporary_nuimo_app_config_file, settings):
-    browser.get(route_url('nuimo_device_test', mac_address='00:00:00:00:00:00'.replace(':', '-'), component_id='invalid-id', device_id='ph2-light-5'), status=404)
-
-
-def test_get_invalid_device_test_returns_404(route_url, browser, temporary_nuimo_app_config_file, settings):
-    browser.get(route_url('nuimo_device_test', mac_address='00:00:00:00:00:00'.replace(':', '-'), component_id='ph2', device_id='invalid-id'), status=404)
+    browser.get(route_url('nuimo_device_test', mac_address='00:00:00:00:00:00'.replace(':', '-'), component_id='invalid-id-1', device_id='ph2-light-5'), status=404)
