@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 SUPPORTED_DEVICES = [
-    "bose_soundtouch",
+    # "bose_soundtouch",     # Removed unless supported
     "philips_hue",
     "sonos",
 ]
