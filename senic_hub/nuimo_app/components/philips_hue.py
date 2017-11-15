@@ -3,6 +3,8 @@ import logging
 from pprint import pformat
 from time import sleep, time
 from random import random
+from . import custom_phue_scenes as cps
+
 from phue import Bridge
 
 from . import ThreadComponent, clamp_value
@@ -246,6 +248,7 @@ mac_idx = 0
 
 class Component(ThreadComponent):
     MATRIX = matrices.LIGHT_BULB
+    TRANSITION_TIME = 2  # * 100 milliseconds
 
     def __init__(self, component_config):
         super().__init__(component_config)
@@ -254,7 +257,6 @@ class Component(ThreadComponent):
         self.id = component_config['id']
         self.group_num = None
         self.scenes = {}
-
         self.first = component_config['first']
 
         # TODO: Created groups are not deleted when a Nuimo is removed
@@ -281,10 +283,10 @@ class Component(ThreadComponent):
         self.delta = 0
 
         # Extract light IDs, they are stored with format `<bridgeID>-light-<lightID>`
-        light_ids = component_config['device_ids']
-        light_ids = [i.split('-light-')[1].strip() for i in light_ids]
+        self.light_ids = component_config['device_ids']
+        self.light_ids = [i.split('-light-')[1].strip() for i in self.light_ids]
 
-        self.lights = self.create_lights(light_ids)
+        self.lights = self.create_lights(self.light_ids)
         self.lights.update_state()
 
         self.station_id_1 = component_config.get('station1', None)
@@ -300,7 +302,7 @@ class Component(ThreadComponent):
             except socket.error as socketerror:
                 logger.error("Socket Error: ", socketerror)
 
-            self.scenes = {k: v for k, v in self.scenes.items() if v['lights'] == light_ids}
+            self.scenes = {k: v for k, v in self.scenes.items() if v['lights'] == self.light_ids}
 
             if len(list(self.scenes.keys())) >= 3:
                 for scene in self.scenes:
@@ -416,25 +418,11 @@ class Component(ThreadComponent):
             sleep(0.05)
 
     def set_station(self, station_number, station_name):
-        scenes = self.bridge.get_scene()
-        scenes_list = []
-        for scene in scenes:
-            scenes[scene]['id'] = scene
-            scenes_list.append(scenes[scene])
+        light_attr = cps.CUSTOM_SCENES['scenes'][station_name]['lightstates']
+        logger.info(self.light_ids)
 
-        active_ids = []
-        for s in scenes_list:
-            if s['name'] == station_name:
-                active_ids.append(s['id'])
-        if station_number == 1:
-            for id in active_ids:
-                self.bridge.activate_scene('0', id)
-        elif station_number == 2:
-            for id in active_ids:
-                self.bridge.activate_scene('0', id)
-        elif station_number == 3:
-            for id in active_ids:
-                self.bridge.activate_scene('0', id)
+        for l in self.light_ids:
+            self.bridge.set_light(int(l), light_attr, transitiontime=self.TRANSITION_TIME)
 
     def send_updates(self):
         delta = round(clamp_value(self.delta_range.stop * self.delta, self.delta_range))
