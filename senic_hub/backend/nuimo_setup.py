@@ -1,5 +1,6 @@
 import logging
 import nuimo
+import gatt
 import threading
 
 
@@ -9,6 +10,7 @@ logger = logging.getLogger(__name__)
 class NuimoSetup(nuimo.ControllerManagerListener, nuimo.ControllerListener):  # pragma: no cover
 
     def __init__(self, adapter_name):
+        self._gatt_manager = gatt.DeviceManager(adapter_name)
         self._manager = nuimo.ControllerManager(adapter_name)
         self._manager.listener = self
         self._is_running = False  # Prevents from considering D-Bus events if we aren't running
@@ -26,6 +28,8 @@ class NuimoSetup(nuimo.ControllerManagerListener, nuimo.ControllerListener):  # 
         :return: MAC address of connected Nuimo controller or `None` if none connected
         """
         logger.info("Discover and connect Nuimo controller with timeout = %f", timeout)
+        self._gatt_manager.remove_all_devices(skip_alias='Nuimo')
+
         self._manager.is_adapter_powered = True
         # If there's already a connected Nuimo, take it and don't run discovery
         for controller in self._manager.controllers():
