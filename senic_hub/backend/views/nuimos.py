@@ -206,7 +206,8 @@ def delete_nuimo(request):  # pragma: no cover,
         f.truncate()
         yaml.dump(config, f, default_flow_style=False)
 
-        supervisor.restart_program('nuimo_app')
+        if supervisor.program_status('nuimo_app') is 'RUNNING':
+            supervisor.restart_program('nuimo_app')
 
 
 # TODO: if required, due to performance issues, can be implemented in a separate endpoint

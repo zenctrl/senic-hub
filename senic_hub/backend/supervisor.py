@@ -21,6 +21,10 @@ def restart_program(name):
     start_program(name)
 
 
+def program_status(name):
+    return get_supervisor_rpc_client().getProcessInfo(name)['statename']
+
+
 def stop_program(name):
     try:
         get_supervisor_rpc_client().stopProcess(name)
