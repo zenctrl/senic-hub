@@ -296,7 +296,6 @@ class Component(ThreadComponent):
         if not any((self.station_id_1, self.station_id_2, self.station_id_3)):
             try:
                 self.scenes = self.bridge.get_scene()
-                logger.info(self.scenes)
             except ConnectionResetError:
                 logger.error("Hue Bridge not reachable, handle exception")
             except socket.error as socketerror:
@@ -360,7 +359,10 @@ class Component(ThreadComponent):
 
         if 'errors' in response:
             logger.error("Failed to set light attributes: %s", response['errors'])
-            self.nuimo.display_matrix(matrices.ERROR)
+            if response['errors'][0]['description'] == "parameter, bri, is not modifiable. Device is set to off.":
+                pass
+            else:
+                self.nuimo.display_matrix(matrices.ERROR)
             return
 
         if 'xy' in attributes:
