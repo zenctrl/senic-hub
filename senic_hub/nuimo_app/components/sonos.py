@@ -82,7 +82,10 @@ class Component(ThreadComponent):
 
                 if time() - self.last_request_time > self.EVENT_IDLE_INTERVAL:
                     logger.debug("renderingControl event: %s", pformat(event.variables))
-                    self.volume = int(event.variables['volume']['Master'])
+                    try:
+                        self.volume = int(event.variables['volume']['Master'])
+                    except:
+                        pass
             except Empty:
                 pass
 
@@ -97,7 +100,6 @@ class Component(ThreadComponent):
     def update_state(self):
         self.state = self.sonos_controller.get_current_transport_info()['current_transport_state']
         self.volume = self.sonos_controller.volume
-
         logger.debug("%s state: %s volume: %s", self.sonos_controller.ip_address, self.state, self.volume)
 
     def on_rotation(self, delta):
@@ -151,6 +153,8 @@ class Component(ThreadComponent):
     def play(self, show_matrix=True):
         try:
             self.sonos_controller.play()
+            self.sonos_controller.mute = False
+
             self.state = self.STATE_PLAYING
             if show_matrix:
                 self.nuimo.display_matrix(matrices.PLAY)
