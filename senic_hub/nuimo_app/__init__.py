@@ -144,7 +144,6 @@ class NuimoApp(NuimoControllerListener):
         logger.debug("self manager stop %s", self.controller.mac_address)
 
     def process_gesture_event(self, event):
-        ip_addr = None
         if event.gesture in self.GESTURES_TO_IGNORE:
             logger.debug("Ignoring gesture event: %s", event)
             return
@@ -172,13 +171,8 @@ class NuimoApp(NuimoControllerListener):
             return
 
         if self.active_component.ip_address is not None:
-            ip_addr = self.active_component.ip_address
-            if self.is_device_responsive(ip_addr) is True:
-                self.process_gesture(event.gesture, event.value)
-                return
-            else:
-                self.show_error_matrix()
-                return
+            self.process_gesture(event.gesture, event.value)
+            return
 
         # Process gestures for devices having no IP address in nuimo_app.cfg
         self.process_gesture_event(event.gesture, event.value)
@@ -308,11 +302,6 @@ class NuimoApp(NuimoControllerListener):
             if self.controller and self.controller.is_connected() is False and self.connection_failed is True:
                 logger.info("not Connected, retry a connection every 5 seconds")
                 self.controller.connect()
-
-    def is_device_responsive(self, host_ip):
-        param = "-c 1 -w 1"
-        status = (os.system("ping " + param + " " + host_ip) == 0)
-        return status
 
     def update_battery_level(self):
         self.bl.value = self.battery_level
