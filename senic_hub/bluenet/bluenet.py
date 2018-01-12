@@ -187,7 +187,10 @@ class BluenetDaemon(object):
             else:
                 logger.info("Wifi status changed: %s (%d)" % (status, nm_state))
 
-        def on_state_changed(nm_instance, nm_state, **kwargs):
+        def on_state_changed(nm_instance, nm_state=None, **kwargs):
+
+            if not nm_state:
+                nm_state = kwargs['state']
 
             if nm_state >= NetworkManager.NM_STATE_CONNECTED_GLOBAL:
                 new_status = WifiConnectionState.CONNECTED
