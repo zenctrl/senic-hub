@@ -48,14 +48,17 @@ def main(config):
     processes = {}
     # creating initial nuimo apps:
     update_from_config_file(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name)
-    logger.debug("ble_adapter_name = %s" % ble_adapter_name)
 
     if platform.system() == 'Linux':
         watch_config_thread = Thread(
             target=watch_config_changes,
+            name="watch_config_thread",
             args=(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name),
             daemon=True)
         watch_config_thread.start()
+        logger.info("Started watch_config_thread")
+        logger.debug("config_path = %s" % config_path)
+
     elif not queues:
         logger.error("No Nuimos configured and can't watch config for changes!")
 
@@ -95,6 +98,8 @@ def update_from_config_file(config_path, queues, nuimo_apps, processes, ha_api_u
         with open(config_path, 'r') as f:
             config = yaml.load(f)
 
+
+        logger.debug("Loading config file %s = %s" % (config_path, config)
         updated_nuimos = config['nuimos']
 
         # TODO: remove nuimos without restart nuimo_app code
