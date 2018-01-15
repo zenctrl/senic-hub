@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 @click.command(help="configuration file for the Nuimo app")
 @click.option('--config', '-c', required=True, type=click.Path(exists=True), help="app configuration file")
 def main(config):
-    log_format = '%(asctime)s %(levelname)-5.5s [%(name)s] %(message)s'
-    logging.basicConfig(level=logging.INFO, format=log_format)
+    log_format = '%(threadName)s %(asctime)s %(levelname)-5.5s [%(name)s] %(message)s'
+    logging.basicConfig(level=logging.DEBUG, format=log_format)
 
     # TODO: remove too verbose logging messages like this
     logger.info("--- Start ----")
@@ -34,11 +34,14 @@ def main(config):
     logging.getLogger("urllib3.connectionpool").setLevel(logging.CRITICAL)
 
     app = get_app(abspath(config), name='senic_hub')
+    logger.debug("app = %s" % app)
 
     config_path = app.registry.settings['nuimo_app_config_path']
+    logger.debug("config_path = %s" % config_path)
 
     ha_api_url = app.registry.settings['homeassistant_api_url']
     ble_adapter_name = app.registry.settings['bluetooth_adapter_name']
+    logger.debug("ble_adapter_name = %s" % ble_adapter_name)
 
     nuimo_apps = {}
     queues = {}
@@ -49,9 +52,13 @@ def main(config):
     if platform.system() == 'Linux':
         watch_config_thread = Thread(
             target=watch_config_changes,
+            name="watch_config_thread",
             args=(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name),
             daemon=True)
         watch_config_thread.start()
+        logger.info("Started watch_config_thread")
+        logger.debug("config_path = %s" % config_path)
+
     elif not queues:
         logger.error("No Nuimos configured and can't watch config for changes!")
 
@@ -91,6 +98,8 @@ def update_from_config_file(config_path, queues, nuimo_apps, processes, ha_api_u
         with open(config_path, 'r') as f:
             config = yaml.load(f)
 
+
+        logger.debug("Loading config file %s = %s" % (config_path, config))
         updated_nuimos = config['nuimos']
 
         # TODO: remove nuimos without restart nuimo_app code
