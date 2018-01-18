@@ -97,6 +97,7 @@ class NetwatchSupervisor(object):
             logger.debug("Waiting before leaving provisioning mode till setup app is disconnected...")
             time.sleep(5)
 
+        logger.info("Hub connected to the wifi")
         logger.debug("Normal mode: Stopping Bluenet and starting Nuimo App")
         try:
             stop_program('bluenet')
