@@ -98,7 +98,6 @@ def update_from_config_file(config_path, queues, nuimo_apps, processes, ha_api_u
         with open(config_path, 'r') as f:
             config = yaml.load(f)
 
-
         logger.debug("Loading config file %s = %s" % (config_path, config))
         updated_nuimos = config['nuimos']
 
