@@ -23,9 +23,19 @@ logger = logging.getLogger(__name__)
 
 @click.command(help="configuration file for the Nuimo app")
 @click.option('--config', '-c', required=True, type=click.Path(exists=True), help="app configuration file")
-def main(config):
-    log_format = '%(threadName)s %(asctime)s %(levelname)-5.5s [%(name)s] %(message)s'
-    logging.basicConfig(level=logging.DEBUG, format=log_format)
+@click.option('--verbose', '-v', count=True, help="Print info messages (-vv for debug messages)")
+def main(config, verbose):
+
+    log_format = '%(threadName)s %(levelname)-5.5s [%(name)s:%(lineno)d] \t %(message)s'
+
+    if verbose >= 2:
+        logging.basicConfig(level=logging.DEBUG, format=log_format)
+        logger.debug("Log level: DEBUG")
+    elif verbose >= 1:
+        logging.basicConfig(level=logging.INFO, format=log_format)
+        logger.info("Log level: INFO")
+    else:
+        logging.basicConfig(level=logging.WARNING, format=log_format)
 
     # TODO: remove too verbose logging messages like this
     logger.info("--- Start ----")
