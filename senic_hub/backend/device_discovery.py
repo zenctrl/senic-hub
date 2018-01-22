@@ -14,7 +14,7 @@ import requests
 
 from os.path import abspath
 from datetime import datetime, timedelta
-from pyramid.paster import get_app, setup_logging
+from pyramid.paster import get_app
 from requests.exceptions import ConnectionError
 from json.decoder import JSONDecodeError
 
@@ -41,9 +41,20 @@ class UnsupportedDeviceTypeException(Exception):
 
 @click.command(help='scan for devices in local network and store their description in a file')
 @click.option('--config', '-c', required=True, type=click.Path(exists=True), help='app configuration file')
-def command(config):  # pragma: no cover
+@click.option('--verbose', '-v', count=True, help="Print info messages (-vv for debug messages)")
+def command(config, verbose):  # pragma: no cover
     app = get_app(abspath(config), name='senic_hub')
-    setup_logging(config)
+
+    log_format = '%(threadName)s %(levelname)-5.5s [%(name)s:%(lineno)d] \t %(message)s'
+
+    if verbose >= 2:
+        logging.basicConfig(level=logging.DEBUG, format=log_format)
+    elif verbose >= 1:
+        logging.basicConfig(level=logging.INFO, format=log_format)
+    else:
+        logging.basicConfig(level=logging.WARNING, format=log_format)
+
+    logging.getLogger("urllib3.connectionpool").setLevel(logging.CRITICAL)
 
     devices_path = app.registry.settings['devices_path']
     scan_interval_seconds = int(app.registry.settings.get(
@@ -60,7 +71,7 @@ def command(config):  # pragma: no cover
         discover_and_merge_devices(devices_path, now)
 
         next_scan = now + timedelta(seconds=scan_interval_seconds)
-        logging.info("Next device discovery run scheduled for %s", next_scan)
+        logger.info("Next device discovery run scheduled for %s", next_scan)
         time.sleep(scan_interval_seconds)
 
 
@@ -70,7 +81,8 @@ def discover_and_merge_devices(devices_path, now):
     try:
         with open_locked(devices_path, 'r') as f:
             known_devices = json.load(f)
-    except (FileNotFoundError, JSONDecodeError):
+    except (FileNotFoundError, JSONDecodeError) as e:
+        logger.error(e)
         known_devices = []
 
     merged_devices = merge_devices(known_devices, discovered_devices, now)
@@ -271,6 +283,9 @@ class PhilipsHueBridgeApiClient:
         except ConnectionError:
             pass
 
+        logger.info(
+            "Trying to authenticate with Hue bridge: %s" % self.bridge_url
+        )
         return self.username
 
     def is_authenticated(self):
@@ -282,6 +297,9 @@ class PhilipsHueBridgeApiClient:
         except UnauthenticatedDeviceError:
             return False
 
+        logger.info(
+            "Authenticated with Hue bridge %s: " % self.bridge_url
+        )
         return True
 
     @username_required
