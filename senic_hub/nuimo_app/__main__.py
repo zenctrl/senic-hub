@@ -1,4 +1,5 @@
 import logging
+import logging.config
 import time
 import os
 import yaml
@@ -18,6 +19,12 @@ from pyramid.paster import get_app
 from . import NuimoApp
 
 
+if os.path.isfile('/etc/senic_hub.ini'):
+    logging.config.fileConfig(
+        '/etc/senic_hub.ini', disable_existing_loggers=False
+    )
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -26,16 +33,12 @@ logger = logging.getLogger(__name__)
 @click.option('--verbose', '-v', count=True, help="Print info messages (-vv for debug messages)")
 def main(config, verbose):
 
-    log_format = '%(threadName)s %(levelname)-5.5s [%(name)s:%(lineno)d] \t %(message)s'
-
     if verbose >= 2:
-        logging.basicConfig(level=logging.DEBUG, format=log_format)
-        logger.debug("Log level: DEBUG")
+        logger.setLevel(logging.DEBUG)
     elif verbose >= 1:
-        logging.basicConfig(level=logging.INFO, format=log_format)
-        logger.info("Log level: INFO")
+        logger.setLevel(logging.INFO)
     else:
-        logging.basicConfig(level=logging.WARNING, format=log_format)
+        logger.setLevel(logging.INFO)
 
     # TODO: remove too verbose logging messages like this
     logger.info("--- Start ----")

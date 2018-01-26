@@ -4,6 +4,8 @@ import click
 import dbus
 import dbus.mainloop.glib
 import logging
+import logging.config
+import os
 import time
 import xmlrpc.client
 
@@ -14,6 +16,13 @@ except ImportError:
     import gobject as GObject
 
 from .supervisor import start_program, stop_program
+
+
+if os.path.isfile('/etc/senic_hub.ini'):
+    logging.config.fileConfig(
+        'etc/senic_hub.ini', disable_existing_loggers=False
+    )
+
 
 logger = logging.getLogger(__name__)
 
@@ -31,13 +40,14 @@ def netwatch_cli(ctx, wlan):
 @click.option('--verbose', '-v', count=True, help="Print info messages (-vv for debug messages)")
 @click.pass_context
 def netwatch_start(ctx, verbose):
-    log_format = '%(asctime)s %(levelname)-5.5s [%(name)s] %(message)s'
+
     if verbose >= 2:
-        logging.basicConfig(level=logging.DEBUG, format=log_format)
+        logger.setLevel(logging.DEBUG)
     elif verbose >= 1:
-        logging.basicConfig(level=logging.INFO, format=log_format)
+        logger.setLevel(logging.INFO)
     else:
-        logging.basicConfig(level=logging.WARNING, format=log_format)
+        logger.setLevel(logging.INFO)
+
     ctx.obj.run()
 
 

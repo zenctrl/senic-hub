@@ -1,6 +1,8 @@
 import functools
 import json
 import logging
+import logging.config
+import os
 import signal
 import sys
 import time
@@ -20,6 +22,12 @@ from json.decoder import JSONDecodeError
 
 from .lockfile import open_locked
 from .network_discovery import NetworkDiscovery
+
+
+if os.path.isfile('/etc/senic_hub.ini'):  # pragma: no cover
+    logging.config.fileConfig(
+        '/etc/senic_hub.ini', disable_existing_loggers=False
+    )
 
 
 logger = logging.getLogger(__name__)
@@ -45,14 +53,12 @@ class UnsupportedDeviceTypeException(Exception):
 def command(config, verbose):  # pragma: no cover
     app = get_app(abspath(config), name='senic_hub')
 
-    log_format = '%(threadName)s %(levelname)-5.5s [%(name)s:%(lineno)d] \t %(message)s'
-
     if verbose >= 2:
-        logging.basicConfig(level=logging.DEBUG, format=log_format)
+        logger.setLevel(logging.DEBUG)
     elif verbose >= 1:
-        logging.basicConfig(level=logging.INFO, format=log_format)
+        logger.setLevel(logging.INFO)
     else:
-        logging.basicConfig(level=logging.WARNING, format=log_format)
+        logger.setLevel(logging.INFO)
 
     logging.getLogger("urllib3.connectionpool").setLevel(logging.CRITICAL)
 
