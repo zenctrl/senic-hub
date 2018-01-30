@@ -20,7 +20,7 @@ from .supervisor import start_program, stop_program
 
 if os.path.isfile('/etc/senic_hub.ini'):
     logging.config.fileConfig(
-        'etc/senic_hub.ini', disable_existing_loggers=False
+        '/etc/senic_hub.ini', disable_existing_loggers=False
     )
 
 
