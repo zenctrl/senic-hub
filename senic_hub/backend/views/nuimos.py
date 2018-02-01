@@ -60,6 +60,13 @@ check_for_update_service = Service(
 
 @connected_nuimos.post(validators=(colander_body_validator,))
 def bootstrap_nuimos(request):  # pragma: no cover,
+
+    # [Alan] Backup for production to stop on a single nuimo
+    output_filepath = request.registry.settings['nuimo_mac_address_filepath']
+    if os.path.isfile(output_filepath):
+        logger.info("You can't add another nuimo in this version")
+        return get_connected_nuimos(request)
+
     adapter_name = request.registry.settings.get('bluetooth_adapter_name', 'hci0')
     required_mac_address = request.registry.settings.get('nuimo_mac_address')
     setup = nuimo_setup.NuimoSetup(adapter_name=adapter_name)
