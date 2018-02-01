@@ -29,39 +29,39 @@ def wifi():  # pragma: no cover
     bluenet = '/etc/NetworkManager/system-connections/bluenet'
 
     if not os.path.isfile(bluenet):
-        return('')
+        return ''
 
     for line in open(bluenet):
         if 'ssid=' in line:
             ssid = re.split('ssid=', line)[1].strip()
-            return(ssid)
+            return ssid
         else:
-            return('')
+            return ''
 
 
 def os_version():  # pragma: no cover
     osrelease = '/etc/os-release'
 
     if not os.path.isfile(osrelease):
-        return('')
+        return ''
 
     for line in open(osrelease):
         if 'VERSION=' in line:
             version = re.split('VERSION=', line)[1].strip().replace('"', '')
-            return(version)
+            return version
         else:
-            return('')
+            return ''
 
 
 def hardware_identifier():  # pragma: no cover
     cpuinfo = '/proc/cpuinfo'
 
     if not os.path.isfile(cpuinfo):
-        return('')
+        return ''
 
     for line in open(cpuinfo):
         if 'Serial' in line:
             serial = re.split(':\s*', line)[1].strip().replace('02c00081', '')
-            return(serial)
+            return serial
         else:
-            return('')
+            return ''
