@@ -1,10 +1,10 @@
-from os.path import exists
-
 from cornice.service import Service
-from pkg_resources import get_distribution
-
 from ..config import path, get_logger
 from .api_descriptions import descriptions as desc
+
+import re
+import subprocess
+import os.path
 
 log = get_logger(__name__)
 
@@ -20,18 +20,40 @@ app_info = Service(
 @app_info.get()
 def get_app_info(request):
     return dict(
-        version=get_distribution('senic_hub').version,
-        onboarded=is_hub_onboarded(request)
+        wifi=wifi(),
+        os_version=os_version(),
+        hardware_identifier=hardware_identifier(),
     )
 
+def wifi():
+    bluenet = '/etc/NetworkManager/system-connections/bluenet'
 
-def is_hub_onboarded(request):
-    nuimo_app_config_path = request.registry.settings['nuimo_app_config_path']
-    devices_path = request.registry.settings['devices_path']
-    homeassistant_config_path = request.registry.settings['homeassistant_config_path']
-    nuimo_mac_address_filepath = request.registry.settings['nuimo_mac_address_filepath']
+    if not os.path.isfile(bluenet):
+        return('')
 
-    return (exists(nuimo_app_config_path) and
-            exists(devices_path) and
-            exists(homeassistant_config_path) and
-            exists(nuimo_mac_address_filepath))
+    for line in open(bluenet):
+        if 'ssid=' in line:
+            ssid = re.split('ssid=', line)[1].strip()
+            return(ssid)
+
+def os_version():
+    osrelease = '/etc/os-release'
+
+    if not os.path.isfile(osrelease):
+        return('')
+
+    for line in open(osrelease):
+        if 'VERSION=' in line:
+            version = re.split('VERSION=', line)[1].strip().replace('"', '')
+            return(version)
+
+def hardware_identifier():
+    cpuinfo = '/proc/cpuinfo'
+
+    if not os.path.isfile(cpuinfo):
+        return('')
+
+    for line in open(cpuinfo):
+        if 'Serial' in line:
+            serial = re.split(':\s*', line)[1].strip().replace('02c00081', '')
+            return(serial)
