@@ -127,6 +127,12 @@ def get_configured_nuimos(request):  # pragma: no cover,
     except FileNotFoundError as e:
         logger.error(e)
 
+#   [Alan] 'nuimo' in this context represents all the devices
+#     controlled by a pyisical nuimo + the state of that nuimo.
+#     Example with single nuimo:
+#    (Epdb) nuimos
+#    [{'mac_address': 'e0:88:72:c4:49:c2', 'name': 'My Nuimo', 'is_connected': True, 'components': [{'id': '69d965ea-1978-4db4-8b3e-0b63742ed31d', 'is_reachable': True, 'room_name': 'Devs 1', 'type': 'sonos', 'device_ids': ['7828ca17171e01400'], 'ip_address': '10.10.10.114', 'name': '10.10.10.114 - Sonos One'}], 'battery_level': 100}]
+
     return {'nuimos': nuimos}
 
 prev_battery_level = {}

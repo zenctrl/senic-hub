@@ -102,6 +102,10 @@ def phue_bridge_config(bridge):
 def generate_nuimo_app_configuration(nuimo_mac_address, devices):
     components = [create_component(d) for d in devices if d["authenticated"]]
 
+#    What are components?
+#    (Epdb) components
+#    [{'type': 'sonos', 'name': '10.10.10.114 - Sonos One', 'ip_address': '10.10.10.114', 'id': 'a6367f28-9363-445e-ab07-dd69f54f51ca', 'device_ids': ['7828ca17171e01400']}]
+
     config = {'nuimos': {}}
     config['nuimos'][nuimo_mac_address] = {
         'name': 'My Nuimo',

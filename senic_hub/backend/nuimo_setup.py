@@ -32,6 +32,10 @@ class NuimoSetup(nuimo.ControllerManagerListener, nuimo.ControllerListener):  # 
 
         self._manager.is_adapter_powered = True
         # If there's already a connected Nuimo, take it and don't run discovery
+
+        # [ALAN] The self._manager.controllers() can return a list of
+        # controllers even after factory reset.
+        # That could be some kind of bluetooth memory mechanism to utilize?
         for controller in self._manager.controllers():
             if controller.is_connected():
                 logger.info("Already connected controller %s, looking for another one", controller.mac_address)
@@ -45,6 +49,8 @@ class NuimoSetup(nuimo.ControllerManagerListener, nuimo.ControllerListener):  # 
         self._manager.start_discovery()
         # Start D-Bus event loop. This call is blocking until the loop gets stopped.
         # Will be stopped when a controller was connected (see below).
+        # [ALAN] It's in the self._manager.run() that the physical nuimo 
+        # shows the checked sign
         self._manager.run()
         self._is_running = False
         logger.debug("Stopped")
