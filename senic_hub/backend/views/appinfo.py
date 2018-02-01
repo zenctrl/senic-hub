@@ -3,7 +3,6 @@ from ..config import path, get_logger
 from .api_descriptions import descriptions as desc
 
 import re
-import subprocess
 import os.path
 
 log = get_logger(__name__)
@@ -25,7 +24,8 @@ def get_app_info(request):
         hardware_identifier=hardware_identifier(),
     )
 
-def wifi():
+
+def wifi():  # pragma: no cover
     bluenet = '/etc/NetworkManager/system-connections/bluenet'
 
     if not os.path.isfile(bluenet):
@@ -35,8 +35,11 @@ def wifi():
         if 'ssid=' in line:
             ssid = re.split('ssid=', line)[1].strip()
             return(ssid)
+        else:
+            return('')
 
-def os_version():
+
+def os_version():  # pragma: no cover
     osrelease = '/etc/os-release'
 
     if not os.path.isfile(osrelease):
@@ -46,8 +49,11 @@ def os_version():
         if 'VERSION=' in line:
             version = re.split('VERSION=', line)[1].strip().replace('"', '')
             return(version)
+        else:
+            return('')
 
-def hardware_identifier():
+
+def hardware_identifier():  # pragma: no cover
     cpuinfo = '/proc/cpuinfo'
 
     if not os.path.isfile(cpuinfo):
@@ -57,3 +63,5 @@ def hardware_identifier():
         if 'Serial' in line:
             serial = re.split(':\s*', line)[1].strip().replace('02c00081', '')
             return(serial)
+        else:
+            return('')
