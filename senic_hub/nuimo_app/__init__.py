@@ -120,6 +120,7 @@ class NuimoApp(NuimoControllerListener):
 
         self.manager = ControllerManager(self.ble_adapter_name)
         self.manager.is_adapter_powered = True
+        logger.debug("Powering on BT adapter")
 
         self.controller = Controller(self.mac_address, self.manager)
         self.controller.listener = self

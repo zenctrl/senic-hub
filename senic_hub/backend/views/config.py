@@ -8,7 +8,9 @@ from ..supervisor import stop_program
 from .api_descriptions import descriptions as desc
 from cornice.validators import colander_body_validator
 import subprocess
+import logging
 
+logger = logging.getLogger(__name__)
 
 configuration_service = Service(
     name='configuration',
@@ -22,6 +24,7 @@ configuration_service = Service(
 @configuration_service.post(validators=(colander_body_validator,))
 def post_configuration(request):
 
+    logger.info("Stopping device discovery")
     stop_program('device_discovery')
 
     create_configuration_files_and_restart_apps(request.registry.settings)
