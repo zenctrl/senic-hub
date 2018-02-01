@@ -19,7 +19,6 @@ import os.path
 
 
 def create_configuration_files_and_restart_apps(settings):
-    # generate homeassistant config & restart supervisor app
     try:
         with open(settings['devices_path'], 'r') as f:
             devices = json.load(f)
@@ -57,7 +56,6 @@ def create_configuration_files_and_restart_apps(settings):
             logger.debug("Writing %s into %s" % (config, nuimo_app_config_file_path))
             yaml.dump(config, f, default_flow_style=False)
 
-    supervisor.restart_program('nuimo_app')
 
 
 def generate_hass_configuration(devices):

@@ -114,14 +114,6 @@ class NetwatchSupervisor(object):
         except xmlrpc.client.Fault as e:
             logger.warning("Error while stopping Bluenet: %s" % str(e))
 
-        try:
-            start_program('nuimo_app')
-        except xmlrpc.client.Fault as e:
-            if e.faultCode == 60:
-                logger.debug("nuimo_app is already running")
-                pass
-            else:
-                logger.warning("Error while starting Nuimo App: %s" % str(e))
 
     def _switch_to_provisioning_mode(self):
         logger.debug("Provisioning mode:  Stopping Nuimo App and starting Bluenet")

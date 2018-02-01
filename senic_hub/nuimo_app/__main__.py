@@ -60,6 +60,23 @@ def main(config, verbose):
     queues = {}
     processes = {}
     # creating initial nuimo apps:
+
+    # [Alan] nuimo_app can't progress unless this file it there.
+    # A poor man's waiting loop
+    # This implies
+    # autostart=true
+    # autorestart=true
+    # in supervisor conf for nuimo_app.conf
+    tmp_counter = 0
+    logger.info("Waiting for %s to be created" % config_path)
+    while not os.path.exists(config_path):
+        if tmp_counter == 10:
+            logger.info("Waiting for %s to be created" % config_path)
+            tmp_counter = -1
+        time.sleep(1)
+        tmp_counter += 1
+
+    ha_api_url = None
     update_from_config_file(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name)
 
     if platform.system() == 'Linux':
