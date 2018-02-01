@@ -33,18 +33,21 @@ logger = logging.getLogger(__name__)
 @click.option('--verbose', '-v', count=True, help="Print info messages (-vv for debug messages)")
 def main(config, verbose):
 
+    log_format = '%(processName)s  %(threadName)s %(levelname)-5.5s [%(name)s:%(lineno)d] \t %(message)s'
+
     if verbose >= 2:
-        logger.setLevel(logging.DEBUG)
+        logging.basicConfig(level=logging.DEBUG, format=log_format)
     elif verbose >= 1:
-        logger.setLevel(logging.INFO)
+        logging.basicConfig(level=logging.INFO, format=log_format)
     else:
-        logger.setLevel(logging.INFO)
+        logging.basicConfig(level=logging.WARNING, format=log_format)
 
     # TODO: remove too verbose logging messages like this
     logger.info("--- Start ----")
 
     # urllib3 logger is very verbose so we hush it down
     logging.getLogger("urllib3.connectionpool").setLevel(logging.CRITICAL)
+    logging.getLogger("soco").setLevel(logging.WARNING)
 
     app = get_app(abspath(config), name='senic_hub')
     logger.debug("app = %s" % app)
@@ -101,7 +104,18 @@ def main(config, verbose):
             ipc_queue = Queue()
             queues[mac_addr] = ipc_queue
             nuimo_apps[mac_addr] = components
-            processes[mac_addr] = Process(target=app.start, args=(ipc_queue,))
+            # [Alan] For each nuimo a separate process is spawned
+            # This is required because this NuimoApp instance is executed
+            # in its own process (because gatt-python doesn't handle multiple
+            # devices in a single thread correctly) and it needs to be notified
+            # of changes and when to quit
+
+            processes[mac_addr] = Process(name="nuimo-%s" % mac_addr,
+                                          target=app.start,
+                                          args=(ipc_queue,),
+                                          daemon=True)
+            logger.debug("Starting nuimo BT control process %s"
+                         % processes[mac_addr].name)
             processes[mac_addr].start()
 
     except FileNotFoundError as e:
