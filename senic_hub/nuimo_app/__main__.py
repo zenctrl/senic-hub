@@ -3,6 +3,7 @@ import logging.config
 import time
 import os
 import yaml
+import configparser
 
 from os.path import abspath
 from threading import Thread
@@ -14,7 +15,6 @@ import platform
 if platform.system() == 'Linux':
     import pyinotify
 
-from pyramid.paster import get_app
 
 from . import NuimoApp
 
@@ -49,20 +49,17 @@ def main(config, verbose):
     logging.getLogger("urllib3.connectionpool").setLevel(logging.CRITICAL)
     logging.getLogger("soco").setLevel(logging.WARNING)
 
-    app = get_app(abspath(config), name='senic_hub')
-    logger.debug("app = %s" % app)
 
-    config_path = app.registry.settings['nuimo_app_config_path']
-    logger.debug("config_path = %s" % config_path)
+    config_parser = configparser.ConfigParser()
+    config_parser.read(config)
 
-    ha_api_url = app.registry.settings['homeassistant_api_url']
-    ble_adapter_name = app.registry.settings['bluetooth_adapter_name']
-    logger.debug("ble_adapter_name = %s" % ble_adapter_name)
+    # Here config_path references nuimo_app.cfg
+    config_path = config_parser['app:senic_hub']['nuimo_app_config_path']
+    ble_adapter_name = config_parser['app:senic_hub']['bluetooth_adapter_name']
 
     nuimo_apps = {}
     queues = {}
     processes = {}
-    # creating initial nuimo apps:
 
     # [Alan] nuimo_app can't progress unless this file it there.
     # A poor man's waiting loop
