@@ -56,6 +56,9 @@ def create_configuration_files_and_restart_apps(settings):
             logger.debug("Writing %s into %s" % (config, nuimo_app_config_file_path))
             yaml.dump(config, f, default_flow_style=False)
 
+    # ALAN Netwatch isn't starting nuimo_app anymore
+    if supervisor.program_status('nuimo_app') != 'RUNNING':
+        supervisor.start_program('nuimo_app')
 
 
 def generate_hass_configuration(devices):
