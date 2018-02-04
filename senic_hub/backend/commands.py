@@ -16,13 +16,31 @@ COMPONENT_FOR_TYPE = {
 logger = logging.getLogger(__name__)
 
 import os.path
+import os
+import time
 
 
 def create_configuration_files_and_restart_apps(settings):
+    """ create_configuration_files_and_restart_apps
+
+    This is tightly coupled with the existence of
+    /data/senic-hub/devices.json
+    which probably somethin device_discovery creates
+    """
+
+    logger.info("Creating config files that map Nuimo to Sonos/Hue")
+
+    while not os.path.exists(settings['devices_path']):
+        logger.info("Waiting for Sonos or Hue to be detected")
+        logger.debug("Can't continue until %s has been created" %
+                     settings['devices_path'])
+        time.sleep(5)
+
     try:
         with open(settings['devices_path'], 'r') as f:
             devices = json.load(f)
-    except (FileNotFoundError, json.decoder.JSONDecodeError) as e:
+    except (json.decoder.JSONDecodeError) as e:
+        logger.error("%s doesn't contain a readable json" % settings['devices_path'])
         logger.error(e)
 
     nuimo_mac_address_file_path = settings['nuimo_mac_address_filepath']
