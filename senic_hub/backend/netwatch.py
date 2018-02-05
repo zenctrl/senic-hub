@@ -46,7 +46,7 @@ def netwatch_start(ctx, verbose):
     elif verbose >= 1:
         logger.setLevel(logging.INFO)
     else:
-        logger.setLevel(logging.INFO)
+        logger.setLevel(logging.WARNING)
 
     ctx.obj.run()
 

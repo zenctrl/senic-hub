@@ -58,7 +58,7 @@ def command(config, verbose):  # pragma: no cover
     elif verbose >= 1:
         logger.setLevel(logging.INFO)
     else:
-        logger.setLevel(logging.INFO)
+        logger.setLevel(logging.WARNING)
 
     logging.getLogger("urllib3.connectionpool").setLevel(logging.CRITICAL)
 
