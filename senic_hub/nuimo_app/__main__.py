@@ -96,14 +96,13 @@ def main(config, verbose):
 
     logger.info("Detected %s for %s..." % (ip, adapter_name))
 
-    ha_api_url = None
-    update_from_config_file(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name)
+    update_from_config_file(config_path, queues, nuimo_apps, processes, ble_adapter_name)
 
     logger.info("Watching %s for changes" % config_path)
     watch_config_thread = Thread(
         target=watch_config_changes,
         name="watch_config_thread",
-        args=(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name),
+        args=(config_path, queues, nuimo_apps, processes, ble_adapter_name),
         daemon=True)
     logger.debug("Started thread %s" % watch_config_thread.name)
     watch_config_thread.start()
@@ -113,7 +112,7 @@ def main(config, verbose):
             config = yaml.load(f)
         for mac_addr in config['nuimos']:
             components = config['nuimos'][mac_addr].get('components', [])
-            app = NuimoApp(ha_api_url, ble_adapter_name, mac_addr, components)
+            app = NuimoApp(ble_adapter_name, mac_addr, components)
             ipc_queue = Queue()
             queues[mac_addr] = ipc_queue
             nuimo_apps[mac_addr] = components
@@ -150,7 +149,7 @@ def main(config, verbose):
     logger.info("Stopped all nuimo apps")
 
 
-def update_from_config_file(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name):
+def update_from_config_file(config_path, queues, nuimo_apps, processes, ble_adapter_name):
     try:
         with open(config_path, 'r') as f:
             config = yaml.load(f)
@@ -173,14 +172,14 @@ def update_from_config_file(config_path, queues, nuimo_apps, processes, ha_api_u
         logger.error(e)
 
 
-def watch_config_changes(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name):
+def watch_config_changes(config_path, queues, nuimo_apps, processes, ble_adapter_name):
 
     class ModificationHandler(pyinotify.ProcessEvent):
 
         def process_IN_CLOSE_WRITE(self, event):
             if hasattr(event, 'pathname') and event.pathname == config_path:
                 logger.info("Config file was changed, reloading it...")
-                update_from_config_file(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name)
+                update_from_config_file(config_path, queues, nuimo_apps, processes, ble_adapter_name)
 
     handler = ModificationHandler()
     watch_manager = pyinotify.WatchManager()

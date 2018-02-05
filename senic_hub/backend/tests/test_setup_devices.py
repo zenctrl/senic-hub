@@ -105,7 +105,10 @@ def auth_url(route_url):
 
 @fixture
 def phue_config_path(settings):
-    return os.path.join(settings["homeassistant_data_path"], "ph1.conf")
+    senic_hub_data_path = settings.get(
+        "senic_hub_data_path", "/data/senic-hub"
+    )
+    return os.path.join(senic_hub_data_path, "ph1.conf")
 
 
 @fixture

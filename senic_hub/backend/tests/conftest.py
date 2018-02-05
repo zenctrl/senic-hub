@@ -33,8 +33,7 @@ def settings():
         'nuimo_app_config_path': asset_path('nuimo_app.yaml'),
         'config_ini_path': '/no/such/file.ini',
         'joined_wifi_path': asset_path('joined_wifi.json'),
-        'homeassistant_data_path': asset_path(),
-        'homeassistant_config_path': asset_path('configuration.yaml'),
+        'senic_hub_data_path': asset_path(),
         'hub_ip_address': '0.0.0.0'
     }
 

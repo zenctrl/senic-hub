@@ -73,7 +73,7 @@ class NuimoApp(NuimoControllerListener):
         Gesture.BUTTON_RELEASE,
     ]
 
-    def __init__(self, ha_api_url, ble_adapter_name, mac_address, components):
+    def __init__(self, ble_adapter_name, mac_address, components):
         super().__init__()
 
         logger.debug("Initialising NuimoApp for %s" % mac_address)

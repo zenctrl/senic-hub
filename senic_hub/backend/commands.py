@@ -48,6 +48,7 @@ def create_nuimo_app_cfg(settings):
         logger.error("%s doesn't contain a readable json" % settings['devices_path'])
         logger.error(e)
 
+    # generate nuimo app config & restart supervisor app
     nuimo_mac_address_file_path = settings['nuimo_mac_address_filepath']
     with open(nuimo_mac_address_file_path, 'r') as f:
         nuimo_mac_address = f.readline().strip()

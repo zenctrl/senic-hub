@@ -78,8 +78,10 @@ def devices_authenticate_view(request):
     if not device["authenticationRequired"]:
         return {"id": device_id, "authenticated": True}
 
-    homeassistant_data_path = request.registry.settings["homeassistant_data_path"]
-    phue_bridge_config = os.path.join(homeassistant_data_path, '{}.conf'.format(device["id"]))
+    senic_hub_data_path = request.registry.settings.get(
+        "senic_hub_data_path", "/data/senic-hub"
+    )
+    phue_bridge_config = os.path.join(senic_hub_data_path, '{}.conf'.format(device["id"]))
     config = read_json(phue_bridge_config, {})
     username = config.get(device["ip"], {}).get("username")
 
@@ -126,8 +128,10 @@ def devices_details_view(request):
     if device['type'] != 'philips_hue':
         return {}
 
-    homeassistant_data_path = request.registry.settings["homeassistant_data_path"]
-    phue_bridge_config = os.path.join(homeassistant_data_path, '{}.conf'.format(device["id"]))
+    senic_hub_data_path = request.registry.settings.get(
+        "senic_hub_data_path", "/data/senic-hub"
+    )
+    phue_bridge_config = os.path.join(senic_hub_data_path, '{}.conf'.format(device["id"]))
     config = read_json(phue_bridge_config, {})
     username = config.get(device["ip"], {}).get("username")
 
