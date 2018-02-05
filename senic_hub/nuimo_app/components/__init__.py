@@ -62,4 +62,3 @@ class ThreadComponent(BaseComponent):
         Concrete components must implement run() method
         """
         raise NotImplementedError()
-
