@@ -52,7 +52,7 @@ def create_configuration_files_and_restart_apps(settings):
 
             components = [create_component(d) for d in devices if d["authenticated"]]
             config['nuimos'][nuimo_mac_address] = {
-                'name': 'My Nuimo ' + str(len(config['nuimos']) + 1),
+                'name': 'My NUIMO ' + str(len(config['nuimos']) + 1),
                 'components': components,
             }
             f.seek(0)  # We want to overwrite the config file with the new configuration
@@ -108,7 +108,7 @@ def generate_nuimo_app_configuration(nuimo_mac_address, devices):
 
     config = {'nuimos': {}}
     config['nuimos'][nuimo_mac_address] = {
-        'name': 'My Nuimo',
+        'name': 'My NUIMO',
         'components': components,
     }
     return config
