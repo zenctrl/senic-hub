@@ -20,13 +20,6 @@ nuimos:
         station3:
           name: "station3 name"
 
-      - id: soundtouch1
-        type: media_player
-        device_ids:
-          - soundtouch1
-        ha_entity_id: media_player.bose_soundtouch1
-        name: "Bose Soundtouch Media Player"
-
       - id: s1
         type: sonos
         device_ids:

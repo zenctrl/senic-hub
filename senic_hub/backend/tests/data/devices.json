@@ -18,11 +18,11 @@
     "extra": {
       "username": "light_bringer",
       "lights": {
-        "5": {"name": " Light 5"},
-        "7": {"name": " Light 7"},
-        "4": {"name": " Light 4"},
-        "8": {"name": " Light 8"},
-        "6": {"name": " Light 6"}
+	"5": {"name": " Light 5"},
+	"7": {"name": " Light 7"},
+	"4": {"name": " Light 4"},
+	"8": {"name": " Light 8"},
+	"6": {"name": " Light 6"}
       }
     }
   },
@@ -34,16 +34,5 @@
     "authenticationRequired": false,
     "authenticated": true,
     "extra": {}
-  },
-  {
-    "id": "soundtouch1",
-    "type": "soundtouch",
-    "name": "Bose Soundtouch Media Player",
-    "ip": "127.0.0.1",
-    "port": "8090",
-    "authenticationRequired": false,
-    "authenticated": true,
-    "extra": {},
-    "ha_entity_id": "media_player.soundtouch"
   }
 ]

@@ -34,7 +34,6 @@ logger = logging.getLogger(__name__)
 
 
 SUPPORTED_DEVICES = [
-    # "bose_soundtouch",     # Removed unless supported
     "philips_hue",
     "sonos",
 ]
@@ -95,7 +94,6 @@ def discover_and_merge_devices(devices_path, now):
 
     add_authentication_status(merged_devices)
     add_device_details(merged_devices)
-    add_homeassistant_entity_ids(merged_devices)
 
     try:
         with open_locked(devices_path, 'w') as f:
@@ -182,19 +180,6 @@ def add_device_details(devices):
         bridge['extra']['lights'] = api.get_lights()
 
 
-def add_homeassistant_entity_ids(devices):
-    for device in devices:
-        if device["type"] == "philips_hue":
-            device["ha_entity_id"] = "light.senic_hub"  # TODO: Generate proper HA entity ID
-        elif device["type"] == "soundtouch":
-            device["ha_entity_id"] = "media_player.bose_soundtouch"
-        elif device["type"] == "sonos":
-            room_name = device["extra"]["roomName"]
-            device["ha_entity_id"] = "media_player.{}".format(room_name.replace(" ", "_").lower())
-        else:
-            raise UnsupportedDeviceTypeException()
-
-
 class UnauthenticatedDeviceError(Exception):
     message = "Device not authenticated..."
 
@@ -213,8 +198,6 @@ class PhilipsHueBridgeError(IntEnum):
 def get_device_description(device_type, device_info):
     if device_type == "philips_hue":
         device_class = PhilipsHueBridgeDeviceDescription
-    elif device_type == "bose_soundtouch":
-        device_class = SoundtouchDeviceDescription
     else:
         device_class = SonosSpeakerDeviceDescription
 
@@ -317,24 +300,6 @@ class PhilipsHueBridgeApiClient:
     def get_lights(self):
         url = "{}/{}/lights".format(self.bridge_url, self.username)
         return self._request(url)
-
-
-class SoundtouchDeviceDescription:
-    def __init__(self, device_info):
-        self.ip_address, self.port = device_info
-        self.name = "Bose Soundtouch"
-
-    @property
-    def device_description(self):
-        return {
-            "id": self.ip_address.replace('.', '_'),
-            "type": "soundtouch",
-            "ip": self.ip_address,
-            "port": self.port,
-            "name": self.name,
-            "authenticationRequired": False,
-            "extra": {},
-        }
 
 
 class SonosSpeakerDeviceDescription:

@@ -78,17 +78,6 @@ def test_device_list_contains_devices(browser, url):
             "authenticated": True,
             "extra": {},
         },
-        {
-            "id": "soundtouch1",
-            "type": "soundtouch",
-            "name": "Bose Soundtouch Media Player",
-            "ip": "127.0.0.1",
-            "port": "8090",
-            "authenticationRequired": False,
-            "authenticated": True,
-            "extra": {},
-            "ha_entity_id": "media_player.soundtouch"
-        }
     ]
 
 

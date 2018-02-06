@@ -9,9 +9,9 @@ from .views.nuimo_components import create_component
 
 COMPONENT_FOR_TYPE = {
     'sonos': 'sonos',
-    'soundtouch': 'media_player',
     'philips_hue': 'philips_hue',
 }
+
 
 logger = logging.getLogger(__name__)
 
@@ -82,39 +82,6 @@ def create_nuimo_app_cfg(settings):
 
     if supervisor.program_status('nuimo_app') != 'RUNNING':
         supervisor.start_program('nuimo_app')
-
-
-def generate_hass_configuration(devices):
-    hass_configuration = {
-        'api': '',
-        'websocket_api': '',
-    }
-
-    media_players = []
-
-    sonos_speakers = [d for d in devices if d['type'] == 'sonos']
-    for speaker in sonos_speakers:
-        media_players.append({
-            'platform': 'sonos',
-            'host': speaker['ip'],
-        })
-
-    soundtouch_speakers = [d for d in devices if d['type'] == 'soundtouch']
-    for speaker in soundtouch_speakers:
-        media_players.append({
-            'platform': 'soundtouch',
-            'host': speaker['ip'],
-            'port': speaker['port'],
-        })
-
-    if media_players:
-        hass_configuration['media_player'] = media_players
-
-    phue_bridges = [d for d in devices if d['type'] == 'philips_hue' and d['authenticated']]
-    if phue_bridges:
-        hass_configuration['light'] = [phue_bridge_config(b) for b in phue_bridges]
-
-    return hass_configuration
 
 
 def phue_bridge_config(bridge):

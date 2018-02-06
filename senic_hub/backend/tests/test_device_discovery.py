@@ -8,13 +8,11 @@ import responses
 from senic_hub.backend.device_discovery import (
     add_authentication_status,
     add_device_details,
-    add_homeassistant_entity_ids,
     discover_devices,
     discover_and_merge_devices,
     get_device_description,
     merge_devices,
     PhilipsHueBridgeApiClient,
-    UnsupportedDeviceTypeException,
     UpstreamError,
 )
 from senic_hub.backend.testing import temp_asset_path
@@ -23,15 +21,13 @@ from senic_hub.backend.testing import temp_asset_path
 @patch('senic_hub.backend.device_discovery.discover_devices')
 @patch('senic_hub.backend.device_discovery.add_authentication_status')
 @patch('senic_hub.backend.device_discovery.add_device_details')
-@patch('senic_hub.backend.device_discovery.add_homeassistant_entity_ids')
 def test_devices_are_discovered_and_merged_with_existing_devices_file(
-        add_homeassistant_entity_ids_mock, add_device_details_mock,
+        add_device_details_mock,
         add_authentication_status_mock, discover_devices_mock):
     discover_devices_mock.return_value = []
     with temp_asset_path('devices.json') as devices_path:
         discover_and_merge_devices(devices_path, datetime.utcnow())
     # TODO: `assert_called (_once)` only available on the mock with Python 3.6, we use Python 3.5
-    # add_homeassistant_entity_ids_mock.assert_called_once()
     # add_device_details_mock.assert_called_once()
     # add_authentication_status_mock.assert_called_once()
     # discover_devices_mock.assert_called_once()
@@ -40,15 +36,13 @@ def test_devices_are_discovered_and_merged_with_existing_devices_file(
 @patch('senic_hub.backend.device_discovery.discover_devices')
 @patch('senic_hub.backend.device_discovery.add_authentication_status')
 @patch('senic_hub.backend.device_discovery.add_device_details')
-@patch('senic_hub.backend.device_discovery.add_homeassistant_entity_ids')
 def test_devices_are_discovered_and_merged_with_empty_devices_file(
-        add_homeassistant_entity_ids_mock, add_device_details_mock,
+        add_device_details_mock,
         add_authentication_status_mock, discover_devices_mock):
     discover_devices_mock.return_value = []
     with temp_asset_path('empty') as devices_path:
         discover_and_merge_devices(devices_path, datetime.utcnow())
     # TODO: `assert_called_once` only available with Python 3.6, we use Python 3.5
-    # add_homeassistant_entity_ids_mock.assert_called_once()
     # add_device_details_mock.assert_called_once()
     # add_authentication_status_mock.assert_called_once()
     # discover_devices_mock.assert_called_once()
@@ -91,30 +85,6 @@ def test_add_device_details_adds_philips_hue_lights(get_lights_mock):
     assert(device['extra']['lights'] == expected)
 
 
-def test_add_homeassistant_entity_ids_adds_philips_hue():
-    device = dict(type='philips_hue')
-    add_homeassistant_entity_ids([device])
-    assert(device['ha_entity_id'] == 'light.senic_hub')
-
-
-def test_add_homeassistant_entity_ids_adds_soundtouch():
-    device = dict(type='soundtouch')
-    add_homeassistant_entity_ids([device])
-    assert(device['ha_entity_id'] == 'media_player.bose_soundtouch')
-
-
-def test_add_homeassistant_entity_ids_adds_sonos():
-    device = dict(type='sonos', extra=dict(roomName='foo'))
-    add_homeassistant_entity_ids([device])
-    assert(device['ha_entity_id'] == 'media_player.foo')
-
-
-def test_add_homeassistant_entity_ids_throws_exception_for_unknown_device_type():
-    device = dict(type='no-such-type')
-    with raises(UnsupportedDeviceTypeException):
-        add_homeassistant_entity_ids([device])
-
-
 @fixture
 def philips_hue_bridge_device_info():
     return ("", "http://127.0.0.1:80/")
@@ -123,11 +93,6 @@ def philips_hue_bridge_device_info():
 @fixture
 def sonos_device_info():
     return "192.168.1.42"
-
-
-@fixture
-def soundtouch_device_info():
-    return ("192.168.1.23", 8090)
 
 
 @responses.activate
@@ -166,20 +131,6 @@ def test_get_device_description_of_sonos_speaker(sonos_device_info, sonos_speake
         },
     }
     assert get_device_description("sonos", sonos_device_info) == expected
-
-
-@responses.activate
-def test_get_device_description_of_soundtouch_speaker(soundtouch_device_info):
-    expected = {
-        "id": "192_168_1_23",
-        "type": "soundtouch",
-        "ip": "192.168.1.23",
-        "port": 8090,
-        "authenticationRequired": False,
-        "name": "Bose Soundtouch",
-        "extra": {},
-    }
-    assert get_device_description("bose_soundtouch", soundtouch_device_info) == expected
 
 
 @responses.activate
