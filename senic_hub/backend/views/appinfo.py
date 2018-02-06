@@ -35,8 +35,8 @@ def wifi():  # pragma: no cover
         if 'ssid=' in line:
             ssid = re.split('ssid=', line)[1].strip()
             return ssid
-        else:
-            return ''
+
+    return ''
 
 
 def os_version():  # pragma: no cover
@@ -49,8 +49,8 @@ def os_version():  # pragma: no cover
         if 'VERSION=' in line:
             version = re.split('VERSION=', line)[1].strip().replace('"', '')
             return version
-        else:
-            return ''
+
+    return ''
 
 
 def hardware_identifier():  # pragma: no cover
@@ -63,5 +63,5 @@ def hardware_identifier():  # pragma: no cover
         if 'Serial' in line:
             serial = re.split(':\s*', line)[1].strip().replace('02c00081', '')
             return serial
-        else:
-            return ''
+
+    return ''
