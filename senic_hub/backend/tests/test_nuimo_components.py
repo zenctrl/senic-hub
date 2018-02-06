@@ -38,12 +38,6 @@ def test_nuimo_components_returns_components(url, browser):
             'name': "Philips Hue Bridge 2"
         },
         {
-            'id': 'soundtouch1',
-            'type': 'media_player',
-            'device_ids': ['soundtouch1'],
-            'name': "Bose Soundtouch Media Player"
-        },
-        {
             'id': 's1',
             'type': 'sonos',
             'device_ids': ['s1'],
@@ -79,7 +73,7 @@ def test_add_component_adds_to_app_config(url, browser, temporary_nuimo_app_conf
         config = yaml.load(f)
 
     components = config['nuimos']['00:00:00:00:00:00']['components']
-    assert len(components) == 4
+    assert len(components) == 3
     added_component = components[len(components) - 1]
     assert 'id' in added_component
     assert added_component['device_ids'] == ['s1']
@@ -135,20 +129,21 @@ def test_create_philips_hue_component():
     }
 
 
-def test_create_soundtouch_component():
+def test_create_sonos_component():
     device = {
-        'id': 'soundtouch1',
-        'type': 'soundtouch',
-        'name': "Bose Soundtouch Media Player",
-        'ha_entity_id': 'media_player.bose_soundtouch',
+        'id': 'sonos1',
+        'type': 'sonos',
+        'name': 'test sonos',
+        'ip': '127.0.0.1',
+        'extra': {}
     }
     component = create_component(device)
     assert component == {
         'id': component['id'],
-        'device_ids': ['soundtouch1'],
-        'type': 'media_player',
-        'name': "Bose Soundtouch Media Player",
-        'ha_entity_id': 'media_player.bose_soundtouch',
+        'device_ids': ['sonos1'],
+        'type': 'sonos',
+        'name': 'test sonos',
+        'ip_address': '127.0.0.1',
     }
 
 
@@ -194,7 +189,7 @@ def test_delete_component_returns_200(component_url, browser, temporary_nuimo_ap
         config = yaml.load(f)
 
     components = config['nuimos']['00:00:00:00:00:00']['components']
-    assert len(components) == 2
+    assert len(components) == 1
     for component in config['nuimos']['00:00:00:00:00:00']['components']:
         assert component_id is not component['id']
 
