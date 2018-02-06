@@ -22,9 +22,6 @@ import soco
 logger = getLogger(__name__)
 
 
-HOME_ASSISTANT_COMPONENT_TYPES = {'light', 'media_player'}
-
-
 nuimo_components_service = Service(
     name='nuimo_components',
     path=service_path('nuimos/{mac_address:[a-z0-9\-]+}/components'),
@@ -151,7 +148,6 @@ def create_component(device):
     """
     COMPONENT_FOR_TYPE = {
         'sonos': 'sonos',
-        'soundtouch': 'media_player',
         'philips_hue': 'philips_hue',
     }
     component_type = COMPONENT_FOR_TYPE[device['type']]
@@ -161,15 +157,17 @@ def create_component(device):
         'type': component_type,
         'name': device['name']
     }
-    if component_type in ['philips_hue', 'sonos']:
+
+    if component_type == 'sonos':
         component['ip_address'] = device['ip']
+
     if component_type == 'philips_hue':
+        component['ip_address'] = device['ip']
         component['username'] = device['extra']['username']
         light_ids = sorted(list(device['extra']['lights']))
         light_ids = ['%s-light-%s' % (device['id'], i) for i in light_ids]
         component['device_ids'] = light_ids
-    if component_type in HOME_ASSISTANT_COMPONENT_TYPES:
-        component['ha_entity_id'] = device['ha_entity_id']
+
     return component
 
 
