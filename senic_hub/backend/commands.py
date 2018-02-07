@@ -16,13 +16,36 @@ COMPONENT_FOR_TYPE = {
 logger = logging.getLogger(__name__)
 
 import os.path
+import os
+import time
 
 
-def create_configuration_files_and_restart_apps(settings):
+def create_nuimo_app_cfg(settings):
+    """
+    Creates nuimo_app.cfg a hard dependency for nuimo_app
+
+    When there is no wifi present, netwatch kills the nuimo_app.
+    This methog responsible for the initial starting of the nuimo_app
+    once the hub got wifi connection the first time.
+    This happens during the hub onboarding.
+
+    Once the hub has been onboarded, the nuimo_app is started
+    by default by supervisor.
+    """
+
+    logger.info("Creating config files that map Nuimo to Sonos/Hue")
+
+    while not os.path.exists(settings['devices_path']):
+        logger.info("Waiting for Sonos or Hue to be detected")
+        logger.debug("Can't continue until %s has been created" %
+                     settings['devices_path'])
+        time.sleep(5)
+
     try:
         with open(settings['devices_path'], 'r') as f:
             devices = json.load(f)
-    except (FileNotFoundError, json.decoder.JSONDecodeError) as e:
+    except (json.decoder.JSONDecodeError) as e:
+        logger.error("%s doesn't contain a readable json" % settings['devices_path'])
         logger.error(e)
 
     nuimo_mac_address_file_path = settings['nuimo_mac_address_filepath']
@@ -56,7 +79,6 @@ def create_configuration_files_and_restart_apps(settings):
             logger.debug("Writing %s into %s" % (config, nuimo_app_config_file_path))
             yaml.dump(config, f, default_flow_style=False)
 
-    # ALAN Netwatch isn't starting nuimo_app anymore
     if supervisor.program_status('nuimo_app') != 'RUNNING':
         supervisor.start_program('nuimo_app')
 
@@ -104,10 +126,6 @@ def phue_bridge_config(bridge):
 
 def generate_nuimo_app_configuration(nuimo_mac_address, devices):
     components = [create_component(d) for d in devices if d["authenticated"]]
-
-#    What are components?
-#    (Epdb) components
-#    [{'type': 'sonos', 'name': '10.10.10.114 - Sonos One', 'ip_address': '10.10.10.114', 'id': 'a6367f28-9363-445e-ab07-dd69f54f51ca', 'device_ids': ['7828ca17171e01400']}]
 
     config = {'nuimos': {}}
     config['nuimos'][nuimo_mac_address] = {
