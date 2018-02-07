@@ -137,6 +137,23 @@ class NuimoApp(NuimoControllerListener):
         self.manager.is_adapter_powered = True
         logger.debug("Powering on BT adapter")
 
+        devices_known_to_bt_module = [device.mac_address for device in self.manager.devices()]
+        if self.mac_address not in devices_known_to_bt_module:
+            # The Nuimo needs to had been discovered by the bt module
+            # at some point before we can do:
+            #    self.controller = Controller(self.mac_address, self.manager)
+            #
+            # and expect it to connect succesfully. If it isn't present 
+            # discovery needs to be redone until the Nuimo reapears.
+            logger.debug("%s not in discovered devices of the bt module. Starting discovery" % self.mac_address)
+            self.manager.start_discovery()
+            while self.mac_address not in devices_known_to_bt_module:
+                time.sleep(3)
+                devices_known_to_bt_module = [device.mac_address for device in self.manager.devices()]
+                logger.debug("Still haven't found %s" % self.mac_address)
+            logger.debug("Found it. Stopping discovery")
+            self.manager.stop_discovery()
+
         self.controller = Controller(self.mac_address, self.manager)
         self.controller.listener = self
         self.set_active_component()
