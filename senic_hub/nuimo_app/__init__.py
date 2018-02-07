@@ -2,6 +2,7 @@ import logging
 
 from importlib import import_module
 from threading import Thread
+import time
 
 import ctypes
 import mmap
@@ -37,6 +38,7 @@ class NuimoControllerListener(ControllerListener):
         mac = self.controller.mac_address
         self.connection_failed = True
         logger.critical("Connection failed %s: %s", mac, error)
+        logger.critical("Trying to reconnect to %s", mac)
         self.controller.connect()
 
     def disconnect_succeeded(self):
@@ -74,10 +76,12 @@ class NuimoApp(NuimoControllerListener):
     def __init__(self, ha_api_url, ble_adapter_name, mac_address, components):
         super().__init__()
 
+        logger.debug("Initialising NuimoApp for %s" % mac_address)
         self.components = []
         self.active_component = None
         component_instances = get_component_instances(components, mac_address)
         self.set_components(component_instances)
+        logger.info("Components associated with this Nuimo: %s" % components)
 
         self.manager = None
         self.ble_adapter_name = ble_adapter_name
@@ -114,11 +118,22 @@ class NuimoApp(NuimoControllerListener):
             self.set_active_component()
 
     def start(self, ipc_queue):
-        ipc_thread = Thread(target=self.listen_to_ipc_queue, args=(ipc_queue,), daemon=True)
+
+        logger.debug("Started a dedicated nuimo control process for %s" %
+                     self.mac_address)
+
+        ipc_thread = Thread(target=self.listen_to_ipc_queue,
+                            args=(ipc_queue,),
+                            name="ipc_thread",
+                            daemon=True)
         ipc_thread.start()
 
         connection_thread = Thread(target=self.check_nuimo_connection, daemon=True)
         connection_thread.start()
+        logger.debug("Using adapter (self.ble_adapter_name): %s" % self.ble_adapter_name)
+        import subprocess
+        output = subprocess.check_output("hciconfig")
+        logger.debug("Adapter (from hciconfig): %s " % str(output.split()[0]))
 
         self.manager = ControllerManager(self.ble_adapter_name)
         self.manager.is_adapter_powered = True
@@ -287,6 +302,9 @@ class NuimoApp(NuimoControllerListener):
         doesn't handle multiple devices in a single thread correctly) and it needs to be notified of changes
         and when to quit.
         """
+
+        logger.debug("Started the ipc_queue listener")
+
         while True:
             msg = ipc_queue.get()
             if msg['method'] == 'set_components':
