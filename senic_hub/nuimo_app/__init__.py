@@ -128,8 +128,6 @@ class NuimoApp(NuimoControllerListener):
                             daemon=True)
         ipc_thread.start()
 
-        connection_thread = Thread(target=self.check_nuimo_connection, daemon=True)
-        connection_thread.start()
         logger.debug("Using adapter (self.ble_adapter_name): %s" % self.ble_adapter_name)
         import subprocess
         output = subprocess.check_output("hciconfig")
@@ -316,13 +314,6 @@ class NuimoApp(NuimoControllerListener):
                 logger.info("IPC stop() received %s", self.controller.mac_address)
                 self.stop()
                 return
-
-    def check_nuimo_connection(self):
-        while True:
-            time.sleep(5)
-            if self.controller and self.controller.is_connected() is False and self.connection_failed is True:
-                logger.info("not Connected, retry a connection every 5 seconds")
-                self.controller.connect()
 
     def update_battery_level(self):
         self.bl.value = self.battery_level
