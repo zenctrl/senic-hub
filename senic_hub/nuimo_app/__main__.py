@@ -82,9 +82,22 @@ def main(config, verbose):
         time.sleep(1)
         tmp_counter += 1
 
+    # nuimo_app can't progress unless a network connection is present
+    adapter_name = "wlan0"
+    logger.info("Checking there is an ip for %s..." % adapter_name)
+    while True:
+        try:
+            ip = get_ip_address(adapter_name)
+        except IOError:
+            logger.info("No ip detected for %s. Waiting..." % adapter_name)
+            time.sleep(5)
+            continue
+        break
+
+    logger.info("Detected %s for %s..." % (ip, adapter_name))
+
     ha_api_url = None
     update_from_config_file(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name)
-
 
     logger.info("Watching %s for changes" % config_path)
     watch_config_thread = Thread(
@@ -178,6 +191,20 @@ def watch_config_changes(config_path, queues, nuimo_apps, processes, ha_api_url,
     logger.info("Listening to changes of: %s", config_path)
     notifier.loop()
     logger.info("Stopped listening to changes of: %s", config_path)
+
+
+import socket
+import fcntl
+import struct
+
+
+def get_ip_address(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915,  # SIOCGIFADDR
+        struct.pack('256s', bytes(ifname[:15], 'utf-8'))
+    )[20:24])
 
 
 if __name__ == "__main__":
