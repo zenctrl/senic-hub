@@ -18,6 +18,9 @@ if platform.system() == 'Linux':
 
 from . import NuimoApp
 
+import multiprocessing_logging
+multiprocessing_logging.install_mp_handler()
+
 
 if os.path.isfile('/etc/senic_hub.ini'):
     logging.config.fileConfig(

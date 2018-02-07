@@ -12,7 +12,9 @@ from nuimo import (Controller, ControllerListener, ControllerManager, Gesture, L
 
 from . import matrices
 
-import time
+import multiprocessing_logging
+multiprocessing_logging.install_mp_handler()
+
 
 logger = logging.getLogger(__name__)
 
