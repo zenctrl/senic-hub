@@ -60,6 +60,13 @@ check_for_update_service = Service(
 
 @connected_nuimos.post(validators=(colander_body_validator,))
 def bootstrap_nuimos(request):  # pragma: no cover,
+
+    # [Alan] Backup for production to stop on a single nuimo
+    output_filepath = request.registry.settings['nuimo_mac_address_filepath']
+    if os.path.isfile(output_filepath):
+        logger.info("You can't add another nuimo in this version")
+        return get_connected_nuimos(request)
+
     adapter_name = request.registry.settings.get('bluetooth_adapter_name', 'hci0')
     required_mac_address = request.registry.settings.get('nuimo_mac_address')
     setup = nuimo_setup.NuimoSetup(adapter_name=adapter_name)
@@ -119,6 +126,12 @@ def get_configured_nuimos(request):  # pragma: no cover,
 
     except FileNotFoundError as e:
         logger.error(e)
+
+#   [Alan] 'nuimo' in this context represents all the devices
+#     controlled by a pyisical nuimo + the state of that nuimo.
+#     Example with single nuimo:
+#    (Epdb) nuimos
+#    [{'mac_address': 'e0:88:72:c4:49:c2', 'name': 'My Nuimo', 'is_connected': True, 'components': [{'id': '69d965ea-1978-4db4-8b3e-0b63742ed31d', 'is_reachable': True, 'room_name': 'Devs 1', 'type': 'sonos', 'device_ids': ['7828ca17171e01400'], 'ip_address': '10.10.10.114', 'name': '10.10.10.114 - Sonos One'}], 'battery_level': 100}]
 
     return {'nuimos': nuimos}
 

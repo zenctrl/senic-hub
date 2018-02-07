@@ -40,10 +40,13 @@ class ThreadComponent(BaseComponent):
     def __init__(self, component_config):
         super().__init__(component_config)
         self.thread = None
+        self.component_name = component_config['name']
 
     def start(self):
         super().start()
-        self.thread = Thread(target=self._run)
+        self.thread = Thread(target=self._run,
+                             name=self.component_name,
+                             daemon=True)
         self.thread.start()
 
     def _run(self):

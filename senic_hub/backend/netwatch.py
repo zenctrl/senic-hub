@@ -4,6 +4,8 @@ import click
 import dbus
 import dbus.mainloop.glib
 import logging
+import logging.config
+import os
 import time
 import xmlrpc.client
 
@@ -14,6 +16,13 @@ except ImportError:
     import gobject as GObject
 
 from .supervisor import start_program, stop_program
+
+
+if os.path.isfile('/etc/senic_hub.ini'):
+    logging.config.fileConfig(
+        '/etc/senic_hub.ini', disable_existing_loggers=False
+    )
+
 
 logger = logging.getLogger(__name__)
 
@@ -31,13 +40,14 @@ def netwatch_cli(ctx, wlan):
 @click.option('--verbose', '-v', count=True, help="Print info messages (-vv for debug messages)")
 @click.pass_context
 def netwatch_start(ctx, verbose):
-    log_format = '%(asctime)s %(levelname)-5.5s [%(name)s] %(message)s'
+
     if verbose >= 2:
-        logging.basicConfig(level=logging.DEBUG, format=log_format)
+        logger.setLevel(logging.DEBUG)
     elif verbose >= 1:
-        logging.basicConfig(level=logging.INFO, format=log_format)
+        logger.setLevel(logging.INFO)
     else:
-        logging.basicConfig(level=logging.WARNING, format=log_format)
+        logger.setLevel(logging.WARNING)
+
     ctx.obj.run()
 
 
@@ -97,20 +107,13 @@ class NetwatchSupervisor(object):
             logger.debug("Waiting before leaving provisioning mode till setup app is disconnected...")
             time.sleep(5)
 
+        logger.info("Hub connected to the wifi")
         logger.debug("Normal mode: Stopping Bluenet and starting Nuimo App")
         try:
             stop_program('bluenet')
         except xmlrpc.client.Fault as e:
             logger.warning("Error while stopping Bluenet: %s" % str(e))
 
-        try:
-            start_program('nuimo_app')
-        except xmlrpc.client.Fault as e:
-            if e.faultCode == 60:
-                logger.debug("nuimo_app is already running")
-                pass
-            else:
-                logger.warning("Error while starting Nuimo App: %s" % str(e))
 
     def _switch_to_provisioning_mode(self):
         logger.debug("Provisioning mode:  Stopping Nuimo App and starting Bluenet")

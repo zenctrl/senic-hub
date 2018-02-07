@@ -100,7 +100,7 @@ setup(
         [console_scripts]
         netwatch = senic_hub.backend.netwatch:netwatch_cli
         bluenet = senic_hub.bluenet.bluenet:bluenet_cli
-        create_configurations = senic_hub.backend.commands:create_configuration_files_and_restart_apps
+        create_configurations = senic_hub.backend.commands:create_nuimo_app_cfg
         device_discovery = senic_hub.backend.device_discovery:command
         nuimo_app = senic_hub.nuimo_app.__main__:main
     """,

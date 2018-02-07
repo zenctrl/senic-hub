@@ -131,6 +131,7 @@ class AvailableNetworksCharacteristic(Characteristic):
         return string_to_dbus_array(self._ssid_last_sent)
 
     def _on_start_notifying(self):
+        logger.info("Remote device is connected")
         logger.info("Start notifying about available networks")
         self._ssids_sent = []
         self._start_send_ssids()

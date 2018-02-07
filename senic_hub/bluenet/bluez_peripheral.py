@@ -84,6 +84,7 @@ class Peripheral(object):
         self._disconnect_all()
         self._register()
         logger.info("--- Mainloop started ---")
+        logger.info("Hub is ready for onboarding")
         try:
             self._main_loop.run()
         except KeyboardInterrupt:

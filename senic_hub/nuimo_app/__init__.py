@@ -2,6 +2,7 @@ import logging
 
 from importlib import import_module
 from threading import Thread
+import time
 
 import ctypes
 import mmap
@@ -12,7 +13,9 @@ from nuimo import (Controller, ControllerListener, ControllerManager, Gesture, L
 
 from . import matrices
 
-import time
+import multiprocessing_logging
+multiprocessing_logging.install_mp_handler()
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +38,7 @@ class NuimoControllerListener(ControllerListener):
         mac = self.controller.mac_address
         self.connection_failed = True
         logger.critical("Connection failed %s: %s", mac, error)
+        logger.critical("Trying to reconnect to %s", mac)
         self.controller.connect()
 
     def disconnect_succeeded(self):
@@ -72,10 +76,12 @@ class NuimoApp(NuimoControllerListener):
     def __init__(self, ha_api_url, ble_adapter_name, mac_address, components):
         super().__init__()
 
+        logger.debug("Initialising NuimoApp for %s" % mac_address)
         self.components = []
         self.active_component = None
         component_instances = get_component_instances(components, mac_address)
         self.set_components(component_instances)
+        logger.info("Components associated with this Nuimo: %s" % components)
 
         self.manager = None
         self.ble_adapter_name = ble_adapter_name
@@ -112,14 +118,41 @@ class NuimoApp(NuimoControllerListener):
             self.set_active_component()
 
     def start(self, ipc_queue):
-        ipc_thread = Thread(target=self.listen_to_ipc_queue, args=(ipc_queue,), daemon=True)
+
+        logger.debug("Started a dedicated nuimo control process for %s" %
+                     self.mac_address)
+
+        ipc_thread = Thread(target=self.listen_to_ipc_queue,
+                            args=(ipc_queue,),
+                            name="ipc_thread",
+                            daemon=True)
         ipc_thread.start()
 
-        connection_thread = Thread(target=self.check_nuimo_connection, daemon=True)
-        connection_thread.start()
+        logger.debug("Using adapter (self.ble_adapter_name): %s" % self.ble_adapter_name)
+        import subprocess
+        output = subprocess.check_output("hciconfig")
+        logger.debug("Adapter (from hciconfig): %s " % str(output.split()[0]))
 
         self.manager = ControllerManager(self.ble_adapter_name)
         self.manager.is_adapter_powered = True
+        logger.debug("Powering on BT adapter")
+
+        devices_known_to_bt_module = [device.mac_address for device in self.manager.devices()]
+        if self.mac_address not in devices_known_to_bt_module:
+            # The Nuimo needs to had been discovered by the bt module
+            # at some point before we can do:
+            #    self.controller = Controller(self.mac_address, self.manager)
+            #
+            # and expect it to connect succesfully. If it isn't present 
+            # discovery needs to be redone until the Nuimo reapears.
+            logger.debug("%s not in discovered devices of the bt module. Starting discovery" % self.mac_address)
+            self.manager.start_discovery()
+            while self.mac_address not in devices_known_to_bt_module:
+                time.sleep(3)
+                devices_known_to_bt_module = [device.mac_address for device in self.manager.devices()]
+                logger.debug("Still haven't found %s" % self.mac_address)
+            logger.debug("Found it. Stopping discovery")
+            self.manager.stop_discovery()
 
         self.controller = Controller(self.mac_address, self.manager)
         self.controller.listener = self
@@ -284,6 +317,9 @@ class NuimoApp(NuimoControllerListener):
         doesn't handle multiple devices in a single thread correctly) and it needs to be notified of changes
         and when to quit.
         """
+
+        logger.debug("Started the ipc_queue listener")
+
         while True:
             msg = ipc_queue.get()
             if msg['method'] == 'set_components':
@@ -295,13 +331,6 @@ class NuimoApp(NuimoControllerListener):
                 logger.info("IPC stop() received %s", self.controller.mac_address)
                 self.stop()
                 return
-
-    def check_nuimo_connection(self):
-        while True:
-            time.sleep(5)
-            if self.controller and self.controller.is_connected() is False and self.connection_failed is True:
-                logger.info("not Connected, retry a connection every 5 seconds")
-                self.controller.connect()
 
     def update_battery_level(self):
         self.bl.value = self.battery_level
