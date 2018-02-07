@@ -5,7 +5,6 @@ import os
 import yaml
 import configparser
 
-from os.path import abspath
 from threading import Thread
 from multiprocessing import Process, Queue
 
@@ -17,6 +16,9 @@ if platform.system() == 'Linux':
 
 
 from . import NuimoApp
+
+import multiprocessing_logging
+multiprocessing_logging.install_mp_handler()
 
 
 if os.path.isfile('/etc/senic_hub.ini'):
@@ -32,6 +34,11 @@ logger = logging.getLogger(__name__)
 @click.option('--config', '-c', required=True, type=click.Path(exists=True), help="app configuration file")
 @click.option('--verbose', '-v', count=True, help="Print info messages (-vv for debug messages)")
 def main(config, verbose):
+    # There are multiple 'config' variables throughout the runtime of app
+    # each meaning a different thing. I can't rename it due to the click
+    # dependency "--config", so the hacky refactoring
+    senic_hub_ini = config
+    del config
 
     log_format = '%(processName)s  %(threadName)s %(levelname)-5.5s [%(name)s:%(lineno)d] \t %(message)s'
 
@@ -49,9 +56,8 @@ def main(config, verbose):
     logging.getLogger("urllib3.connectionpool").setLevel(logging.CRITICAL)
     logging.getLogger("soco").setLevel(logging.WARNING)
 
-
     config_parser = configparser.ConfigParser()
-    config_parser.read(config)
+    config_parser.read(senic_hub_ini)
 
     # Here config_path references nuimo_app.cfg
     config_path = config_parser['app:senic_hub']['nuimo_app_config_path']
@@ -61,7 +67,7 @@ def main(config, verbose):
     queues = {}
     processes = {}
 
-    # [Alan] nuimo_app can't progress unless this file it there.
+    # nuimo_app can't progress unless /data/senic-hub/nuimo_app.cfg present.
     # A poor man's waiting loop
     # This implies
     # autostart=true
@@ -76,21 +82,31 @@ def main(config, verbose):
         time.sleep(1)
         tmp_counter += 1
 
+    # nuimo_app can't progress unless a network connection is present
+    adapter_name = "wlan0"
+    logger.info("Checking there is an ip for %s..." % adapter_name)
+    while True:
+        try:
+            ip = get_ip_address(adapter_name)
+        except IOError:
+            logger.info("No ip detected for %s. Waiting..." % adapter_name)
+            time.sleep(5)
+            continue
+        break
+
+    logger.info("Detected %s for %s..." % (ip, adapter_name))
+
     ha_api_url = None
     update_from_config_file(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name)
 
-    if platform.system() == 'Linux':
-        watch_config_thread = Thread(
-            target=watch_config_changes,
-            name="watch_config_thread",
-            args=(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name),
-            daemon=True)
-        watch_config_thread.start()
-        logger.info("Started watch_config_thread")
-        logger.debug("config_path = %s" % config_path)
-
-    elif not queues:
-        logger.error("No Nuimos configured and can't watch config for changes!")
+    logger.info("Watching %s for changes" % config_path)
+    watch_config_thread = Thread(
+        target=watch_config_changes,
+        name="watch_config_thread",
+        args=(config_path, queues, nuimo_apps, processes, ha_api_url, ble_adapter_name),
+        daemon=True)
+    logger.debug("Started thread %s" % watch_config_thread.name)
+    watch_config_thread.start()
 
     try:
         with open(config_path, 'r') as f:
@@ -175,6 +191,20 @@ def watch_config_changes(config_path, queues, nuimo_apps, processes, ha_api_url,
     logger.info("Listening to changes of: %s", config_path)
     notifier.loop()
     logger.info("Stopped listening to changes of: %s", config_path)
+
+
+import socket
+import fcntl
+import struct
+
+
+def get_ip_address(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(fcntl.ioctl(
+        s.fileno(),
+        0x8915,  # SIOCGIFADDR
+        struct.pack('256s', bytes(ifname[:15], 'utf-8'))
+    )[20:24])
 
 
 if __name__ == "__main__":
