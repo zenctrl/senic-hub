@@ -171,9 +171,15 @@ def update_device(device, settings, username):  # pragma: no cover
         bridge = PhilipsHueBridgeApiClient(device["ip"], username)
 
         device['extra']['lights'] = bridge.get_lights()
+        bridge_config = bridge.get_config()
+        device['extra']['bridge'] = {
+            key: value for key, value in bridge_config.items()
+            if key in ('swversion', 'apiversion', 'datastoreversion', 'mac',)
+        }
 
-    device_index = [i for (i, d) in enumerate(devices) if d["id"] == device["id"]].pop()
-
+    device_index = [
+        i for (i, d) in enumerate(devices) if d["id"] == device["id"]
+    ].pop()
     devices[device_index] = device
 
     with open_locked(settings['devices_path'], 'w') as f:

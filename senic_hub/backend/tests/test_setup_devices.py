@@ -125,19 +125,49 @@ def test_devices_authenticate_view_unauthorized(
 def test_devices_authenticate_view_returns_success(
         no_phue_config_file, browser, auth_url, philips_hue_bridge_description):
     payload = [{"success": {"username": "23"}}]
-    responses.add(responses.POST, 'http://127.0.0.1/api', json=payload, status=200)
-    responses.add(responses.GET, 'http://127.0.0.1/api/23', json={"a": 1}, status=200)
-    responses.add(responses.GET, 'http://127.0.0.1/api/23/lights', json={"1": {}}, status=200)
-    responses.add(responses.GET, 'http://127.0.0.1/description.xml', body=philips_hue_bridge_description, status=200)
-    assert browser.post_json(auth_url, {}).json == {"id": "ph1", "authenticated": True}
+    # Mock all the HTTP API calls with dummy responses.
+    responses.add(
+        responses.POST, 'http://127.0.0.1/api', json=payload, status=200
+    )
+    responses.add(
+        responses.GET, 'http://127.0.0.1/api/23', json={"a": 1}, status=200
+    )
+    responses.add(
+        responses.GET, 'http://127.0.0.1/api/23/lights',
+        json={"1": {}}, status=200
+    )
+    responses.add(
+        responses.GET, 'http://127.0.0.1/api/23/config',
+        json={"apiversion": "", "swversion": ""}, status=200
+    )
+    responses.add(
+        responses.GET, 'http://127.0.0.1/description.xml',
+        body=philips_hue_bridge_description, status=200
+    )
+    assert browser.post_json(
+        auth_url, {}
+    ).json == {"id": "ph1", "authenticated": True}
 
 
 @responses.activate
 def test_devices_authenticate_view_returns_already_authenticated(
         phue_config_file, browser, auth_url, philips_hue_bridge_description):
-    responses.add(responses.GET, 'http://127.0.0.1/api/23', json={"a": 1}, status=200)
-    responses.add(responses.GET, 'http://127.0.0.1/api/23/lights', json={"1": {}}, status=200)
-    responses.add(responses.GET, 'http://127.0.0.1/description.xml', body=philips_hue_bridge_description, status=200)
+    # Mock all the HTTP API calls with dummy responses.
+    responses.add(
+        responses.GET, 'http://127.0.0.1/api/23', json={"a": 1}, status=200
+    )
+    responses.add(
+        responses.GET, 'http://127.0.0.1/api/23/lights',
+        json={"1": {}}, status=200
+    )
+    responses.add(
+        responses.GET, 'http://127.0.0.1/api/23/config',
+        json={"apiversion": "", "swversion": ""}, status=200
+    )
+    responses.add(
+        responses.GET, 'http://127.0.0.1/description.xml',
+        body=philips_hue_bridge_description, status=200
+    )
     assert browser.post_json(auth_url, {}).json == {"id": "ph1", "authenticated": True}
 
 
