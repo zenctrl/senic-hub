@@ -22,6 +22,12 @@ MAX_ONBOARDING_ATTEMPTS = 3
 class NuimoSetup(nuimo.ControllerManagerListener, nuimo.ControllerListener):  # pragma: no cover
 
     def __init__(self, adapter_name):
+        # A quick way to test how often are issues causes by adapter naming
+        logger.debug("Using adapter (self.ble_adapter_name): %s" % adapter_name)
+        import subprocess
+        output = subprocess.check_output("hciconfig")
+        logger.debug("Adapter (from hciconfig): %s " % str(output.split()[0]))
+
         self._adapter_name = adapter_name
         self._gatt_manager = gatt.DeviceManager(self._adapter_name)
         self._manager = nuimo.ControllerManager(self._adapter_name)
@@ -171,11 +177,10 @@ class NuimoSetup(nuimo.ControllerManagerListener, nuimo.ControllerListener):  # 
         """
         Callback. _start_discovery timed out.
 
-        Stops all bluetooth related actuivity and
+        Stops all bluetooth related activity and
         initiates BT restart.
         """
 
-        # Why is this false?
         if not self._is_running:
             return
         logger.info("Discovery timed out")
@@ -229,7 +234,7 @@ class NuimoSetup(nuimo.ControllerManagerListener, nuimo.ControllerListener):  # 
 
     def start_connection(self, discovered_nuimo):
         """
-        Blocking. Starts the nuimo discovery.
+        Blocking. Starts the nuimo connection.
 
         Initiates the process of connecting to a nuimo and
         the threads to enforce timeout.

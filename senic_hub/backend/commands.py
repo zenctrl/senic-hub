@@ -20,12 +20,17 @@ import os
 import time
 
 
-def create_configuration_files_and_restart_apps(settings):
-    """ create_configuration_files_and_restart_apps
+def create_nuimo_app_cfg(settings):
+    """
+    Creates nuimo_app.cfg a hard dependency for nuimo_app
 
-    This is tightly coupled with the existence of
-    /data/senic-hub/devices.json
-    which probably somethin device_discovery creates
+    When there is no wifi present, netwatch kills the nuimo_app.
+    This methog responsible for the initial starting of the nuimo_app
+    once the hub got wifi connection the first time.
+    This happens during the hub onboarding.
+
+    Once the hub has been onboarded, the nuimo_app is started
+    by default by supervisor.
     """
 
     logger.info("Creating config files that map Nuimo to Sonos/Hue")
@@ -74,7 +79,6 @@ def create_configuration_files_and_restart_apps(settings):
             logger.debug("Writing %s into %s" % (config, nuimo_app_config_file_path))
             yaml.dump(config, f, default_flow_style=False)
 
-    # ALAN Netwatch isn't starting nuimo_app anymore
     if supervisor.program_status('nuimo_app') != 'RUNNING':
         supervisor.start_program('nuimo_app')
 
@@ -122,10 +126,6 @@ def phue_bridge_config(bridge):
 
 def generate_nuimo_app_configuration(nuimo_mac_address, devices):
     components = [create_component(d) for d in devices if d["authenticated"]]
-
-#    What are components?
-#    (Epdb) components
-#    [{'type': 'sonos', 'name': '10.10.10.114 - Sonos One', 'ip_address': '10.10.10.114', 'id': 'a6367f28-9363-445e-ab07-dd69f54f51ca', 'device_ids': ['7828ca17171e01400']}]
 
     config = {'nuimos': {}}
     config['nuimos'][nuimo_mac_address] = {
