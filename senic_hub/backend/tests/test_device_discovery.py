@@ -7,7 +7,6 @@ import responses
 
 from senic_hub.backend.device_discovery import (
     add_authentication_status,
-    add_device_details,
     discover_devices,
     discover_and_merge_devices,
     get_device_description,
@@ -20,30 +19,24 @@ from senic_hub.backend.testing import temp_asset_path
 
 @patch('senic_hub.backend.device_discovery.discover_devices')
 @patch('senic_hub.backend.device_discovery.add_authentication_status')
-@patch('senic_hub.backend.device_discovery.add_device_details')
 def test_devices_are_discovered_and_merged_with_existing_devices_file(
-        add_device_details_mock,
         add_authentication_status_mock, discover_devices_mock):
     discover_devices_mock.return_value = []
     with temp_asset_path('devices.json') as devices_path:
         discover_and_merge_devices(devices_path, datetime.utcnow())
     # TODO: `assert_called (_once)` only available on the mock with Python 3.6, we use Python 3.5
-    # add_device_details_mock.assert_called_once()
     # add_authentication_status_mock.assert_called_once()
     # discover_devices_mock.assert_called_once()
 
 
 @patch('senic_hub.backend.device_discovery.discover_devices')
 @patch('senic_hub.backend.device_discovery.add_authentication_status')
-@patch('senic_hub.backend.device_discovery.add_device_details')
 def test_devices_are_discovered_and_merged_with_empty_devices_file(
-        add_device_details_mock,
         add_authentication_status_mock, discover_devices_mock):
     discover_devices_mock.return_value = []
     with temp_asset_path('empty') as devices_path:
         discover_and_merge_devices(devices_path, datetime.utcnow())
     # TODO: `assert_called_once` only available with Python 3.6, we use Python 3.5
-    # add_device_details_mock.assert_called_once()
     # add_authentication_status_mock.assert_called_once()
     # discover_devices_mock.assert_called_once()
 
@@ -74,15 +67,6 @@ def test_add_authentication_status_sets_authenticated_if_philips_hue_api_says_no
     device = dict(ip='0.0.0.0', type='philips_hue', authenticationRequired=True, extra=dict())
     add_authentication_status([device])
     assert(not device['authenticated'])
-
-
-@patch.object(PhilipsHueBridgeApiClient, 'get_lights')
-def test_add_device_details_adds_philips_hue_lights(get_lights_mock):
-    expected = 'foo'
-    get_lights_mock.return_value = expected
-    device = dict(ip='0.0.0.0', type='philips_hue', authenticated=True, extra=dict(username='foo'))
-    add_device_details([device])
-    assert(device['extra']['lights'] == expected)
 
 
 @fixture

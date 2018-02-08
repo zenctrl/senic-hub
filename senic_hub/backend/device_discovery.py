@@ -93,7 +93,6 @@ def discover_and_merge_devices(devices_path, now):
     merged_devices = merge_devices(known_devices, discovered_devices, now)
 
     add_authentication_status(merged_devices)
-    add_device_details(merged_devices)
 
     try:
         with open_locked(devices_path, 'w') as f:
@@ -171,13 +170,6 @@ def add_authentication_status(devices):
             device["authenticated"] = api.is_authenticated()
         else:
             device["authenticated"] = True
-
-
-def add_device_details(devices):
-    authenticated_bridges = [d for d in devices if d['type'] == 'philips_hue' and d['authenticated']]
-    for bridge in authenticated_bridges:
-        api = PhilipsHueBridgeApiClient(bridge["ip"], bridge['extra']['username'])
-        bridge['extra']['lights'] = api.get_lights()
 
 
 class UnauthenticatedDeviceError(Exception):

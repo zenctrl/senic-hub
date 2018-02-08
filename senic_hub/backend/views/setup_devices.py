@@ -65,16 +65,12 @@ authenticate_service = Service(
 
 @authenticate_service.post(validators=(colander_body_validator,))
 def devices_authenticate_view(request):
-    """
-    NOTE: This view updates HASS configuration files. No locking is
-    performed here.
-
-    """
     device_id = request.matchdict["device_id"]
     logger.debug("Authenticating device with ID=%s", device_id)
 
     device_list_path = request.registry.settings['devices_path']
     device = get_device(device_list_path, device_id)
+
     if not device["authenticationRequired"]:
         return {"id": device_id, "authenticated": True}
 
