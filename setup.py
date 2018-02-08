@@ -32,6 +32,7 @@ if platform.system() == 'Linux':
         'lightify>=1.0.5',
         'pyinotify==0.9.6',
         'raven',
+        'multiprocessing_logging',
     ]
 else:
     install_requires = [
@@ -53,6 +54,7 @@ else:
         'phue==0.9',
         'lightify>=1.0.5',
         'raven',
+        'multiprocessing_logging',
     ]
 
 setup(

@@ -143,7 +143,7 @@ class NuimoApp(NuimoControllerListener):
             # at some point before we can do:
             #    self.controller = Controller(self.mac_address, self.manager)
             #
-            # and expect it to connect succesfully. If it isn't present 
+            # and expect it to connect succesfully. If it isn't present
             # discovery needs to be redone until the Nuimo reapears.
             logger.debug("%s not in discovered devices of the bt module. Starting discovery" % self.mac_address)
             self.manager.start_discovery()
