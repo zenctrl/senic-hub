@@ -84,7 +84,6 @@ def create_nuimo_app_cfg(settings):
         supervisor.start_program('nuimo_app')
 
 
-
 def generate_nuimo_app_configuration(nuimo_mac_address, devices):
     components = [create_component(d) for d in devices if d["authenticated"]]
 
