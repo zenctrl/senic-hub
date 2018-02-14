@@ -19,6 +19,12 @@ multiprocessing_logging.install_mp_handler()
 
 logger = logging.getLogger(__name__)
 
+# The underlying callback that reacts on a disconnect doesn't
+# provide a good enough solution in the field.
+# (it just doesn't reconnect every time)
+# We're manually polling for the status of the nuimo.
+NUIMO_RECONNECT_POLL_PERIOD = 5
+
 
 class NuimoControllerListener(ControllerListener):
 
@@ -127,6 +133,11 @@ class NuimoApp(NuimoControllerListener):
                             name="ipc_thread",
                             daemon=True)
         ipc_thread.start()
+
+        logger.debug("Started the connection check thread. Poll interval [%ss]" %
+                     NUIMO_RECONNECT_POLL_PERIOD)
+        connection_thread = Thread(target=self.check_nuimo_connection, daemon=True)
+        connection_thread.start()
 
         logger.debug("Using adapter (self.ble_adapter_name): %s" % self.ble_adapter_name)
         import subprocess
@@ -262,6 +273,17 @@ class NuimoApp(NuimoControllerListener):
             return self.components[index - 1]
         else:
             return self.components[0]
+
+    def check_nuimo_connection(self):
+        while True:
+            time.sleep(NUIMO_RECONNECT_POLL_PERIOD)
+            if not self.controller.is_connected():
+                logger.debug("Not detecting a connected Nuimo")
+                if self.connection_failed:
+                    logger.debug("Detected a failed connection attempt")
+                    logger.info("Nuimo [%s] not connected. Retring to connect..." %
+                                self.mac_address)
+                    self.controller.connect()
 
     def get_next_component(self):
         if not self.components:
