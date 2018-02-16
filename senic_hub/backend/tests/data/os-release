@@ -1,0 +1,12 @@
+ID="senic-dev"
+NAME="senic"
+VERSION="0.1.8"
+VERSION_ID="0.1.8"
+PRETTY_NAME="senic 0.1.8"
+BUILD_DATE="Fri Jan 26 11:27:38 CET 2018"
+meta=2017-10-206-g68a3f33027
+meta-senic=0.1.8
+meta-oe=6e3fc5b8d
+meta-networking=6e3fc5b8d
+meta-python=6e3fc5b8d
+meta-mender-core=rocko-v2018.01-28-g18dfa93
