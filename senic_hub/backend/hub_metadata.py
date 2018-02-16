@@ -1,3 +1,4 @@
+import json
 import os
 import re
 
@@ -15,7 +16,10 @@ class HubMetaData(object):
             return ''
 
         with open(file_path) as data_file:
-            return data_file.readlines()
+            if file_path.endswith('.json'):
+                return json.load(data_file)
+            else:
+                return data_file.readlines()
 
     @classmethod
     def os_version(cls):
@@ -49,3 +53,16 @@ class HubMetaData(object):
                 return serial.strip().replace('02c00081', '')
 
         return ''
+
+    @classmethod
+    def phue_bridge_info(cls, devices_path, bridge_ip):
+        devices = cls._read_from_file(devices_path)
+        bridges = [
+            device for device in devices
+            if device['ip'] == bridge_ip and device['type'] == 'philips_hue'
+        ]
+
+        if not bridges or not bridges[0].get('extra'):
+            return {}
+
+        return bridges[0]['extra'].get('bridge', {})

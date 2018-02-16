@@ -10,6 +10,7 @@ from random import sample
 from colander import MappingSchema, SchemaNode, String, Int, Range, Length
 from cornice.validators import colander_body_validator
 from .api_descriptions import descriptions as desc
+from .. import hub_metadata
 
 logger = getLogger(__name__)
 
@@ -35,6 +36,7 @@ def get_nuimo_philips_hue_favorites(request):
     nuimo_app_config_path = request.registry.settings['nuimo_app_config_path']
     mac_address = request.matchdict['mac_address'].replace('-', ':')
     component_id = request.matchdict['component_id']
+    os_version = hub_metadata.HubMetaData.os_version()
 
     with open(nuimo_app_config_path, 'r+') as f:
         config = yaml.load(f)
@@ -60,10 +62,22 @@ def get_nuimo_philips_hue_favorites(request):
 
         if not any((station1, station2, station3)):  # pragma: no cover,
             philips_hue_bridge = phue.Bridge(component['ip_address'], component['username'])
+            phue_bridge_info = hub_metadata.HubMetaData.phue_bridge_info(
+                request.registry.settings['devices_path'],
+                component['ip_address']
+            )
+            versions = {
+                'os_version': os_version,
+                'phue_api_version': phue_bridge_info.get('apiverion'),
+                'phue_sw_version': phue_bridge_info.get('swversion')
+            }
+
             try:
                 scenes = philips_hue_bridge.get_scene()
             except ConnectionResetError:
-                logger.error("Hue Bridge not reachable, handle exception")
+                logger.error(
+                    "Hue Bridge not reachable.", extra={'versions': versions}
+                )
 
             light_ids = [device.split('-')[-1] for device in component['device_ids']]
             scenes = {k: v for k, v in scenes.items() if v['lights'] == light_ids}

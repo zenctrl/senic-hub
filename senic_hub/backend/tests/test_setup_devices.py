@@ -66,6 +66,12 @@ def test_device_list_contains_devices(browser, url):
                     "4": {"name": " Light 4"},
                     "8": {"name": " Light 8"},
                     "6": {"name": " Light 6"}
+                },
+                "bridge": {
+                    "apiversion": "1.22.0",
+                    "datastoreversion": "65",
+                    "mac": "00:17:88:79:53:98",
+                    "swversion": "1711151408"
                 }
             }
         },
