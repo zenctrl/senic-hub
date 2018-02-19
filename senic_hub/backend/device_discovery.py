@@ -22,6 +22,7 @@ from json.decoder import JSONDecodeError
 
 from .lockfile import open_locked
 from .network_discovery import NetworkDiscovery
+from .hub_metadata import HubMetaData
 
 
 if os.path.isfile('/etc/senic_hub.ini'):  # pragma: no cover
@@ -214,7 +215,7 @@ class PhilipsHueBridgeApiClient:
     def __init__(self, ip_address, username=None):
         self.ip_address = ip_address
         self.bridge_url = "http://{}/api".format(self.ip_address)
-        self.app_name = "senic hub#192.168.1.12"  # TODO get real IP of the hub
+        self.app_name = "senic_hub#" + HubMetaData.hardware_identifier()
 
         self.username = username
 
