@@ -10,7 +10,7 @@ from random import sample
 from colander import MappingSchema, SchemaNode, String, Int, Range, Length
 from cornice.validators import colander_body_validator
 from .api_descriptions import descriptions as desc
-from .. import hub_metadata
+import senic_hub.backend.hub_metadata as hub_metadata
 
 logger = getLogger(__name__)
 
