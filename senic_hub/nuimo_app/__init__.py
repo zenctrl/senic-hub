@@ -15,8 +15,6 @@ from . import matrices
 
 import multiprocessing_logging
 multiprocessing_logging.install_mp_handler()
-
-
 logger = logging.getLogger(__name__)
 
 # The underlying callback that reacts on a disconnect doesn't
@@ -41,11 +39,22 @@ class NuimoControllerListener(ControllerListener):
         logger.info("Connected to Nuimo controller %s", mac)
 
     def connect_failed(self, error):
-        mac = self.controller.mac_address
         self.connection_failed = True
-        logger.critical("Connection failed %s: %s", mac, error)
-        logger.critical("Trying to reconnect to %s", mac)
-        self.controller.connect()
+        logger.info("Can't reconnect. Restarting nuimo_app")
+
+        # This is a dodgy hack :)
+        # Once the connection has failed field tests showed it
+        # won't reconnect again and a restart of the nuimo_app
+        # is needed.
+        # The supervisor is called for that from this child process.
+        # After noticing this resulting in rouge processes, the
+        # sys.exit(0) was added
+
+        import subprocess
+        restart_nuimo_app_cmd = "supervisorctl restart nuimo_app"
+        subprocess.Popen(restart_nuimo_app_cmd.split())
+        import sys
+        sys.exit()
 
     def disconnect_succeeded(self):
         mac = self.controller.mac_address
@@ -134,11 +143,6 @@ class NuimoApp(NuimoControllerListener):
                             daemon=True)
         ipc_thread.start()
 
-        logger.debug("Started the connection check thread. Poll interval [%ss]" %
-                     NUIMO_RECONNECT_POLL_PERIOD)
-        connection_thread = Thread(target=self.check_nuimo_connection, daemon=True)
-        connection_thread.start()
-
         logger.debug("Using adapter (self.ble_adapter_name): %s" % self.ble_adapter_name)
         import subprocess
         output = subprocess.check_output("hciconfig")
@@ -156,11 +160,13 @@ class NuimoApp(NuimoControllerListener):
             #
             # and expect it to connect succesfully. If it isn't present
             # discovery needs to be redone until the Nuimo reapears.
-            logger.debug("%s not in discovered devices of the bt module. Starting discovery" % self.mac_address)
+            logger.debug("%s not in discovered devices of the bt module. Starting discovery"
+                         % self.mac_address)
             self.manager.start_discovery()
             while self.mac_address not in devices_known_to_bt_module:
                 time.sleep(3)
-                devices_known_to_bt_module = [device.mac_address for device in self.manager.devices()]
+                devices_known_to_bt_module = [device.mac_address
+                                              for device in self.manager.devices()]
                 logger.debug("Still haven't found %s" % self.mac_address)
             logger.debug("Found it. Stopping discovery")
             self.manager.stop_discovery()
@@ -170,6 +176,7 @@ class NuimoApp(NuimoControllerListener):
         self.set_active_component()
         logger.info("Connecting to Nuimo controller %s", self.controller.mac_address)
         self.controller.connect()
+
         try:
             self.manager.run()
         except KeyboardInterrupt:
@@ -273,17 +280,6 @@ class NuimoApp(NuimoControllerListener):
             return self.components[index - 1]
         else:
             return self.components[0]
-
-    def check_nuimo_connection(self):
-        while True:
-            time.sleep(NUIMO_RECONNECT_POLL_PERIOD)
-            if not self.controller.is_connected():
-                logger.debug("Not detecting a connected Nuimo")
-                if self.connection_failed:
-                    logger.debug("Detected a failed connection attempt")
-                    logger.info("Nuimo [%s] not connected. Retring to connect..." %
-                                self.mac_address)
-                    self.controller.connect()
 
     def get_next_component(self):
         if not self.components:
