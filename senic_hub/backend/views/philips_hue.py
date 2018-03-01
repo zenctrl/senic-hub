@@ -79,8 +79,13 @@ def get_nuimo_philips_hue_favorites(request):
                     "Hue Bridge not reachable.", extra={'versions': versions}
                 )
 
-            light_ids = [device.split('-')[-1] for device in component['device_ids']]
-            scenes = {k: v for k, v in scenes.items() if v['lights'] == light_ids}
+            light_ids = {
+                device.split('-')[-1] for device in component['device_ids']
+            }
+            scenes = {
+                k: v for k, v in scenes.items()
+                if light_ids.intersection(set(v['lights']))
+            }
 
             if len(list(scenes.keys())) >= 3:
                 for scene in scenes:
@@ -111,7 +116,6 @@ def put_nuimo_philips_hue_favorite(request):
     component_id = request.matchdict['component_id']
     station_name = request.validated['name']
     station_number = request.validated['number']
-    logger.info(request)
 
     with open(nuimo_app_config_path, 'r+') as f:
         config = yaml.load(f)
