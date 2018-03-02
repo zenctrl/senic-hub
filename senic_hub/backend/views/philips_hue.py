@@ -10,6 +10,7 @@ from random import sample
 from colander import MappingSchema, SchemaNode, String, Int, Range, Length
 from cornice.validators import colander_body_validator
 from .api_descriptions import descriptions as desc
+from senic_hub.nuimo_app.components import custom_phue_scenes
 import senic_hub.backend.hub_metadata as hub_metadata
 
 logger = getLogger(__name__)
@@ -177,9 +178,12 @@ def get_philips_hue_favorites(request):  # pragma: no cover,
         return HTTPNotFound("less than Three Favorites on Philips Hue")
 
     scenes_list = []
+    supported_scenes = custom_phue_scenes.CUSTOM_SCENES['scenes']
+
     for scene in scenes:
-        scenes[scene]['id'] = scene
-        scenes_list.append(scenes[scene])
+        if scenes[scene]['name'] in supported_scenes:
+            scenes[scene]['id'] = scene
+            scenes_list.append(scenes[scene])
 
     sc = []
     for s in scenes_list:
